@@ -84,6 +84,12 @@ ldt_desc_ptr:
 
 gdt_bottom:
 
+.align 4
+    .word 0 # Padding
+gdt_desc_ptr:
+    .word gdt_bottom - gdt - 1
+    .long gdt
+
     .align 16
 ldt:
     .rept 4
