@@ -23,23 +23,24 @@ void idt_init() {
         idt[i].seg_selector = KERNEL_CS;
     }
 
-    SET_IDT_ENTRY(idt[0], exception_handler);
-    SET_IDT_ENTRY(idt[1], exception_handler);
-    SET_IDT_ENTRY(idt[2], exception_handler);
-    SET_IDT_ENTRY(idt[3], exception_handler);
-    SET_IDT_ENTRY(idt[4], exception_handler);
-    SET_IDT_ENTRY(idt[5], exception_handler);
-    SET_IDT_ENTRY(idt[6], exception_handler);
-    SET_IDT_ENTRY(idt[7], exception_handler);
-    SET_IDT_ENTRY(idt[8], exception_handler);
-    SET_IDT_ENTRY(idt[9], exception_handler);
-    SET_IDT_ENTRY(idt[10], exception_handler);
-    SET_IDT_ENTRY(idt[11], exception_handler);
-    SET_IDT_ENTRY(idt[12], exception_handler);
-    SET_IDT_ENTRY(idt[13], exception_handler);
-    SET_IDT_ENTRY(idt[14], exception_handler);
-    SET_IDT_ENTRY(idt[15], exception_handler);
-    SET_IDT_ENTRY(idt[16], exception_handler);
-    SET_IDT_ENTRY(idt[17], exception_handler);
-    SET_IDT_ENTRY(idt[18], exception_handler);
+    SET_IDT_ENTRY(idt[0], handler_divide); // divide error exception
+    SET_IDT_ENTRY(idt[1], handler_debug); // debug exception
+    SET_IDT_ENTRY(idt[2], handler_nmi); // NMI exception
+    SET_IDT_ENTRY(idt[3], handler_breakpoint); // breakpoint exception
+    SET_IDT_ENTRY(idt[4], handler_overflow); // overflow exception
+    SET_IDT_ENTRY(idt[5], handler_bounds); // BOUND range exceeded
+    SET_IDT_ENTRY(idt[6], handler_inv_opcode); // invalid opcode
+    SET_IDT_ENTRY(idt[7], handler_dev_na); // device not available
+    SET_IDT_ENTRY(idt[8], handler_doub_fault); // double fault exception
+    SET_IDT_ENTRY(idt[9], handler_cso); // coproc segment overrun
+    SET_IDT_ENTRY(idt[10], handler_inv_tss); // invalid TSS exception
+    SET_IDT_ENTRY(idt[11], handler_seg_np); // segment not present
+    SET_IDT_ENTRY(idt[12], handler_stk_fault); // stack fault exception
+    SET_IDT_ENTRY(idt[13], handler_gen_prot); // general protection fault
+    SET_IDT_ENTRY(idt[14], handler_page_fault); // page fault exception
+    // NO INTERRUPT 15
+    SET_IDT_ENTRY(idt[16], handler_fpu_error); // x87 FPU floating point error
+    SET_IDT_ENTRY(idt[17], handler_align_chk); // alignment check exception
+    SET_IDT_ENTRY(idt[18], handler_machine_chk); // machine check exception
+    SET_IDT_ENTRY(idt[19], handler_simd_fp); // SIMD floating point exception
 }
