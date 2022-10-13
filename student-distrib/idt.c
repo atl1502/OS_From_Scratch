@@ -7,7 +7,9 @@ void idt_init() {
     // INTERRUPT GATE
     //     P  |DPL| 0  D  1  1 0 0 0 0
     // BIT 15 14 13 12 11 10 9 8 7 6 5
-
+    // based on https://courses.engr.illinois.edu/ece391/fa2022/secure/references/IA32-ref-manual-vol-3.pdf
+    // diagram 5-2 pg 156
+    
     // for every IDT vector
     for (i = 0; i < NUM_VEC; i++) {
         idt[i].present = 1; // bit 15
