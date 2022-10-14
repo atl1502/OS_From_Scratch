@@ -1,9 +1,11 @@
-// interrupt handler functions
+// internal irq table
+typedef void (*isr_t) ();
+extern void register_interrupt_handler (int n);
 
 // initialises IDT
 extern void idt_init();
 
-// interrupt handlers
+// exception handlers
 extern void handler_divide();
 extern void handler_debug();
 extern void handler_nmi();
