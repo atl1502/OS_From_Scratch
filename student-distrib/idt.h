@@ -5,9 +5,6 @@
 typedef void (*isr_t) ();
 extern void register_interrupt_handler (int n);
 
-// initialises IDT
-extern void idt_init();
-
 // exception handlers
 extern void handler_divide();
 extern void handler_debug();
@@ -28,5 +25,8 @@ extern void handler_fpu_error();
 extern void handler_align_chk();
 extern void handler_machine_chk();
 extern void handler_simd_fp();
+
+// initialises IDT
+extern void idt_init();
 
 #endif

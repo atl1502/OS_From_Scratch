@@ -1,8 +1,109 @@
-#include "idt.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "i8259.h"
+#include "idt.h"
 
 static isr_t interrupt_handlers[256]; // array of interrupt handlers, only needs 16 (2 PICs)
+
+void register_interrupt_handler(int n) {
+    
+}
+
+// Exception handlers
+void handler_divide() {
+    printf("divide error exception");
+    while(1) {}
+}
+
+void handler_debug() {
+    printf("debug exception");
+    while(1) {}
+}
+
+void handler_nmi() {
+    printf("NMI exception");
+    while(1) {}
+}
+
+void handler_breakpoint() {
+    printf("breakpoint exception");
+    while(1) {}
+}
+
+void handler_overflow() {
+    printf("overflow exception");
+    while(1) {}
+}
+
+void handler_bounds() {
+    printf("BOUND range exceeded exception");
+    while(1) {}
+}
+
+void handler_inv_opcode() {
+    printf("invalid opcode exception");
+    while(1) {}
+}
+
+void handler_dev_na() {
+    printf("device not available exception");
+    while(1) {}
+}
+
+void handler_doub_fault() {
+    printf("double fault exception");
+    while(1) {}
+}
+
+void handler_cso() {
+    printf("coproc segment overrun exception");
+    while(1) {}
+}
+
+void handler_inv_tss() {
+    printf("invalid TSS exception");
+    while(1) {}
+}
+
+void handler_seg_np() {
+    printf("segment not present exception");
+    while(1) {}
+}
+
+void handler_stk_fault() {
+    printf("stack fault exception");
+    while(1) {}
+}
+
+void handler_gen_prot() {
+    printf("general protection fault exception");
+    while(1) {}
+}
+
+void handler_page_fault() {
+    printf("page fault exception");
+    while(1) {}
+}
+
+void handler_fpu_error() {
+    printf("x87 FPU floating point error exception");
+    while(1) {}
+}
+
+void handler_align_chk() {
+    printf("alignment check exception");
+    while(1) {}
+}
+
+void handler_machine_chk() {
+    printf("machine check exception");
+    while(1) {}
+}
+
+void handler_simd_fp() {
+    printf("SIMD floating point exception");
+    while(1) {}
+}
 
 void idt_init() {
     int i;
@@ -48,104 +149,4 @@ void idt_init() {
 
     //irq
 
-}
-
-void register_interrupt_handler(int n) {
-
-}
-
-// Exception handlers
-void handler_divide() {
-    prinf("divide error exception");
-    while(1) {}
-}
-
-void handler_debug() {
-    prinf("debug exception");
-    while(1) {}
-}
-
-void handler_nmi() {
-    prinf("NMI exception");
-    while(1) {}
-}
-
-void handler_breakpoint() {
-    prinf("breakpoint exception");
-    while(1) {}
-}
-
-void handler_overflow() {
-    prinf("overflow exception");
-    while(1) {}
-}
-
-void handler_bounds() {
-    prinf("BOUND range exceeded exception");
-    while(1) {}
-}
-
-void handler_inv_opcode() {
-    prinf("invalid opcode exception");
-    while(1) {}
-}
-
-void handler_dev_na() {
-    prinf("device not available exception");
-    while(1) {}
-}
-
-void handler_doub_fault() {
-    prinf("double fault exception");
-    while(1) {}
-}
-
-void handler_cso() {
-    prinf("coproc segment overrun exception");
-    while(1) {}
-}
-
-void handler_inv_tss() {
-    prinf("invalid TSS exception");
-    while(1) {}
-}
-
-void handler_seg_np() {
-    prinf("segment not present exception");
-    while(1) {}
-}
-
-void handler_stk_fault() {
-    prinf("stack fault exception");
-    while(1) {}
-}
-
-void handler_gen_prot() {
-    prinf("general protection fault exception");
-    while(1) {}
-}
-
-void handler_page_fault() {
-    prinf("page fault exception");
-    while(1) {}
-}
-
-void handler_fpu_error() {
-    prinf("x87 FPU floating point error exception");
-    while(1) {}
-}
-
-void handler_align_chk() {
-    prinf("alignment check exception");
-    while(1) {}
-}
-
-void handler_machine_chk() {
-    prinf("machine check exception");
-    while(1) {}
-}
-
-void handler_simd_fp() {
-    prinf("SIMD floating point exception");
-    while(1) {}
 }
