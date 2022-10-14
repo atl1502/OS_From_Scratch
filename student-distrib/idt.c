@@ -3,7 +3,7 @@
 #include "i8259.h"
 #include "idt.h"
 
-static isr_t interrupt_handlers[256]; // array of interrupt handlers, only needs 16 (2 PICs)
+// static isr_t interrupt_handlers[256]; // array of interrupt handlers, only needs 16 (2 PICs)
 
 void register_interrupt_handler(int n) {
     
