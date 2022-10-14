@@ -47,35 +47,37 @@ void i8259_init(void) {
 
 /* Enable (unmask) the specified IRQ */
 void enable_irq(uint32_t irq_num) {
-    int port;
-    int data;
+    // if irq is for master pic
     if(irq_num < 8){
-        port = MASTER_8259_DATA;
+        // if irq is for master pic
+        master_mask = inb(MASTER_8259_DATA) & ~(1 << irq_num);
+        outb(master_mask, MASTER_8259_DATA);
     } else {
-        port = SLAVE_8259_DATA;
-        data = irq_num - 8;
+        // if irq is for slave pic, get local irq number
+        irq_num = irq_num - 8;
+        slave_mask = inb(SLAVE_8259_DATA) & ~(1 << irq_num);
+        outb(slave_mask, SLAVE_8259_DATA);
     }
-    data = inb(port) & ~(1 << data);
-    outb(data, port);
 }
 
 /* Disable (mask) the specified IRQ */
 void disable_irq(uint32_t irq_num) {
-    int port;
-    int data;
     if(irq_num < 8){
-        port = MASTER_8259_DATA;
+        // if irq is for master pic
+        slave_mask = inb(MASTER_8259_DATA) | (1 << irq_num);
+        outb(slave_mask, MASTER_8259_DATA);
     } else {
-        port = SLAVE_8259_DATA;
-        data = irq_num - 8;
+        // if irq is for slave pic, get local irq number
+        irq_num = irq_num - 8;
+        slave_mask = inb(SLAVE_8259_DATA) | (1 << irq_num);
+        outb(slave_mask, SLAVE_8259_DATA);
     }
-    data = inb(port) | ~(1 << data);
-    outb(data, port);
 }
 
 /* Send end-of-interrupt signal for the specified IRQ */
 void send_eoi(uint32_t irq_num) {
+    // pick which pic to send EOI to
     if(irq_num >= 8)
-		outb(EOI, MASTER_8259_PORT);
-	outb(EOI, SLAVE_8259_PORT);
+		outb(EOI, SLAVE_8259_PORT);
+	outb(EOI, MASTER_8259_PORT);
 }
