@@ -1,3 +1,6 @@
+#ifndef idt_guard
+#define idt_guard
+
 // internal irq table
 typedef void (*isr_t) ();
 extern void register_interrupt_handler (int n);
@@ -25,3 +28,5 @@ extern void handler_fpu_error();
 extern void handler_align_chk();
 extern void handler_machine_chk();
 extern void handler_simd_fp();
+
+#endif
