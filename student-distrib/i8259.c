@@ -4,23 +4,78 @@
 
 #include "i8259.h"
 #include "lib.h"
+#include "spinlock.h"
 
 /* Interrupt masks to determine which interrupts are enabled and disabled */
-uint8_t master_mask; /* IRQs 0-7  */
-uint8_t slave_mask;  /* IRQs 8-15 */
-
+uint8_t master_mask = 0xFF; /* IRQs 0-7  */
+uint8_t slave_mask = 0xFF;  /* IRQs 8-15 */
+static spinlock_t i8259A_lock = SPIN_LOCK_UNLOCKED;
 /* Initialize the 8259 PIC */
 void i8259_init(void) {
+
+    unsigned char a1, a2;
+
+    unsigned long flags;
+    spin_lock_irqsave(&i8259A_lock, flags);
+    // save previous masking
+    a1 = inb(MASTER_8259_DATA);
+    a2 = inb(SLAVE_8259_DATA);
+
+    // mask pics
+    outb(master_mask, MASTER_8259_DATA);
+    outb(slave_mask, SLAVE_8259_DATA);
+
+    // init, push start in idt, location of secondary
+    outb(ICW1, MASTER_8259_PORT);
+    outb(ICW2_MASTER, MASTER_8259_DATA);
+    outb(ICW3_MASTER, MASTER_8259_DATA);
+    outb(ICW4, MASTER_8259_DATA);
+
+    // init, push start in idt, attach location on primary
+    outb(ICW1, SLAVE_8259_PORT);
+    outb(ICW2_SLAVE , SLAVE_8259_DATA);
+    outb(ICW3_SLAVE, SLAVE_8259_DATA);
+    outb(ICW4, SLAVE_8259_DATA);
+
+    // restore maskings
+    outb(a1, MASTER_8259_DATA);
+    outb(a2, SLAVE_8259_DATA);
+
+    spin_unlock_irqrestore(&i8259A_lock, flags);
+
 }
 
 /* Enable (unmask) the specified IRQ */
 void enable_irq(uint32_t irq_num) {
+    int port;
+    int data;
+    if(irq_num < 8){
+        port = MASTER_8259_DATA;
+    } else {
+        port = SLAVE_8259_DATA;
+        data = irq_num - 8;
+    }
+    data = inb(port) & ~(1 << data);
+    outb(data, port);
 }
 
 /* Disable (mask) the specified IRQ */
 void disable_irq(uint32_t irq_num) {
+    int port;
+    int data;
+    if(irq_num < 8){
+        port = MASTER_8259_DATA;
+    } else {
+        port = SLAVE_8259_DATA;
+        data = irq_num - 8;
+    }
+    data = inb(port) | ~(1 << data);
+    outb(data, port);
 }
 
 /* Send end-of-interrupt signal for the specified IRQ */
 void send_eoi(uint32_t irq_num) {
+    if(irq_num >= 8)
+		outb(EOI, MASTER_8259_PORT);
+	outb(EOI, SLAVE_8259_PORT);
 }

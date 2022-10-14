@@ -6,7 +6,7 @@ void spin_lock(spinlock_t* lock){
     asm volatile ("                   \n\
             loop:                     \n\
                 movl $1, %%ecx        \n\
-                xchgl %%ecx, (%0)   \n\
+                xchgl %%ecx, (%0)     \n\
                 cmpl $1, %%ecx        \n\
                 je      loop          \n\
                 "
@@ -33,7 +33,7 @@ int spin_is_locked(spinlock_t* lock){
 int spin_trylock(spinlock_t* lock){
     asm volatile ("                   \n\
             movl $1, %%ecx            \n\
-            xchgl %%ecx, (%0)       \n\
+            xchgl %%ecx, (%0)         \n\
             cmpl $1, %%ecx            \n\
             "
             :
