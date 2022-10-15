@@ -4,4 +4,13 @@
 
 
 
-#include "types.h"
+#include "../types.h"
+
+
+/* Externally-visible functions */
+
+/* Initialize the RTC */
+void rtc_init(void);
+
+/* Handle the RTC interrupt */
+void rtc_handle_interrupt(void);

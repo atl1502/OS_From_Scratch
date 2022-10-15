@@ -3,6 +3,7 @@
  */
 
 #include "keyboard.h"
-#include "lib.h"
-#include "spinlock.h"
+#include "../lib.h"
+#include "../spinlock.h"
+#include "../i8259.h"
 
