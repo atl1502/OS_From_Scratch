@@ -193,6 +193,7 @@ void entry(unsigned long magic, unsigned long addr) {
     cr0 |= 0x80000000;
     asm volatile("mov %0, %%cr0":: "r"(cr0));
 
+    /* Initialize idt vectors */
     idt_init();
 
     /* Init the PIC */
