@@ -16,7 +16,7 @@ void i8259_init(void) {
     unsigned char a1, a2;
 
     unsigned long flags;
-    spin_lock_irqsave(&i8259A_lock, flags);
+    spin_lock_irqsave(&i8259A_lock, &flags);
     // save previous masking
     a1 = inb(MASTER_8259_DATA);
     a2 = inb(SLAVE_8259_DATA);
@@ -41,7 +41,7 @@ void i8259_init(void) {
     outb(a1, MASTER_8259_DATA);
     outb(a2, SLAVE_8259_DATA);
 
-    spin_unlock_irqrestore(&i8259A_lock, flags);
+    spin_unlock_irqrestore(&i8259A_lock, &flags);
 
 }
 

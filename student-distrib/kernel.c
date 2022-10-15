@@ -182,7 +182,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Enable Paging */
     asm volatile("mov %%cr0, %0": "=r"(cr0));
-    cr0 |= 0x80000001;
+    cr0 |= 0x80000000;
     asm volatile("mov %0, %%cr0":: "r"(cr0));
 
     /* Initialize idt vectors */
@@ -200,7 +200,6 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     /*printf("Enabling Interrupts\n");
     sti();*/
-
 #ifdef RUN_TESTS
     /* Run tests */
     launch_tests();

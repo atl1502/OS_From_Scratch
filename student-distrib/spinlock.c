@@ -60,13 +60,13 @@ void spin_unlock_irq(spinlock_t* lock){
 }
 
 // aquire the lock and put IF = 0 and save it in flags
-void spin_lock_irqsave(spinlock_t* lock, unsigned long flags){
-    cli_and_save(flags);
+void spin_lock_irqsave(spinlock_t* lock, unsigned long* flags){
+    cli_and_save(*flags);
     spin_lock(lock);
 }
 
 // release the lock and set flags to flags
-void spin_unlock_irqrestore(spinlock_t* lock, unsigned long flags){
-    spin_lock(lock);
-    restore_flags(flags);
+void spin_unlock_irqrestore(spinlock_t* lock, unsigned long* flags){
+    spin_unlock(lock);
+    restore_flags(*flags);
 }
