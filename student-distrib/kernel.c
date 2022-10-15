@@ -16,14 +16,6 @@
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
 
-/* Table and directory lengths for pages in kernel space */
-#define DIRECTORY_LEN 1024
-#define TABLE_LEN 1024
-
-/* Initialize tables to zero, to mark as no present initially and align on four Kilobyte boundary */
-uint32_t page_directory[DIRECTORY_LEN] __attribute__((aligned (4096))) = { 0 };
-uint32_t page_table[DIRECTORY_LEN] __attribute__((aligned (4096))) = { 0 };
-
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void entry(unsigned long magic, unsigned long addr) {

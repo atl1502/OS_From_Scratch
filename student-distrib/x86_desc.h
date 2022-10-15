@@ -124,6 +124,10 @@ extern uint32_t tss_size;
 extern seg_desc_t tss_desc_ptr;
 extern tss_t tss;
 
+/* External page directory and table */
+extern uint32_t page_directory[1024];
+extern uint32_t page_table[1024];
+
 /* Sets runtime-settable parameters in the GDT entry for the LDT */
 #define SET_LDT_PARAMS(str, addr, lim)                          \
 do {                                                            \
