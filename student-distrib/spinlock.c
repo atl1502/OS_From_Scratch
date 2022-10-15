@@ -67,6 +67,6 @@ void spin_lock_irqsave(spinlock_t* lock, unsigned long flags){
 
 // release the lock and set flags to flags
 void spin_unlock_irqrestore(spinlock_t* lock, unsigned long flags){
-    spin_lock(lock);
+    spin_unlock(lock);
     restore_flags(flags);
 }
