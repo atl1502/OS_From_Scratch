@@ -2,6 +2,10 @@
  *  Our implementation of spinlock
  *  Interface is identical to given one
  */
+
+#ifndef SPINLOCK
+#define SPINLOCK
+
 #include "lib.h"
 
 #define SPIN_LOCK_UNLOCKED {0}
@@ -26,3 +30,5 @@ void spin_unlock_irq(spinlock_t* lock);
 void spin_lock_irqsave(spinlock_t* lock, unsigned long flags);
 // give up the spin lock, unlock the lock, set interrupt flag to flags
 void spin_unlock_irqrestore(spinlock_t* lock, unsigned long flags);
+
+#endif
