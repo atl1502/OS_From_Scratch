@@ -1,6 +1,8 @@
 #ifndef IDT
 #define IDT
 
+#define IRQT_S 16
+#define SYSCA 0x80
 // Previous Registers Struct
 typedef struct prev_reg {
 	uint32_t EBX, ECX, EDX, ESI, EDI, EBP, EAX, IRQ;
