@@ -14,7 +14,7 @@ jmp handler_interrupt
 
 # rtc interupt vector is called
 handler_rtc:
-pushl $0xFFFFFFFD
+pushl $0xFFFFFFF7
 jmp handler_interrupt
 
 # common interupt (all interupts end up here)

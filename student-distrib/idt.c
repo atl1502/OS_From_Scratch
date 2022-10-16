@@ -91,8 +91,14 @@ void handler_gen_prot() {
 }
 
 void handler_page_fault() {
-    // clear();
+    clear();
     printf("page fault exception");
+    while(1) {}
+}
+
+void handler_assertion_failure() {
+    clear();
+    printf("assertion failure");
     while(1) {}
 }
 
@@ -128,8 +134,6 @@ void handler_sys_call() {
 
 // runs handler
 unsigned int do_IRQ(prev_reg_t regs) {
-	/* Save old registers */
-	prev_reg_t old_reg = regs;
 	int irq = ~(regs.IRQ);
     // function ptr array
     void (*irq_desc[16])(void) = {0};
@@ -185,7 +189,7 @@ void idt_init() {
     SET_IDT_ENTRY(idt[12], handler_stk_fault); // stack fault exception
     SET_IDT_ENTRY(idt[13], handler_gen_prot); // general protection fault exception
     SET_IDT_ENTRY(idt[14], handler_page_fault); // page fault exception
-    // NO INTERRUPT 15
+    SET_IDT_ENTRY(idt[15], handler_assertion_failure);
     SET_IDT_ENTRY(idt[16], handler_fpu_error); // x87 FPU floating point error exception
     SET_IDT_ENTRY(idt[17], handler_align_chk); // alignment check exception
     SET_IDT_ENTRY(idt[18], handler_machine_chk); // machine check exception

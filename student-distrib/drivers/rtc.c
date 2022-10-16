@@ -37,6 +37,7 @@ void rtc_handle_interrupt(void) {
     outb(0x0C, 0x70);
     // just throw away contents
     inb(0x71);
+    test_interrupts();
     //send EOI to PIC
     send_eoi(8);
 }
