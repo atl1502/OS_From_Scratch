@@ -2,6 +2,8 @@
 #include "lib.h"
 #include "i8259.h"
 #include "idt.h"
+#include "drivers/keyboard.h"
+#include "drivers/rtc.h"
 
 // Exception handlers
 void handler_divide() {
@@ -124,10 +126,21 @@ void handler_sys_call() {
     while(1) {}
 }
 
+// runs handler
 unsigned int do_IRQ(prev_reg_t regs) {
 	/* Save old registers */
 	prev_reg_t old_reg = regs;
 	int irq = ~(regs.IRQ);
+    // function ptr array
+    void (*irq_desc[16])() = {0};
+    // set irqs in the array
+    irq_desc[1] = keyboard_handle_interrupt;
+    irq_desc[8] = rtc_handle_interrupt;
+    // call given handler based on irq
+    (*irq_desc[irq])();
+    // clear eax back to 0 i think?
+    regs.IRQ += irq;
+    return 1;
 }
 
 
@@ -138,6 +151,10 @@ void idt_init() {
     // BIT 15 14 13 12 11 10 9 8 7 6 5
     // based on https://courses.engr.illinois.edu/ece391/fa2022/secure/references/IA32-ref-manual-vol-3.pdf
     // diagram 5-2 pg 156
+
+    // init drivers for rtc/keyboard
+    keyboard_init();
+    rtc_init();
 
     // for every IDT vector
     for (i = 0; i < NUM_VEC; i++) {
