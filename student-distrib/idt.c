@@ -6,102 +6,127 @@
 // static isr_t interrupt_handlers[256]; // array of interrupt handlers, only needs 16 (2 PICs)
 
 void register_interrupt_handler(int n) {
-    
+
 }
 
 // Exception handlers
 void handler_divide() {
-    printf("divide error exception");
+    clear();
+    printf("divide by 0 error exception");
     while(1) {}
 }
 
 void handler_debug() {
+    clear();
     printf("debug exception");
     while(1) {}
 }
 
 void handler_nmi() {
+    clear();
     printf("NMI exception");
     while(1) {}
 }
 
 void handler_breakpoint() {
+    clear();
     printf("breakpoint exception");
     while(1) {}
 }
 
 void handler_overflow() {
+    clear();
     printf("overflow exception");
     while(1) {}
 }
 
 void handler_bounds() {
+    clear();
     printf("BOUND range exceeded exception");
     while(1) {}
 }
 
 void handler_inv_opcode() {
+    clear();
     printf("invalid opcode exception");
     while(1) {}
 }
 
 void handler_dev_na() {
+    clear();
     printf("device not available exception");
     while(1) {}
 }
 
 void handler_doub_fault() {
+    clear();
     printf("double fault exception");
     while(1) {}
 }
 
 void handler_cso() {
+    clear();
     printf("coproc segment overrun exception");
     while(1) {}
 }
 
 void handler_inv_tss() {
+    clear();
     printf("invalid TSS exception");
     while(1) {}
 }
 
 void handler_seg_np() {
+    clear();
     printf("segment not present exception");
     while(1) {}
 }
 
 void handler_stk_fault() {
+    clear();
     printf("stack fault exception");
     while(1) {}
 }
 
 void handler_gen_prot() {
+    clear();
     printf("general protection fault exception");
     while(1) {}
 }
 
 void handler_page_fault() {
+    clear();
     printf("page fault exception");
     while(1) {}
 }
 
 void handler_fpu_error() {
+    clear();
     printf("x87 FPU floating point error exception");
     while(1) {}
 }
 
 void handler_align_chk() {
+    clear();
     printf("alignment check exception");
     while(1) {}
 }
 
 void handler_machine_chk() {
+    clear();
     printf("machine check exception");
     while(1) {}
 }
 
 void handler_simd_fp() {
+    clear();
     printf("SIMD floating point exception");
+    while(1) {}
+}
+
+void handler_sys_call() {
+    clear();
+    printf("System Call");
     while(1) {}
 }
 
@@ -116,7 +141,11 @@ void idt_init() {
     // for every IDT vector
     for (i = 0; i < NUM_VEC; i++) {
         idt[i].present = 1; // bit 15
-        idt[i].dpl = 000; // Descriptor privledge level, bit 14-13
+        if (i == 0x80){
+          idt[i].dpl = 3; // Descriptor privledge level, bit 14-13
+        } else{
+          idt[i].dpl = 0;
+        }
         idt[i].reserved0 = 0; // bit 12
         idt[i].size = 1; // D size of gate: 1 = 32 bits, 0 = 16 bits // bit 11
         idt[i].reserved1 = 1; // bit 10
@@ -146,6 +175,9 @@ void idt_init() {
     SET_IDT_ENTRY(idt[17], handler_align_chk); // alignment check exception
     SET_IDT_ENTRY(idt[18], handler_machine_chk); // machine check exception
     SET_IDT_ENTRY(idt[19], handler_simd_fp); // SIMD floating point exception
+
+    // System call
+    SET_IDT_ENTRY(idt[0x80], handler_sys_call);
 
     //irq
 

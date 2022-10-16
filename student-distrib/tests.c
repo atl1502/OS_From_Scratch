@@ -45,6 +45,44 @@ int idt_test(){
 	return result;
 }
 
+/* Exception Test (divide by 0)
+ *
+ * Tries to divide by 0 to generate the exception
+ * Inputs: None
+ * Outputs: Should not have an out since it will hold in while loop
+ * Side Effects: Stalls processor in while loop, there will be exception printed
+ * Coverage: Load IDT, IDT definition
+ * Files: idt.h/c
+ */
+int divide_by_zero(){
+	TEST_HEADER;
+	int result = FAIL;
+	int z;
+	int temp;
+	z = 0;
+	temp = 1/0;
+
+	return result;
+}
+
+/* Page Fault Test
+ *
+ * Should casue a page fault
+ * Inputs: None
+ * Outputs: Should not have an out since it will hold in while loop
+ * Side Effects: Stalls processor in while loop, there will be exception printed
+ * Coverage: Paging
+ * Files: idt.h/c
+ */
+int page_fault(){
+	TEST_HEADER;
+	int result = FAIL;
+	int* test = (int*)0x1000000;
+	int uhoh = *test;
+	uhoh++;
+	return result;
+}
+
 // add more tests here
 
 /* Checkpoint 2 tests */
@@ -56,5 +94,8 @@ int idt_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	// launch your tests here
+
+	// Exception testing, comment out or in based on needs
+	TEST_OUTPUT("divide_by_zero_test", divide_by_zero());
+	TEST_OUTPUT("page_fault_test", page_fault());
 }
