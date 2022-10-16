@@ -182,14 +182,14 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Enable Paging */
     asm volatile("mov %%cr0, %0": "=r"(cr0));
-    cr0 |= 0x80000001;
+    cr0 |= 0x80000000;
     asm volatile("mov %0, %%cr0":: "r"(cr0));
-
-    /* Initialize idt vectors */
-    idt_init();
 
     /* Init the PIC */
     i8259_init();
+
+    /* Initialize idt vectors */
+    idt_init();
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
@@ -198,8 +198,9 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
-    /*printf("Enabling Interrupts\n");
-    sti();*/
+    printf("Enabling Interrupts\n");
+    sti();
+
 #ifdef RUN_TESTS
     /* Run tests */
     launch_tests();

@@ -7,15 +7,6 @@
 #include "../spinlock.h"
 #include "../i8259.h"
 
-#define TOTAL_ASCII 0x33
-#define ROW1 0x01
-#define ROW2 0x0C
-#define ROW3 0x0F
-#define ROW4 0x1A
-#define ROW5 0x1D
-#define ROW6 0x27
-#define ROW7 0x2B
-const int keyboard_interrupt_number = 1;
 const char scan_code_array[TOTAL_ASCII] = {'\n', '\n', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
 '\n', '\n', '\n', '\n', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '\n', '\n', '\n', '\n', 'a', 's', 'd',
 'f', 'g', 'h', 'j', 'k', 'l', '\n', '\n', '\n', '\n', '\n', 'z', 'x', 'c', 'v', 'b', 'n', 'm'};
@@ -23,7 +14,7 @@ const char scan_code_array[TOTAL_ASCII] = {'\n', '\n', '1', '2', '3', '4', '5', 
 /* Initialize the keyboard */
 void keyboard_init(void) {
     //unmask interrupt line on PIC
-    enable_irq(keyboard_interrupt_number);
+    enable_irq(KB_IRQ);
 }
 
 /* Handle the keyboard interrupt */
@@ -34,5 +25,5 @@ void keyboard_handle_interrupt(void) {
         ascii = scan_code_array[scan_code];
         putc(ascii);
     }
-    send_eoi(keyboard_interrupt_number);
+    send_eoi(KB_IRQ);
 }

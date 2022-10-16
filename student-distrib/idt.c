@@ -91,7 +91,7 @@ void handler_gen_prot() {
 }
 
 void handler_page_fault() {
-    clear();
+    // clear();
     printf("page fault exception");
     while(1) {}
 }
@@ -159,11 +159,7 @@ void idt_init() {
     // for every IDT vector
     for (i = 0; i < NUM_VEC; i++) {
         idt[i].present = 1; // bit 15
-        if (i == 0x80){
-          idt[i].dpl = 3; // Descriptor privledge level, bit 14-13
-        } else{
-          idt[i].dpl = 0;
-        }
+        idt[i].dpl = 0;
         idt[i].reserved0 = 0; // bit 12
         idt[i].size = 1; // D size of gate: 1 = 32 bits, 0 = 16 bits // bit 11
         idt[i].reserved1 = 1; // bit 10
@@ -172,6 +168,7 @@ void idt_init() {
 
         idt[i].seg_selector = KERNEL_CS;
     }
+    idt[0x80].dpl = 3;
 
     SET_IDT_ENTRY(idt[0], handler_divide); // divide error exception
     SET_IDT_ENTRY(idt[1], handler_debug); // debug exception
@@ -194,11 +191,11 @@ void idt_init() {
     SET_IDT_ENTRY(idt[18], handler_machine_chk); // machine check exception
     SET_IDT_ENTRY(idt[19], handler_simd_fp); // SIMD floating point exception
 
-    // System call
-    SET_IDT_ENTRY(idt[0x80], handler_sys_call);
-
     //irq
     SET_IDT_ENTRY(idt[0x21], handler_keyboard);
     SET_IDT_ENTRY(idt[0x28], handler_rtc);
+
+    // System call
+    SET_IDT_ENTRY(idt[0x80], handler_sys_call);
 
 }

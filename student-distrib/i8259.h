@@ -14,6 +14,9 @@
 #define MASTER_8259_DATA    0x21
 #define SLAVE_8259_DATA     0xA1
 
+#define PIC_SIZE    8
+
+
 /* Initialization control words to init each PIC.
  * See the Intel manuals for details on the meaning
  * of each word */
@@ -23,6 +26,9 @@
 #define ICW3_MASTER         0x04
 #define ICW3_SLAVE          0x02
 #define ICW4                0x01
+
+#define SLAVE_ATTACHED  2
+#define MASK_RIGHT    1
 
 /* End-of-interrupt byte.  This gets OR'd with
  * the interrupt number and sent out to the PIC
