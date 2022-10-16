@@ -132,7 +132,7 @@ unsigned int do_IRQ(prev_reg_t regs) {
 	prev_reg_t old_reg = regs;
 	int irq = ~(regs.IRQ);
     // function ptr array
-    void (*irq_desc[16])() = {0};
+    void (*irq_desc[16])(void) = {0};
     // set irqs in the array
     irq_desc[1] = keyboard_handle_interrupt;
     irq_desc[8] = rtc_handle_interrupt;
@@ -154,7 +154,7 @@ void idt_init() {
 
     // init drivers for rtc/keyboard
     keyboard_init();
-    rtc_init();
+    // rtc_init();
 
     // for every IDT vector
     for (i = 0; i < NUM_VEC; i++) {
@@ -198,7 +198,7 @@ void idt_init() {
     SET_IDT_ENTRY(idt[0x80], handler_sys_call);
 
     //irq
-    SET_IDT_ENTRY(idt[0x20], handler_keyboard);
-    SET_IDT_ENTRY(idt[0x21], handler_rtc);
+    SET_IDT_ENTRY(idt[0x21], handler_keyboard);
+    SET_IDT_ENTRY(idt[0x28], handler_rtc);
 
 }

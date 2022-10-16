@@ -96,6 +96,6 @@ void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 
 	// Exception testing, comment out or in based on needs
-	TEST_OUTPUT("divide_by_zero_test", divide_by_zero());
-	TEST_OUTPUT("page_fault_test", page_fault());
+	// TEST_OUTPUT("divide_by_zero_test", divide_by_zero());
+	// TEST_OUTPUT("page_fault_test", page_fault());
 }

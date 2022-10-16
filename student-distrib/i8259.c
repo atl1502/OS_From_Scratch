@@ -64,8 +64,8 @@ void enable_irq(uint32_t irq_num) {
 void disable_irq(uint32_t irq_num) {
     if(irq_num < 8){
         // if irq is for master pic
-        slave_mask = inb(MASTER_8259_DATA) | (1 << irq_num);
-        outb(slave_mask, MASTER_8259_DATA);
+        master_mask = inb(MASTER_8259_DATA) | (1 << irq_num);
+        outb(master_mask, MASTER_8259_DATA);
     } else {
         // if irq is for slave pic, get local irq number
         irq_num = irq_num - 8;
