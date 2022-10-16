@@ -4,13 +4,13 @@
 
 
 # Flags to use when compiling, preprocessing, assembling, and linking
-CFLAGS+=-Wall -fno-builtin -fno-stack-protector -nostdlib
+CFLAGS+= -m32 -Wall -fno-builtin -fno-stack-protector -nostdlib
 ASFLAGS+=
-LDFLAGS+=-nostdlib -static
+LDFLAGS+= -m32 -nostdlib -static
 CC=gcc
 
 #If you have any .h files in another directory, add -I<dir> to this line
-CPPFLAGS+=-nostdinc -g
+CPPFLAGS+=-m32 -nostdinc -g
 
 # This generates the list of source files
 SRC=$(wildcard *.S) $(wildcard *.c) $(wildcard */*.S) $(wildcard */*.c)

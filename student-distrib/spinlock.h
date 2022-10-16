@@ -2,6 +2,10 @@
  *  Our implementation of spinlock
  *  Interface is identical to given one
  */
+
+#ifndef SPINLOCK
+#define SPINLOCK
+
 #include "lib.h"
 
 #define SPIN_LOCK_UNLOCKED {0}

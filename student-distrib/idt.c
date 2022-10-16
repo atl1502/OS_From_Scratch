@@ -3,12 +3,6 @@
 #include "i8259.h"
 #include "idt.h"
 
-// static isr_t interrupt_handlers[256]; // array of interrupt handlers, only needs 16 (2 PICs)
-
-void register_interrupt_handler(int n) {
-
-}
-
 // Exception handlers
 void handler_divide() {
     clear();
@@ -130,6 +124,13 @@ void handler_sys_call() {
     while(1) {}
 }
 
+unsigned int do_IRQ(prev_reg_t regs) {
+	/* Save old registers */
+	prev_reg_t old_reg = regs;
+	int irq = ~(regs.IRQ);
+}
+
+
 void idt_init() {
     int i;
     // INTERRUPT GATE
@@ -180,5 +181,7 @@ void idt_init() {
     SET_IDT_ENTRY(idt[0x80], handler_sys_call);
 
     //irq
+    SET_IDT_ENTRY(idt[0x20], handler_keyboard);
+    SET_IDT_ENTRY(idt[0x21], handler_rtc);
 
 }
