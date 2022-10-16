@@ -6,133 +6,306 @@
 #include "drivers/rtc.h"
 
 // Exception handlers
+
+/* 
+ * handler_divide
+ * DESCRIPTION: Indicates the divisor operand for a DIV or IDIV instruction is 0 or that the result cannot be represented
+ * in the number of bits specified for the destination operand.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_divide() {
     clear();
     printf("divide by 0 error exception");
     while(1) {}
 }
 
+/* 
+ * handler_debug
+ * DESCRIPTION: Indicates that one or more of several debug-exception conditions has been detected.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_debug() {
     clear();
     printf("debug exception");
     while(1) {}
 }
 
+/* 
+ * handler_nmi
+ * DESCRIPTION: The nonmaskable interrupt (NMI) is generated externally by asserting the processor’s NMI pin
+ * or through an NMI request set by the I/O APIC to the local APIC. This interrupt causes the NMI
+ * interrupt handler to be called.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_nmi() {
     clear();
     printf("NMI exception");
     while(1) {}
 }
 
+/* 
+ * handler_breakpoint
+ * DESCRIPTION: Indicates that a breakpoint instruction (INT 3) was executed, causing a breakpoint trap to be
+ * generated. Typically, a debugger sets a breakpoint by replacing the first opcode byte of an
+ * instruction with the opcode for the INT 3 instruction.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_breakpoint() {
     clear();
     printf("breakpoint exception");
     while(1) {}
 }
 
+/* 
+ * handler_overflow
+ * DESCRIPTION: Indicates that an overflow trap occurred when an INTO instruction was executed. The INTO
+ * instruction checks the state of the OF flag in the EFLAGS register. If the OF flag is set, an overflow
+ * trap is generated.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_overflow() {
     clear();
     printf("overflow exception");
     while(1) {}
 }
 
+/* 
+ * handler_bounds
+ * DESCRIPTION: Indicates that a BOUND-range-exceeded fault occurred when a BOUND instruction was
+ * executed. The BOUND instruction checks that a signed array index is within the upper and
+ * lower bounds of an array located in memory.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_bounds() {
     clear();
     printf("BOUND range exceeded exception");
     while(1) {}
 }
 
+/* 
+ * handler_inv_opcode
+ * DESCRIPTION: Attempted to execute an invalid or reserved opcode.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_inv_opcode() {
     clear();
     printf("invalid opcode exception");
     while(1) {}
 }
 
+/* 
+ * handler_dev_na
+ * DESCRIPTION: Indicates that the device-not-available exception is generated.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_dev_na() {
     clear();
     printf("device not available exception");
     while(1) {}
 }
 
+/* 
+ * handler_doub_fault
+ * DESCRIPTION: Indicates that the processor detected a second exception while calling an exception handler for
+ * a prior exception.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_doub_fault() {
     clear();
     printf("double fault exception");
     while(1) {}
 }
 
+/* 
+ * handler_cso
+ * DESCRIPTION: Indicates that an Intel386 CPU-based systems with an Intel 387 math coprocessor detected a
+ * page or segment violation while transferring the middle portion of an Intel 387 math coprocessor
+ * operand.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_cso() {
     clear();
     printf("coproc segment overrun exception");
     while(1) {}
 }
 
+/* 
+ * handler_inv_tss
+ * DESCRIPTION: Indicates that there was an error related to a TSS.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_inv_tss() {
     clear();
     printf("invalid TSS exception");
     while(1) {}
 }
 
+/* 
+ * handler_seg_np
+ * DESCRIPTION: Indicates that the present flag of a segment or gate descriptor is clear.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_seg_np() {
     clear();
     printf("segment not present exception");
     while(1) {}
 }
 
+/* 
+ * handler_stk_fault
+ * DESCRIPTION: A limit violation is detected during an operation that refers to the SS register OR
+ * A not-present stack segment is detected when attempting to load the SS register was detected.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_stk_fault() {
     clear();
     printf("stack fault exception");
     while(1) {}
 }
 
+/* 
+ * handler_gen_prot
+ * DESCRIPTION: Indicates that the processor detected one of a class of protection violations called “generalprotection
+ * violations.”
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_gen_prot() {
     clear();
     printf("general protection fault exception");
     while(1) {}
 }
 
+/* 
+ * handler_page_fault
+ * DESCRIPTION: Indicates that, with paging enabled (the PG flag in the CR0 register is set), the processor 
+ * detected a paging translation related error.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_page_fault() {
     clear();
     printf("page fault exception");
     while(1) {}
 }
 
+/* 
+ * handler_assertion_failure
+ * DESCRIPTION: Generic default assertion failure
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_assertion_failure() {
     clear();
     printf("assertion failure");
     while(1) {}
 }
 
+/* 
+ * handler_fpu_error
+ * DESCRIPTION: Indicates that the x87 FPU has detected a floating-point error.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_fpu_error() {
     clear();
     printf("x87 FPU floating point error exception");
     while(1) {}
 }
 
+/* 
+ * handler_align_chk
+ * DESCRIPTION: Indicates that the processor detected an unaligned memory operand when alignment checking
+ * was enabled.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_align_chk() {
     clear();
     printf("alignment check exception");
     while(1) {}
 }
 
+/* 
+ * handler_machine_chk
+ * DESCRIPTION: Indicates that the processor detected an internal machine error or a bus error, or that an external
+ * agent detected a bus error.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_machine_chk() {
     clear();
     printf("machine check exception");
     while(1) {}
 }
 
+/* 
+ * handler_simd_fp
+ * DESCRIPTION: Indicates the processor has detected an SSE/SSE2/SSE3 SIMD floating-point exception. The
+ * appropriate status flag in the MXCSR register must be set and the particular exception
+ * unmasked for this interrupt to be generated.
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_simd_fp() {
     clear();
     printf("SIMD floating point exception");
     while(1) {}
 }
 
+/* 
+ * handler_sys_call
+ * DESCRIPTION: Generic default system call interrupt
+ * INPUTS: no inputs
+ * SIDE EFFECTS: clears console, prints exception message
+ * RETURN VALUE: never returns
+ */
 void handler_sys_call() {
     clear();
     printf("System Call");
     while(1) {}
 }
 
-// runs handler
+/* 
+ * do_IRQ
+ * DESCRIPTION: runs given interrupt handler
+ * INPUTS: current registers status
+ * SIDE EFFECTS: initialises IRQ pointer array, and calls the given IRQ's handler
+ * RETURN VALUE: 1
+ */
 unsigned int do_IRQ(prev_reg_t regs) {
 	int irq = ~(regs.IRQ);
     // function ptr array
@@ -147,7 +320,13 @@ unsigned int do_IRQ(prev_reg_t regs) {
     return 1;
 }
 
-
+/* 
+ * idt_init
+ * DESCRIPTION: creates IDT, fills inital values within IDT
+ * INPUTS: none
+ * SIDE EFFECTS: IDT is now initialised
+ * RETURN VALUE: none
+ */
 void idt_init() {
     int i;
     // INTERRUPT GATE

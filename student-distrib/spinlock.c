@@ -2,7 +2,13 @@
 
 #include "spinlock.h"
 
-// aquire the given spin lock, ensure it is atomic
+/* 
+ * spin_lock
+ * DESCRIPTION: aquire the given spin lock, ensure it is atomic
+ * INPUTS: lock
+ * SIDE EFFECTS: lock becomes locked
+ * RETURN VALUE: none
+ */
 void spin_lock(spinlock_t* lock){
     asm volatile ("                   \n\
             loop:                     \n\
@@ -17,7 +23,13 @@ void spin_lock(spinlock_t* lock){
     );
 }
 
-// release the given spin lock, 1: locked 0: unlocked
+/* 
+ * spin_unlock
+ * DESCRIPTION: release the given spin lock, 1: locked 0: unlocked
+ * INPUTS: lock
+ * SIDE EFFECTS: lock becomes unlocked
+ * RETURN VALUE: never returns
+ */
 void spin_unlock(spinlock_t* lock){
     asm volatile ("                   \n\
             movl $0, %0               \n\
@@ -28,12 +40,24 @@ void spin_unlock(spinlock_t* lock){
     );
 }
 
-// check if the given spin lock is locked
+/* 
+ * spin_is_locked
+ * DESCRIPTION: check if the given spin lock is locked
+ * INPUTS: lock
+ * SIDE EFFECTS: none
+ * RETURN VALUE: 1 if locked, 0 if unlocked
+ */
 int spin_is_locked(spinlock_t* lock){
     return lock->lock;
 }
 
-// try to aquire spin lock once
+/* 
+ * spin_trylock
+ * DESCRIPTION: try to aquire spin lock once
+ * INPUTS: lock
+ * SIDE EFFECTS:
+ * RETURN VALUE: 1 if locked, 0 if unlocked
+ */
 int spin_trylock(spinlock_t* lock){
     asm volatile ("                   \n\
             movl $1, %%ecx            \n\
@@ -47,25 +71,49 @@ int spin_trylock(spinlock_t* lock){
     return lock->lock;
 }
 
-// aquire the lock and clear interupt flags
+/* 
+ * spin_lock_irq
+ * DESCRIPTION: aquire the given spin lock, ensure it is atomic
+ * INPUTS: lock
+ * SIDE EFFECTS: lock is locked, interrupt flags are cleared via CLI
+ * RETURN VALUE: none
+ */
 void spin_lock_irq(spinlock_t* lock){
     cli();
     spin_lock(lock);
 }
 
-// release the lock and set IF = 1
+/* 
+ * spin_unlock_irq
+ * DESCRIPTION: release the given spin lock, 1: locked 0: unlocked
+ * INPUTS: lock
+ * SIDE EFFECTS: interrupt flags set to 1 via STI
+ * RETURN VALUE: none
+ */
 void spin_unlock_irq(spinlock_t* lock){
     spin_unlock(lock);
     sti();
 }
 
-// aquire the lock and put IF = 0 and save it in flags
+/* 
+ * spin_lock_irqsave
+ * DESCRIPTION: aquire the given spin lock, ensure it is atomic
+ * INPUTS: lock, flags
+ * SIDE EFFECTS: IF = 0 and save it in flags
+ * RETURN VALUE: none
+ */
 void spin_lock_irqsave(spinlock_t* lock, unsigned long* flags){
     cli_and_save(*flags);
     spin_lock(lock);
 }
 
-// release the lock and set flags to flags
+/* 
+ * spin_unlock_irqrestore
+ * DESCRIPTION: release the given spin lock, 1: locked 0: unlocked
+ * INPUTS: lock, flags
+ * SIDE EFFECTS: set flags to flags
+ * RETURN VALUE: none
+ */
 void spin_unlock_irqrestore(spinlock_t* lock, unsigned long* flags){
     spin_unlock(lock);
     restore_flags(*flags);

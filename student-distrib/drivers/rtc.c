@@ -9,6 +9,13 @@
 
 static spinlock_t rtc_lock = SPIN_LOCK_UNLOCKED;
 
+/* 
+ * rtc_init
+ * DESCRIPTION: Initialize the RTC
+ * INPUTS: none
+ * SIDE EFFECTS: enables IRQ for RTC
+ * RETURN VALUE: none
+ */
 /* Initialize the RTC */
 void rtc_init(void) {
     //disable interrupts
@@ -31,7 +38,13 @@ void rtc_init(void) {
     spin_unlock_irq(&rtc_lock);
 }
 
-/* Handle the RTC interrupt */
+/* 
+ * rtc_handle_interrupt
+ * DESCRIPTION: Handle the RTC interrupt
+ * INPUTS: none
+ * SIDE EFFECTS: clobbers register C
+ * RETURN VALUE: none
+ */
 void rtc_handle_interrupt(void) {
     // select register C
     outb(0x0C, 0x70);

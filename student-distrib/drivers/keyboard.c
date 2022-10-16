@@ -11,12 +11,25 @@ const char scan_code_array[TOTAL_ASCII] = {'\n', '\n', '1', '2', '3', '4', '5', 
 '\n', '\n', '\n', '\n', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '\n', '\n', '\n', '\n', 'a', 's', 'd',
 'f', 'g', 'h', 'j', 'k', 'l', '\n', '\n', '\n', '\n', '\n', 'z', 'x', 'c', 'v', 'b', 'n', 'm'};
 
-/* Initialize the keyboard */
+/* 
+ * keyboard_init
+ * DESCRIPTION: Initialize the keyboard
+ * INPUTS: none
+ * SIDE EFFECTS: enables IRQ for keyboard
+ * RETURN VALUE: none
+ */
 void keyboard_init(void) {
     //unmask interrupt line on PIC
     enable_irq(KB_IRQ);
 }
 
+/* 
+ * keyboard_handle_interrupt
+ * DESCRIPTION: reads key input, lookup and translate into a charactewr, print to screen, sends EOI
+ * INPUTS: none
+ * SIDE EFFECTS: pressed key is printed to console
+ * RETURN VALUE: none
+ */
 /* Handle the keyboard interrupt */
 void keyboard_handle_interrupt(void) {
     char ascii;
