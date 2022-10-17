@@ -309,10 +309,10 @@ void handler_sys_call() {
 unsigned int do_IRQ(prev_reg_t regs) {
 	int irq = ~(regs.IRQ);
     // function ptr array
-    void (*irq_desc[16])(void) = {0};
+    void (*irq_desc[IRQT_S])(void) = {0};
     // set irqs in the array
-    irq_desc[1] = keyboard_handle_interrupt;
-    irq_desc[8] = rtc_handle_interrupt;
+    irq_desc[KB_IRQ] = keyboard_handle_interrupt;
+    irq_desc[RTC_IRQ] = rtc_handle_interrupt;
     // call given handler based on irq
     (*irq_desc[irq])();
     // clear eax back to 0 i think?
@@ -351,7 +351,7 @@ void idt_init() {
 
         idt[i].seg_selector = KERNEL_CS;
     }
-    idt[0x80].dpl = 3;
+    idt[SYSCA].dpl = 3;
 
     SET_IDT_ENTRY(idt[0], handler_divide); // divide error exception
     SET_IDT_ENTRY(idt[1], handler_debug); // debug exception
@@ -379,6 +379,6 @@ void idt_init() {
     SET_IDT_ENTRY(idt[0x28], handler_rtc);
 
     // System call
-    SET_IDT_ENTRY(idt[0x80], handler_sys_call);
+    SET_IDT_ENTRY(idt[SYSCA], handler_sys_call);
 
 }
