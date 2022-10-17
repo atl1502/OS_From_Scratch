@@ -9,9 +9,10 @@
 
 const char scan_code_array[TOTAL_ASCII] = {'\n', '\n', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
 '\n', '\n', '\n', '\n', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '\n', '\n', '\n', '\n', 'a', 's', 'd',
-'f', 'g', 'h', 'j', 'k', 'l', '\n', '\n', '\n', '\n', '\n', 'z', 'x', 'c', 'v', 'b', 'n', 'm'};
+'f', 'g', 'h', 'j', 'k', 'l', ';', '\n', '\n', '\n', '\n', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '\n',
+'\n', '\n', '\n', ' '};
 
-/* 
+/*
  * keyboard_init
  * DESCRIPTION: Initialize the keyboard
  * INPUTS: none
@@ -23,7 +24,7 @@ void keyboard_init(void) {
     enable_irq(KB_IRQ);
 }
 
-/* 
+/*
  * keyboard_handle_interrupt
  * DESCRIPTION: reads key input, lookup and translate into a charactewr, print to screen, sends EOI
  * INPUTS: none

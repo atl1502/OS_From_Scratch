@@ -4,7 +4,7 @@
 
 #include "../types.h"
 
-#define TOTAL_ASCII 0x33
+#define TOTAL_ASCII 0x3A
 #define ROW1 0x01
 #define ROW2 0x0C
 #define ROW3 0x0F

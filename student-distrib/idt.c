@@ -7,7 +7,7 @@
 
 // Exception handlers
 
-/* 
+/*
  * handler_divide
  * DESCRIPTION: Indicates the divisor operand for a DIV or IDIV instruction is 0 or that the result cannot be represented
  * in the number of bits specified for the destination operand.
@@ -21,7 +21,7 @@ void handler_divide() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_debug
  * DESCRIPTION: Indicates that one or more of several debug-exception conditions has been detected.
  * INPUTS: no inputs
@@ -34,7 +34,7 @@ void handler_debug() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_nmi
  * DESCRIPTION: The nonmaskable interrupt (NMI) is generated externally by asserting the processor’s NMI pin
  * or through an NMI request set by the I/O APIC to the local APIC. This interrupt causes the NMI
@@ -49,7 +49,7 @@ void handler_nmi() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_breakpoint
  * DESCRIPTION: Indicates that a breakpoint instruction (INT 3) was executed, causing a breakpoint trap to be
  * generated. Typically, a debugger sets a breakpoint by replacing the first opcode byte of an
@@ -64,7 +64,7 @@ void handler_breakpoint() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_overflow
  * DESCRIPTION: Indicates that an overflow trap occurred when an INTO instruction was executed. The INTO
  * instruction checks the state of the OF flag in the EFLAGS register. If the OF flag is set, an overflow
@@ -79,7 +79,7 @@ void handler_overflow() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_bounds
  * DESCRIPTION: Indicates that a BOUND-range-exceeded fault occurred when a BOUND instruction was
  * executed. The BOUND instruction checks that a signed array index is within the upper and
@@ -94,7 +94,7 @@ void handler_bounds() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_inv_opcode
  * DESCRIPTION: Attempted to execute an invalid or reserved opcode.
  * INPUTS: no inputs
@@ -107,7 +107,7 @@ void handler_inv_opcode() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_dev_na
  * DESCRIPTION: Indicates that the device-not-available exception is generated.
  * INPUTS: no inputs
@@ -120,7 +120,7 @@ void handler_dev_na() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_doub_fault
  * DESCRIPTION: Indicates that the processor detected a second exception while calling an exception handler for
  * a prior exception.
@@ -134,7 +134,7 @@ void handler_doub_fault() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_cso
  * DESCRIPTION: Indicates that an Intel386 CPU-based systems with an Intel 387 math coprocessor detected a
  * page or segment violation while transferring the middle portion of an Intel 387 math coprocessor
@@ -149,7 +149,7 @@ void handler_cso() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_inv_tss
  * DESCRIPTION: Indicates that there was an error related to a TSS.
  * INPUTS: no inputs
@@ -162,7 +162,7 @@ void handler_inv_tss() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_seg_np
  * DESCRIPTION: Indicates that the present flag of a segment or gate descriptor is clear.
  * INPUTS: no inputs
@@ -175,7 +175,7 @@ void handler_seg_np() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_stk_fault
  * DESCRIPTION: A limit violation is detected during an operation that refers to the SS register OR
  * A not-present stack segment is detected when attempting to load the SS register was detected.
@@ -189,7 +189,7 @@ void handler_stk_fault() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_gen_prot
  * DESCRIPTION: Indicates that the processor detected one of a class of protection violations called “generalprotection
  * violations.”
@@ -203,9 +203,9 @@ void handler_gen_prot() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_page_fault
- * DESCRIPTION: Indicates that, with paging enabled (the PG flag in the CR0 register is set), the processor 
+ * DESCRIPTION: Indicates that, with paging enabled (the PG flag in the CR0 register is set), the processor
  * detected a paging translation related error.
  * INPUTS: no inputs
  * SIDE EFFECTS: clears console, prints exception message
@@ -217,7 +217,7 @@ void handler_page_fault() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_assertion_failure
  * DESCRIPTION: Generic default assertion failure
  * INPUTS: no inputs
@@ -230,7 +230,7 @@ void handler_assertion_failure() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_fpu_error
  * DESCRIPTION: Indicates that the x87 FPU has detected a floating-point error.
  * INPUTS: no inputs
@@ -243,7 +243,7 @@ void handler_fpu_error() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_align_chk
  * DESCRIPTION: Indicates that the processor detected an unaligned memory operand when alignment checking
  * was enabled.
@@ -257,7 +257,7 @@ void handler_align_chk() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_machine_chk
  * DESCRIPTION: Indicates that the processor detected an internal machine error or a bus error, or that an external
  * agent detected a bus error.
@@ -271,7 +271,7 @@ void handler_machine_chk() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_simd_fp
  * DESCRIPTION: Indicates the processor has detected an SSE/SSE2/SSE3 SIMD floating-point exception. The
  * appropriate status flag in the MXCSR register must be set and the particular exception
@@ -286,7 +286,7 @@ void handler_simd_fp() {
     while(1) {}
 }
 
-/* 
+/*
  * handler_sys_call
  * DESCRIPTION: Generic default system call interrupt
  * INPUTS: no inputs
@@ -299,7 +299,7 @@ void handler_sys_call() {
     while(1) {}
 }
 
-/* 
+/*
  * do_IRQ
  * DESCRIPTION: runs given interrupt handler
  * INPUTS: current registers status
@@ -308,6 +308,10 @@ void handler_sys_call() {
  */
 unsigned int do_IRQ(prev_reg_t regs) {
 	int irq = ~(regs.IRQ);
+    // check for valid irq
+    if (irq > 15){
+        asm volatile("int $15");
+    }
     // function ptr array
     void (*irq_desc[IRQT_S])(void) = {0};
     // set irqs in the array
@@ -320,7 +324,7 @@ unsigned int do_IRQ(prev_reg_t regs) {
     return 1;
 }
 
-/* 
+/*
  * idt_init
  * DESCRIPTION: creates IDT, fills inital values within IDT
  * INPUTS: none
@@ -337,7 +341,7 @@ void idt_init() {
 
     // init drivers for rtc/keyboard
     keyboard_init();
-    // rtc_init();
+    rtc_init();
 
     // for every IDT vector
     for (i = 0; i < NUM_VEC; i++) {

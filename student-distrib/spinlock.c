@@ -2,7 +2,7 @@
 
 #include "spinlock.h"
 
-/* 
+/*
  * spin_lock
  * DESCRIPTION: aquire the given spin lock, ensure it is atomic
  * INPUTS: lock
@@ -10,6 +10,10 @@
  * RETURN VALUE: none
  */
 void spin_lock(spinlock_t* lock){
+    // check lock validity
+    if (lock == NULL){
+        asm volatile("int $15");
+    }
     asm volatile ("                   \n\
             loop:                     \n\
                 movl $1, %%ecx        \n\
@@ -23,7 +27,7 @@ void spin_lock(spinlock_t* lock){
     );
 }
 
-/* 
+/*
  * spin_unlock
  * DESCRIPTION: release the given spin lock, 1: locked 0: unlocked
  * INPUTS: lock
@@ -31,6 +35,10 @@ void spin_lock(spinlock_t* lock){
  * RETURN VALUE: never returns
  */
 void spin_unlock(spinlock_t* lock){
+    // check lock validity
+    if (lock == NULL){
+        asm volatile("int $15");
+    }
     asm volatile ("                   \n\
             movl $0, %0               \n\
             "
@@ -40,7 +48,7 @@ void spin_unlock(spinlock_t* lock){
     );
 }
 
-/* 
+/*
  * spin_is_locked
  * DESCRIPTION: check if the given spin lock is locked
  * INPUTS: lock
@@ -48,10 +56,14 @@ void spin_unlock(spinlock_t* lock){
  * RETURN VALUE: 1 if locked, 0 if unlocked
  */
 int spin_is_locked(spinlock_t* lock){
+    // check lock validity
+    if (lock == NULL){
+        asm volatile("int $15");
+    }
     return lock->lock;
 }
 
-/* 
+/*
  * spin_trylock
  * DESCRIPTION: try to aquire spin lock once
  * INPUTS: lock
@@ -59,6 +71,10 @@ int spin_is_locked(spinlock_t* lock){
  * RETURN VALUE: 1 if locked, 0 if unlocked
  */
 int spin_trylock(spinlock_t* lock){
+    // check lock validity
+    if (lock == NULL){
+        asm volatile("int $15");
+    }
     asm volatile ("                   \n\
             movl $1, %%ecx            \n\
             xchgl %%ecx, (%0)         \n\
@@ -71,7 +87,7 @@ int spin_trylock(spinlock_t* lock){
     return lock->lock;
 }
 
-/* 
+/*
  * spin_lock_irq
  * DESCRIPTION: aquire the given spin lock, ensure it is atomic
  * INPUTS: lock
@@ -79,11 +95,15 @@ int spin_trylock(spinlock_t* lock){
  * RETURN VALUE: none
  */
 void spin_lock_irq(spinlock_t* lock){
+    // check lock validity
+    if (lock == NULL){
+        asm volatile("int $15");
+    }
     cli();
     spin_lock(lock);
 }
 
-/* 
+/*
  * spin_unlock_irq
  * DESCRIPTION: release the given spin lock, 1: locked 0: unlocked
  * INPUTS: lock
@@ -91,11 +111,15 @@ void spin_lock_irq(spinlock_t* lock){
  * RETURN VALUE: none
  */
 void spin_unlock_irq(spinlock_t* lock){
+    // check lock validity
+    if (lock == NULL){
+        asm volatile("int $15");
+    }
     spin_unlock(lock);
     sti();
 }
 
-/* 
+/*
  * spin_lock_irqsave
  * DESCRIPTION: aquire the given spin lock, ensure it is atomic
  * INPUTS: lock, flags
@@ -103,11 +127,15 @@ void spin_unlock_irq(spinlock_t* lock){
  * RETURN VALUE: none
  */
 void spin_lock_irqsave(spinlock_t* lock, unsigned long* flags){
+    // check lock validity
+    if (lock == NULL){
+        asm volatile("int $15");
+    }
     cli_and_save(*flags);
     spin_lock(lock);
 }
 
-/* 
+/*
  * spin_unlock_irqrestore
  * DESCRIPTION: release the given spin lock, 1: locked 0: unlocked
  * INPUTS: lock, flags
@@ -115,6 +143,10 @@ void spin_lock_irqsave(spinlock_t* lock, unsigned long* flags){
  * RETURN VALUE: none
  */
 void spin_unlock_irqrestore(spinlock_t* lock, unsigned long* flags){
+    // check lock validity
+    if (lock == NULL){
+        asm volatile("int $15");
+    }
     spin_unlock(lock);
     restore_flags(*flags);
 }

@@ -9,7 +9,7 @@
 
 static spinlock_t rtc_lock = SPIN_LOCK_UNLOCKED;
 
-/* 
+/*
  * rtc_init
  * DESCRIPTION: Initialize the RTC
  * INPUTS: none
@@ -38,7 +38,7 @@ void rtc_init(void) {
     spin_unlock_irq(&rtc_lock);
 }
 
-/* 
+/*
  * rtc_handle_interrupt
  * DESCRIPTION: Handle the RTC interrupt
  * INPUTS: none
@@ -50,7 +50,7 @@ void rtc_handle_interrupt(void) {
     outb(REGC, PORT1);
     // just throw away contents
     inb(PORT2);
-    test_interrupts();
+    // test_interrupts();
     //send EOI to PIC
     send_eoi(RTC_IRQ);
 }
