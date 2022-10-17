@@ -72,12 +72,30 @@ int divide_by_zero(){
  * Outputs: Should not have an out since it will hold in while loop
  * Side Effects: Stalls processor in while loop, there will be exception printed
  * Coverage: Paging
- * Files: idt.h/c
+ * Files: kernal.c
  */
 int page_fault(){
 	TEST_HEADER;
 	int result = FAIL;
 	int* test = (int*)0x1000000;
+	int uhoh = *test;
+	uhoh++;
+	return result;
+}
+
+/* Page Fault Test 2
+ *
+ * Should not cause a page fault dereferencing within defined addr range
+ * Inputs: None
+ * Outputs: PASS or held in page fault
+ * Side Effects: None
+ * Coverage: Paging
+ * Files: kernal.c
+ */
+int no_page_fault(){
+	TEST_HEADER;
+	int result = PASS;
+	int* test = (int*)0x600000;
 	int uhoh = *test;
 	uhoh++;
 	return result;
@@ -94,7 +112,7 @@ int page_fault(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-
+	TEST_OUTPUT("no_page_fault_test", no_page_fault());
 	// Exception testing, comment out or in based on needs
 	// TEST_OUTPUT("divide_by_zero_test", divide_by_zero());
 	// TEST_OUTPUT("page_fault_test", page_fault());
