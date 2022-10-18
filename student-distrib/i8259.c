@@ -10,6 +10,14 @@
 static uint8_t master_mask; /* IRQs 0-7  */
 static uint8_t slave_mask;  /* IRQs 8-15 */
 static spinlock_t i8259A_lock = SPIN_LOCK_UNLOCKED;
+
+/*
+ * i8259_init
+ * DESCRIPTION: Initialize both PICs (slave connected to IRQ2)
+ * INPUTS: none
+ * SIDE EFFECTS: Masks out all of PICs IRQs except for IRQ2 on master
+ * RETURN VALUE: none
+ */
 /* Initialize the 8259 PIC */
 void i8259_init(void) {
 
@@ -45,6 +53,13 @@ void i8259_init(void) {
 
 }
 
+/*
+ * enable_irq
+ * DESCRIPTION: Enables a given IRQ
+ * INPUTS: irq_num: number of IRQ to enable (0-15)
+ * SIDE EFFECTS: Unmasks the given IRQ
+ * RETURN VALUE: none
+ */
 /* Enable (unmask) the specified IRQ */
 void enable_irq(uint32_t irq_num) {
     // check for valid irq num
@@ -64,6 +79,13 @@ void enable_irq(uint32_t irq_num) {
     }
 }
 
+/*
+ * disable_irq
+ * DESCRIPTION: Disables a given IRQ
+ * INPUTS: irq_num: number of IRQ to disable (0-15)
+ * SIDE EFFECTS: Masks the given IRQ
+ * RETURN VALUE: none
+ */
 /* Disable (mask) the specified IRQ */
 void disable_irq(uint32_t irq_num) {
     // check for valid irq num
@@ -82,6 +104,13 @@ void disable_irq(uint32_t irq_num) {
     }
 }
 
+/*
+ * send_eoi
+ * DESCRIPTION: Ends EOI to PIC
+ * INPUTS: irq_num: IRQ which EOI  is being used
+ * SIDE EFFECTS: Renabled PIC since EOI is sent
+ * RETURN VALUE: none
+ */
 /* Send end-of-interrupt signal for the specified IRQ */
 void send_eoi(uint32_t irq_num) {
     // check for valid irq num

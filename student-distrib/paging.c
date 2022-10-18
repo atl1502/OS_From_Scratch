@@ -1,5 +1,12 @@
 #include "x86_desc.h"
 
+/*
+ * paging_init
+ * DESCRIPTION: Initialize the paging
+ * INPUTS: none
+ * SIDE EFFECTS: sets cr3 and changes bits in cr0, cr4
+ * RETURN VALUE: none
+ */
 void paging_init(){
     /*
      * Fill in PDE for 0-4MB Page table
