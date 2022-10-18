@@ -60,7 +60,7 @@ int divide_by_zero(){
 	int z;
 	int temp;
 	z = 0;
-	temp = 1/0;
+	temp = 1/z;
 
 	return result;
 }
