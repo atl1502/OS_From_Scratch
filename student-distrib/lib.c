@@ -8,6 +8,9 @@
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
+// 2 bytes per ascii char (char and color)
+#define SCREEN_SIZE NUM_COLS*NUM_ROWS*2
+#define ROW_SIZE    2*NUM_COLS
 
 static int screen_x;
 static int screen_y;
@@ -166,20 +169,32 @@ int32_t puts(int8_t* s) {
     return index;
 }
 
+// right shift since each position is 2 bytes fill with spaces
+static char screen_buff[SCREEN_SIZE] = {0x20};
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
+    // move down to next line if it is over the x value
+    if(screen_x == NUM_COLS){
+        screen_x = 0;
+        screen_y++;
+    }
+    // if at the end of the screen have the screen move down
+    if(screen_y == NUM_ROWS){
+        // copy all but the top line into buffer
+        memcpy(screen_buff, video_mem+ROW_SIZE, SCREEN_SIZE-ROW_SIZE);
+        memcpy(video_mem, screen_buff, SCREEN_SIZE);
+        screen_y--;
+    }
     if(c == '\n' || c == '\r') {
-        screen_y = (screen_y + 1) % NUM_ROWS;
+        screen_y = (screen_y + 1);
         screen_x = 0;
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
     }
 }
 

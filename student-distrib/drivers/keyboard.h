@@ -2,6 +2,9 @@
  * vim:ts=4 noexpandtab
  */
 
+ #ifndef KEYBOARD_H
+ #define KEYBOARD_H
+
 #include "../types.h"
 
 #define TOTAL_ASCII 0x3A
@@ -21,3 +24,5 @@ void keyboard_init(void);
 
 /* Handle the keyboard interrupt */
 void keyboard_handle_interrupt(void);
+
+#endif // KEYBOARD_H

@@ -1,7 +1,8 @@
 /* rtc.h - Defines used in interactions with the RTC
  * vim:ts=4 noexpandtab
  */
-
+ #ifndef RTC_H
+ #define RTC_H
 
 
 #include "../types.h"
@@ -21,3 +22,5 @@ void rtc_init(void);
 
 /* Handle the RTC interrupt */
 void rtc_handle_interrupt(void);
+
+#endif // RTC_H
