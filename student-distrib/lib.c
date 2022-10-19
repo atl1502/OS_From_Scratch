@@ -198,6 +198,28 @@ void putc(uint8_t c) {
     }
 }
 
+/* void removec();
+ * Inputs: uint_8* c = character to print
+ * Return Value: void
+ *  Function: Deletes current char from console */
+void removec() {
+    // ensure screen x/y are not in first position
+    if (screen_x == 0 && screen_y == 0){
+        return;
+    }
+    // move to previous position
+    if (screen_x == 0){
+        screen_x = NUM_COLS-1;
+        screen_y--;
+    } else {
+        screen_x--;
+    }
+    // print out space in the current location 
+    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = 0x20;
+    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+}
+
+
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);
  * Inputs: uint32_t value = number to convert
  *            int8_t* buf = allocated buffer to place string in
