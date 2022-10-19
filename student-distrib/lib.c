@@ -176,6 +176,14 @@ static char screen_buff[SCREEN_SIZE] = {0x20};
  * Return Value: void
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
+    if(c == '\n' || c == '\r') {
+        screen_y = (screen_y + 1);
+        screen_x = 0;
+    } else {
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        screen_x++;
+    }
     // move down to next line if it is over the x value
     if(screen_x == NUM_COLS){
         screen_x = 0;
@@ -187,14 +195,6 @@ void putc(uint8_t c) {
         memcpy(screen_buff, video_mem+ROW_SIZE, SCREEN_SIZE-ROW_SIZE);
         memcpy(video_mem, screen_buff, SCREEN_SIZE);
         screen_y--;
-    }
-    if(c == '\n' || c == '\r') {
-        screen_y = (screen_y + 1);
-        screen_x = 0;
-    } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
     }
 }
 
