@@ -7,10 +7,13 @@
 #include "../spinlock.h"
 #include "../i8259.h"
 
-const char scan_code_array[TOTAL_ASCII] = {'\n', '\n', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
-'\n', '\n', '\n', '\n', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '\n', '\n', '\n', '\n', 'a', 's', 'd',
-'f', 'g', 'h', 'j', 'k', 'l', ';', '\n', '\n', '\n', '\n', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '\n',
-'\n', '\n', '\n', ' '};
+// reserved key codes 0x01, 0x1D, 0x2A, 0x36, 0x38
+static const char scan_code_array[TOTAL_ASCII] = {'\n', '\n', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+'-', '=', '\n', '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', '\n', 'a', 's', 'd',
+'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', '\n', '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',
+'\n', '*', '\n', ' '};
+static uint8_t shift_flag = 0;
+static uint8_t caps_lock_flag = 0;
 
 /*
  * keyboard_init
@@ -35,8 +38,15 @@ void keyboard_init(void) {
 void keyboard_handle_interrupt(void) {
     char ascii;
     int scan_code = inb(0x60);
-    if (((scan_code > ROW1) && (scan_code < ROW2)) || ((scan_code > ROW3) && (scan_code < ROW4)) || ((scan_code > ROW5) && (scan_code < ROW6)) || ((scan_code > ROW7) && (scan_code < TOTAL_ASCII))) {
-        ascii = scan_code_array[scan_code];
+    // TODO: Terminal close on esc key press (0x01)
+    if (scan_code == 0x3A){
+        caps_lock_flag = caps_lock_flag ? 0 : 1;
+    } else if ((scan_code > BOTTOM_ASCII) && (scan_code < TOTAL_ASCII)) {
+        if (shift_flag ^ caps_lock_flag){
+            ascii = scan_code_array[scan_code]-CAPS_OFFSET;
+        } else {
+            ascii = scan_code_array[scan_code];
+        }
         putc(ascii);
     }
     send_eoi(KB_IRQ);
