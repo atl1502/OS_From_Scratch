@@ -58,9 +58,10 @@ int divide_by_zero(){
 	TEST_HEADER;
 	int result = FAIL;
 	int z;
-	int temp;
 	z = 0;
-	temp = 1/z;
+	int temp = 1/z;
+	if (temp) {
+	}
 
 	return result;
 }
