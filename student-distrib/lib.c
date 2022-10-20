@@ -15,6 +15,10 @@
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
+// buffer used for saving screen after a clear screen
+static char prev_screen_buff[SCREEN_SIZE] = {0x20};
+static int prev_screen_x;
+static int prev_screen_y;
 
 /* void clear(void);
  * Inputs: void
@@ -28,6 +32,33 @@ void clear(void) {
     }
     screen_x = 0;
     screen_y = 0;
+}
+
+/* void program_clear(void);
+ * Inputs: void
+ * Return Value: none
+ * Function: Same as clear but it saves the previous screen */
+void program_clear(void) {
+    int32_t i;
+    memcpy(prev_screen_buff, video_mem, SCREEN_SIZE);
+    prev_screen_x = screen_x;
+    prev_screen_y = screen_y;
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+        *(uint8_t *)(video_mem + (i << 1)) = ' ';
+        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+    }
+    screen_x = 0;
+    screen_y = 0;
+}
+
+/* void program_reload(void);
+ * Inputs: void
+ * Return Value: none
+ * Function: Loads screen saved in prev_screen_buff after program exits */
+void program_reload(void) {
+    memcpy(video_mem, prev_screen_buff, SCREEN_SIZE);
+    screen_x = prev_screen_x;
+    screen_y = prev_screen_y;
 }
 
 /* Standard printf().
@@ -169,7 +200,7 @@ int32_t puts(int8_t* s) {
     return index;
 }
 
-// right shift since each position is 2 bytes fill with spaces
+// buffer used for scrolling
 static char screen_buff[SCREEN_SIZE] = {0x20};
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
@@ -214,7 +245,7 @@ void removec() {
     } else {
         screen_x--;
     }
-    // print out space in the current location 
+    // print out space in the current location
     *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = 0x20;
     *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
 }
