@@ -4,6 +4,8 @@
 
 #ifndef TERMINAL
 #define TERMINAL
+#define BUF_LEN 128
+
 int terminal_open();
 int terminal_close();
 int terminal_read();
