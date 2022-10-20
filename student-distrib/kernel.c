@@ -28,8 +28,8 @@ void entry(unsigned long magic, unsigned long addr) {
 	char * filesys_string = "/filesys_img";
 
 	/* Pointers to start and end of filesystem */
-	uint32_t * filesys_start = 0;
-	uint32_t * filesys_end = 0;
+	uint32_t filesys_start = 0;
+	uint32_t filesys_end = 0;
 
     /* Clear the screen. */
     clear();
@@ -65,11 +65,9 @@ void entry(unsigned long magic, unsigned long addr) {
         while (mod_count < mbi->mods_count) {
             printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
             printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
-            printf("Module name = %s\n", (char *)mod->string);
 			if (!strncmp((char *)mod->string, filesys_string, 12)) {
-					printf("Saving filesys addr\n");
-					filesys_start = (uint32_t *)mod->mod_start;
-					filesys_end = (uint32_t *)mod->mod_end;
+					filesys_start = (uint32_t)mod->mod_start;
+					filesys_end = (uint32_t)mod->mod_end;
 			}
             printf("First few bytes of module:\n");
             for (i = 0; i < 16; i++) {
