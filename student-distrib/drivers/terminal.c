@@ -37,26 +37,15 @@ int terminal_close(int32_t fd) {
  * RETURN VALUE: return number of bytes read
  */
 int terminal_read(int32_t fd, void* buf, int32_t nbytes) {
-    // int i;
-    // if (buf == NULL){
-    //     return -1;
-    // }
-    // // copy to buf
-    // if (nbytes > BUF_LEN) {
-    //     // bytes to read is > 128, do i chop it off?
-    // } else {
-    //     for (i = 0; i < BUF_LEN; i++) {
-    //         if (i < nbytes)
-    //             ((uint8_t *) buf)[i] = terminal_buf[i];
-    //         else
-    //             ((uint8_t *) buf)[i] = 0;
-    //
-    //         // finish reading at \n
-    //         if ('\n' == terminal_buf[i]) {
-    //             return i + 1;
-    //         }
-    //     }
-    // }
+    // hold until there is a new line char
+    int len;
+    while(1){
+        len = get_keyboard_buffer_length();
+        get_keyboard_buffer((char *)buf);
+        if(len > 0 && ((char *)buf)[len-1] == '\n')
+            break;
+    }
+
     return nbytes;
 }
 
@@ -69,13 +58,15 @@ int terminal_read(int32_t fd, void* buf, int32_t nbytes) {
  */
 int terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
     int i;
+    int bytes = 0;
     if (buf == NULL){
         return -1;
     }
     for (i = 0; i < nbytes; i++) {
-        if ( ((uint8_t *) buf)[i] != NULL ) {
-            putc( ((uint8_t *) buf)[i] );
+        if ( ((char *) buf)[i] != NULL ) {
+            putc( ((char *) buf)[i] );
+            bytes++;
         }
     }
-    return nbytes;
+    return bytes;
 }

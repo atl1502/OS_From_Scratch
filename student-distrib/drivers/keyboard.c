@@ -133,9 +133,10 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
         return;
     }
     if (current == '\n' && keyboard_buffer_len < BUF_LEN) {
-        // add newline to end of buffer, terminal will handle printing it
+        // add newline to end of buffer
         keyboard_buffer[keyboard_buffer_len] = current;
         keyboard_buffer_len++;
+        putc('\n');
     } else if (control_flag == 1 && scan_code == 0x26){ //ctrl+l
         clear();
         // reprint all chars in buffer
