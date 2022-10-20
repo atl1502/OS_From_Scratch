@@ -2,17 +2,15 @@
  * vim:ts=4 noexpandtab
  */
 
+ #ifndef KEYBOARD_H
+ #define KEYBOARD_H
+
 #include "../types.h"
 
 #define TOTAL_ASCII 0x3A
-#define ROW1 0x01
-#define ROW2 0x0C
-#define ROW3 0x0F
-#define ROW4 0x1A
-#define ROW5 0x1D
-#define ROW6 0x27
-#define ROW7 0x2B
+#define BOTTOM_ASCII 0x01
 #define KB_IRQ 1
+#define CAPS_OFFSET 0x20
 
 /* Externally-visible functions */
 
@@ -21,3 +19,5 @@ void keyboard_init(void);
 
 /* Handle the keyboard interrupt */
 void keyboard_handle_interrupt(void);
+
+#endif // KEYBOARD_H
