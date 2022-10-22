@@ -1,6 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "drivers/rtc.h"
 
 #define PASS 1
 #define FAIL 0
@@ -104,6 +105,23 @@ int no_page_fault(){
 // add more tests here
 
 /* Checkpoint 2 tests */
+void rtc_freq_sweep(){
+	int i, j, k;
+	int cur_freq = 1;
+	k = 200;
+	j = 200;
+	for (i = 1; i < 11; i++) {
+		clear();
+		while (k>0) {
+			k--;
+		}
+		cur_freq = cur_freq*2;
+		rtc_write(&cur_freq);
+		while (j>0) {
+			j--;
+		}
+	}
+}
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -111,9 +129,10 @@ int no_page_fault(){
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
-	TEST_OUTPUT("no_page_fault_test", no_page_fault());
+	// TEST_OUTPUT("idt_test", idt_test());
+	// TEST_OUTPUT("no_page_fault_test", no_page_fault());
 	// Exception testing, comment out or in based on needs
 	// TEST_OUTPUT("divide_by_zero_test", divide_by_zero());
 	// TEST_OUTPUT("page_fault_test", page_fault());
+	rtc_freq_sweep();
 }
