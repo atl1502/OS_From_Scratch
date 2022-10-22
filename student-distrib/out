@@ -1,0 +1,5 @@
+make: Warning: File `Makefile.dep' has modification time 2.4 s in the future
+drivers/filesystem.c: In function ‘read_dentry_by_name’:
+drivers/filesystem.c:37: warning: pointer targets in passing argument 1 of ‘strncmp’ differ in signedness
+make: *** Deleting file `bootimg'
+make: *** [bootimg] Error 1
