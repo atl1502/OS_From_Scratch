@@ -24,12 +24,12 @@ void entry(unsigned long magic, unsigned long addr) {
 
     multiboot_info_t *mbi;
 
-	/* String for module name comparison later */
-	char * filesys_string = "/filesys_img";
+    /* String for module name comparison later */
+    char * filesys_string = "/filesys_img";
 
-	/* Pointers to start and end of filesystem */
-	uint32_t filesys_start = 0;
-	uint32_t filesys_end = 0;
+    /* Pointers to start and end of filesystem */
+    uint32_t filesys_start = 0;
+    uint32_t filesys_end = 0;
 
     /* Clear the screen. */
     clear();
@@ -65,10 +65,10 @@ void entry(unsigned long magic, unsigned long addr) {
         while (mod_count < mbi->mods_count) {
             printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
             printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
-			if (!strncmp((char *)mod->string, filesys_string, 12)) {
-					filesys_start = (uint32_t)mod->mod_start;
-					filesys_end = (uint32_t)mod->mod_end;
-			}
+            if (!strncmp((char *)mod->string, filesys_string, 12)) {
+                filesys_start = (uint32_t)mod->mod_start;
+                filesys_end = (uint32_t)mod->mod_end;
+            }
             printf("First few bytes of module:\n");
             for (i = 0; i < 16; i++) {
                 printf("0x%x ", *((char*)(mod->mod_start+i)));
@@ -159,8 +159,8 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Initialize idt vectors */
     idt_init();
 
-	/* Initialize filesystem */
-	filesystem_init(filesys_start, filesys_end);
+    /* Initialize filesystem */
+    filesystem_init(filesys_start, filesys_end);
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
@@ -171,6 +171,9 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti();
+
+    filesystem_print_files(filesys_start);
+    print_file_contents();
 
 #ifdef RUN_TESTS
     /* Run tests */

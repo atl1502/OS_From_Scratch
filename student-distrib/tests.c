@@ -1,6 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "./drivers/filesystem.h"
 
 #define PASS 1
 #define FAIL 0
@@ -105,6 +106,40 @@ int no_page_fault(){
 // add more tests here
 
 /* Checkpoint 2 tests */
+int filesystem_print_files(uint32_t file_start) {
+	printf("Filesystem Directory Names:\n");
+	int index;
+	boot_block_t * filesys = (boot_block_t *) file_start;
+	for (index = 0; index < 63; index++) {
+		char * filename = filesys->direntries[index].filename;
+		if (!(*filename)) {
+			continue;
+		}
+		else {
+			printf("%s\n", filename);
+		}
+	}
+	return 0;
+}
+
+int print_file_contents() {
+	unsigned char char_buffer[5300] = { 0 };
+	dentry_t dentry;
+
+	if (read_dentry_by_name ((const uint8_t *)"verylargetextwithverylongname.tx", &dentry)) {
+		printf("FAILED READ DENTRY!\n");
+		return -1;
+	}
+	printf("Filename: %s\n", dentry.filename);
+
+	if (read_data (dentry.inode_num, 0, char_buffer, 5277)) {
+		printf("FAILED READ DATA!\n");
+		return -1;
+	}
+	printf("File Contents: %s\n", char_buffer);
+	return 0;
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
