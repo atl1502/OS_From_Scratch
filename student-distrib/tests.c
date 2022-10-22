@@ -6,6 +6,9 @@
 #define PASS 1
 #define FAIL 0
 
+#define TEST_BINARY 0
+#define TEST_FILE 1
+
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
 	printf("[TEST %s] Running %s at %s:%d\n", __FUNCTION__, __FUNCTION__, __FILE__, __LINE__)
@@ -126,6 +129,7 @@ int print_file_contents() {
 	unsigned char char_buffer[5400] = { 0 };
 	dentry_t dentry;
 
+	#if (TEST_FILE == 1)
 	if (read_dentry_by_name ((const uint8_t *)"verylargetextwithverylongname.tx", &dentry)) {
 		printf("FAILED READ DENTRY!\n");
 		return -1;
@@ -137,7 +141,9 @@ int print_file_contents() {
 		return -1;
 	}
 	printf("File Contents: %s\n", char_buffer);
+	#endif
 
+	#if (TEST_BINARY == 1)
 	if (read_dentry_by_name ((const uint8_t *)"ls", &dentry)) {
 		printf("FAILED READ DENTRY!\n");
 		return -1;
@@ -151,9 +157,11 @@ int print_file_contents() {
 	printf("File Contents: ");
 	int i;
 	for (i = 0; i < 5350; i++) {
-		printf("%c", char_buffer[i]);
+		if (char_buffer[i])
+			printf("%c", char_buffer[i]);
 	}
 	printf("\n");
+	#endif
 
 	return 0;
 }
