@@ -207,9 +207,17 @@ static char screen_buff[SCREEN_SIZE] = {0x20};
  * Return Value: void
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
+    uint8_t i;
     if(c == '\n' || c == '\r') {
         screen_y = (screen_y + 1);
         screen_x = 0;
+    } else if (c == '\t'){
+        // print 4 spaces for the tab
+        for (i = 0; i <4 ; i++){
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+            screen_x++;
+        }
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;

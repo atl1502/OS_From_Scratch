@@ -1,6 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "drivers/terminal.h"
 
 #define PASS 1
 #define FAIL 0
@@ -54,7 +55,7 @@ int idt_test(){
  * Coverage: Load IDT, IDT definition
  * Files: idt.h/c
  */
-int divide_by_zero(){
+int divide_by_zero_test(){
 	TEST_HEADER;
 	int result = FAIL;
 	int z;
@@ -74,7 +75,7 @@ int divide_by_zero(){
  * Coverage: Paging
  * Files: kernal.c
  */
-int page_fault(){
+int page_fault_test(){
 	TEST_HEADER;
 	int result = FAIL;
 	int* test = (int*)0x1000000;
@@ -92,7 +93,7 @@ int page_fault(){
  * Coverage: Paging
  * Files: kernal.c
  */
-int no_page_fault(){
+int no_page_fault_test(){
 	TEST_HEADER;
 	int result = PASS;
 	int* test = (int*)0x600000;
@@ -101,9 +102,54 @@ int no_page_fault(){
 	return result;
 }
 
-// add more tests here
-
 /* Checkpoint 2 tests */
+
+/* Terminal Open/Close Test
+ *
+ * Opens terminal and holds until newline and should exit terminal,
+ * printed value should match length of input (including newline)
+ * Inputs: None
+ * Outputs: PASS or held in an exception
+ * Side Effects: None
+ * Coverage: Terminal and keyboard
+ * Files: kernal.c
+ */
+int terminal_open_close_test(){
+	TEST_HEADER;
+	char buff[128];
+	uint32_t len;
+	terminal_open(0);
+	// will hold untill newline
+	len = terminal_read(0, buff, 0);
+	terminal_close(1);
+	printf("%d\n", len);
+	return PASS;
+}
+
+/* Terminal Run Test
+ *
+ * Opens terminal and holds until newline and should exit terminal,
+ * printed value should match length of input (including newline)
+ * Inputs: None
+ * Outputs: PASS or held in an exception
+ * Side Effects: None
+ * Coverage: Terminal and keyboard
+ * Files: kernal.c
+ */
+int terminal_run_test(){
+	TEST_HEADER;
+	char buff[128];
+	uint32_t len;
+	terminal_open(0);
+	while(1){
+		// will hold untill newline
+		terminal_read(0, buff, 0);
+		terminal_write(0, "cmd executed", 0);
+	}
+	printf("%d\n", len);
+	return PASS;
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -112,8 +158,13 @@ int no_page_fault(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	TEST_OUTPUT("no_page_fault_test", no_page_fault());
+	TEST_OUTPUT("no_page_fault_test", no_page_fault_test());
 	// Exception testing, comment out or in based on needs
-	// TEST_OUTPUT("divide_by_zero_test", divide_by_zero());
-	// TEST_OUTPUT("page_fault_test", page_fault());
+	// CP 1 Tests:
+	// TEST_OUTPUT("divide_by_zero_test", divide_by_zero_test());
+	// TEST_OUTPUT("page_fault_test", page_fault_test());
+	// CP 2 Tests:
+	TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
+	TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
+	// TEST_OUTPUT("terminal_run_test", terminal_run_test());
 }
