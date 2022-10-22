@@ -81,9 +81,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 	for (block_index = 0; block_index < num_data_blocks; block_index++) {
 		block_num = inode_cur->data_block_num[block_index];
 		unsigned char * data_block_cur = data_blocks + (block_num * 4096);
-		for (data_index = 0; data_index < length && data_index < 4096; data_index++) {
-			printf("%c", data_block_cur[data_index]);
-		}
+		memcpy(buf, data_block_cur, length < 4096 ? length : 4096);
 		length -= 4096;
 	}
 	return 0;
