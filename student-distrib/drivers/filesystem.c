@@ -73,7 +73,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 		return -1;
 	}
 
-	int num_data_blocks = inode_cur->length >> 12;
+	int num_data_blocks = (inode_cur->length >> 12) + (inode_cur->length & 0xFFF ? 1 : 0);
 	int block_index;
 	int data_index;
 	int block_num;
@@ -81,8 +81,9 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 	for (block_index = 0; block_index < num_data_blocks; block_index++) {
 		block_num = inode_cur->data_block_num[block_index];
 		unsigned char * data_block_cur = data_blocks + (block_num * 4096);
-		memcpy(buf, data_block_cur, length < 4096 ? length : 4096);
+		memcpy(buf + (4096 * block_index), data_block_cur, length < 4096 ? length : 4096);
 		length -= 4096;
 	}
+
 	return 0;
 }

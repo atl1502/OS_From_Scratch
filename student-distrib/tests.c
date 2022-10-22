@@ -123,7 +123,7 @@ int filesystem_print_files(uint32_t file_start) {
 }
 
 int print_file_contents() {
-	unsigned char char_buffer[5300] = { 0 };
+	unsigned char char_buffer[5400] = { 0 };
 	dentry_t dentry;
 
 	if (read_dentry_by_name ((const uint8_t *)"verylargetextwithverylongname.tx", &dentry)) {
@@ -137,6 +137,24 @@ int print_file_contents() {
 		return -1;
 	}
 	printf("File Contents: %s\n", char_buffer);
+
+	if (read_dentry_by_name ((const uint8_t *)"ls", &dentry)) {
+		printf("FAILED READ DENTRY!\n");
+		return -1;
+	}
+	printf("Filename: %s\n", dentry.filename);
+
+	if (read_data (dentry.inode_num, 0, char_buffer, 5349)) {
+		printf("FAILED READ DATA!\n");
+		return -1;
+	}
+	printf("File Contents: ");
+	int i;
+	for (i = 0; i < 5350; i++) {
+		printf("%c", char_buffer[i]);
+	}
+	printf("\n");
+
 	return 0;
 }
 
