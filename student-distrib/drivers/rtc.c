@@ -58,7 +58,7 @@ void rtc_handle_interrupt(void) {
     inb(PORT2);
     // test_interrupts();
     // printf("Current frequency: %d \n", frequency);
-    // printf("h");
+    printf("h");
     //send EOI to PIC
     flag = 0;
     send_eoi(RTC_IRQ);
@@ -75,7 +75,7 @@ int rtc_open(void) {
     frequency = FREQ_OP;
     rate = RT_OP;
     //disable interrupts
-    spin_lock_irq(&rtc_lock);
+    cli();
     // select register A, and disable NMI
     outb(REGA, PORT1);
     // read the current value of register B
@@ -89,7 +89,7 @@ int rtc_open(void) {
     //garbage throw out to prevent RTC from going into undefined state
     inb(PORT2);
     // reenable interrupts
-    spin_unlock_irq(&rtc_lock);
+    sti();
     return 0;
 }
 

@@ -31,14 +31,19 @@ void rtc_init(void);
 /* Handle the RTC interrupt */
 void rtc_handle_interrupt(void);
 
+/* Open function of rtc, note not currently using spinlock */
 int rtc_open(void);
 
+/* Close function of rtc */
 int rtc_close(void);
 
+/* Read function of rtc */
 int rtc_read(void);
 
+/* Write function of rtc, note not currently using spinlock */
 int rtc_write(int*);
 
+/* Helper function of rtc for write */
 int ret_rate(int);
 
 #endif // RTC_H

@@ -111,7 +111,7 @@ void rtc_freq_sweep(){
 	k = 200;
 	j = 200;
 	for (i = 1; i < 11; i++) {
-		clear();
+		// clear();
 		while (k>0) {
 			k--;
 		}
@@ -134,5 +134,5 @@ void launch_tests(){
 	// Exception testing, comment out or in based on needs
 	// TEST_OUTPUT("divide_by_zero_test", divide_by_zero());
 	// TEST_OUTPUT("page_fault_test", page_fault());
-	rtc_freq_sweep();
+	// rtc_freq_sweep();
 }
