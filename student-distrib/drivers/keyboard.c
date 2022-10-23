@@ -125,7 +125,8 @@ void keyboard_handle_interrupt(void) {
  */
 /* Handle the keyboard interrupt */
 void keyboard_handle_interrupt_buffer(uint8_t scan_code){
-    char current, ascii;
+    char current;
+    char ascii = 0;
     int i;
     current = scan_code_array[scan_code];
     // check prev to make sure it wasn't new line skip if it is
@@ -140,7 +141,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
     } else if (control_flag == 1 && scan_code == 0x26){ //ctrl+l
         clear();
         // reprint all chars in buffer
-        for (i = 0; i < keyboard_buffer_len - 1; i++){
+        for (i = 0; i < keyboard_buffer_len; i++){
             putc(keyboard_buffer[i]);
         }
     } else if (scan_code == 0x0E && keyboard_buffer_len > 0){ // backspace
