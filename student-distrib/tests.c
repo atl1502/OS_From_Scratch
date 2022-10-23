@@ -6,6 +6,9 @@
 #define PASS 1
 #define FAIL 0
 
+#define CHECKNUM 5
+#define CHECKNUM2 2
+
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
 	printf("[TEST %s] Running %s at %s:%d\n", __FUNCTION__, __FUNCTION__, __FILE__, __LINE__)
@@ -105,23 +108,170 @@ int no_page_fault(){
 // add more tests here
 
 /* Checkpoint 2 tests */
-void rtc_freq_sweep(){
-	int i, j, k;
+int rtc_test(){
+	TEST_HEADER;
+	int result = PASS;
+	int i, j, p;
 	int cur_freq = 1;
-	k = 200;
-	j = 200;
+
+	clear();
+	printf("First let's do a frequency sweep! \n");
+	count_init(FREQ_ST);
+	while (counter()) {
+		continue;
+	}
+
 	for (i = 1; i < 11; i++) {
-		// clear();
-		while (k>0) {
-			k--;
-		}
+		clear();
 		cur_freq = cur_freq*2;
 		rtc_write(&cur_freq);
-		while (j>0) {
-			j--;
+		printf("Current frequency: %d \n", frequency);
+		count_init(cur_freq);
+		while (counter()) {
+			continue;
 		}
+		count_init(cur_freq);
+		print_on();
+		while (counter()) {
+			continue;
+		}
+		print_off();
 	}
+	clear();
+
+
+	printf("Now let's check rtc_open()! \n");
+	j = rtc_open();
+	printf("Return result of rtc_open(): %d \n", j);
+	printf("Current frequency after rtc_open(): %d \n", frequency);
+	count_init(FREQ_OP*CHECKNUM);
+	print_on();
+	while (counter()) {
+		continue;
+	}
+	print_off();
+	clear();
+
+
+	printf("Checking rtc_close() ... \n");
+	j = rtc_close();
+	printf("Return result of rtc_close(): %d \n", j);
+	count_init(FREQ_OP*CHECKNUM2);
+	while (counter()) {
+		continue;
+	}
+	clear();
+
+	printf("Okay let's check rtc_read() now. \n");
+	j = rtc_close();
+	printf("Return result of rtc_close(): %d \n", j);
+	clear();
+	printf("I will turn printing on again. \n");
+	printf("Then I will turn on rtc_read(). \n");
+	count_init(FREQ_OP*CHECKNUM);
+	p = 1;
+	print_on();
+	while (counter()) {
+		if (counter() == CHECKNUM) {
+			if (p == 1) {
+				printf(" rtc_read() called! ");
+				p = 0;
+			}
+			rtc_read();
+		}
+		continue;
+	}
+	print_off();
+	clear();
+
+	printf("Return result of rtc_read(): %d \n", j);
+	count_init(FREQ_OP);
+	while (counter()) {
+		continue;
+	}
+	clear();
+
+	printf("Finally time to do some final checks on rtc_write() \n");
+	printf("Let's do an illegal input 9 since 9 is not a power of 2 \n");
+	cur_freq = 9;
+	p = 1;
+	count_init(FREQ_OP*CHECKNUM);
+	print_on();
+	while (counter()) {
+		if (counter() == CHECKNUM2*CHECKNUM) {
+			if (p == 1) {
+				printf(" Illegal rtc_write() called! ");
+				p = 0;
+			}
+			j = rtc_write(&cur_freq);
+		}
+		continue;
+	}
+	print_off();
+	clear();
+
+	printf("As you can see the frequency didn't change \n");
+	printf("Return result of rtc_write(): %d \n", j);
+	count_init(FREQ_OP);
+	while (counter()) {
+		continue;
+	}
+	clear();
+
+	printf("Let's repeat the previous test but input a NULL pointer to rtc_write() \n");
+	count_init(FREQ_OP*CHECKNUM);
+	p = 1;
+	print_on();
+	while (counter()) {
+		if (counter() == CHECKNUM2*CHECKNUM) {
+			if (p == 1) {
+				printf(" Illegal rtc_write() called! ");
+				p = 0;
+			}
+			j = rtc_write(NULL);
+		}
+		continue;
+	}
+	print_off();
+	clear();
+
+	printf("As you can see the frequency didn't change \n");
+	printf("Return result of rtc_write(): %d \n", j);
+	count_init(FREQ_OP);
+	while (counter()) {
+		continue;
+	}
+	clear();
+
+	printf("Finally let's change rtc_write() back to 1024 Hz and see the return value \n");
+	count_init(FREQ_ST);
+	p = 1;
+	cur_freq = FREQ_ST;
+	print_on();
+	while (counter()) {
+		if (counter() == 3*FREQ_ST - CHECKNUM) {
+			if (p == 1) {
+				printf(" Legal rtc_write() called! ");
+				p = 0;
+			}
+			j = rtc_write(&cur_freq);
+		}
+		continue;
+	}
+	print_off();
+	clear();
+
+	printf("As you can see the frequency did change \n");
+	printf("Return result of rtc_write(): %d \n", j);
+	count_init(FREQ_ST);
+	while (counter()) {
+		continue;
+	}
+	clear();
+	
+	return result;
 }
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -134,5 +284,5 @@ void launch_tests(){
 	// Exception testing, comment out or in based on needs
 	// TEST_OUTPUT("divide_by_zero_test", divide_by_zero());
 	// TEST_OUTPUT("page_fault_test", page_fault());
-	// rtc_freq_sweep();
+	TEST_OUTPUT("rtc_test", rtc_test());
 }

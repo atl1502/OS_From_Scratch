@@ -22,6 +22,8 @@
 
 int rate;
 int frequency;
+int count;
+int print_flag;
 
 /* Externally-visible functions */
 
@@ -45,5 +47,17 @@ int rtc_write(int*);
 
 /* Helper function of rtc for write */
 int ret_rate(int);
+
+/* Helper function for counting */
+int counter();
+
+/* Helper function for counting */
+void count_init(int);
+
+/* Helper function to turn on print_flag */
+void print_on();
+
+/* Helper function to turn off print_flag */
+void print_off();
 
 #endif // RTC_H

@@ -40,6 +40,7 @@ void rtc_init(void) {
     frequency = FREQ_ST;
     rate = RT_ST;
     flag = 0;
+    print_flag = 0;
     // reenable interrupts
     spin_unlock_irq(&rtc_lock);
 }
@@ -57,10 +58,14 @@ void rtc_handle_interrupt(void) {
     // just throw away contents
     inb(PORT2);
     // test_interrupts();
+    if (print_flag) {
+        printf("1");
+    }
     // printf("Current frequency: %d \n", frequency);
-    printf("h");
+    // printf("h");
     //send EOI to PIC
     flag = 0;
+    count--;
     send_eoi(RTC_IRQ);
 }
 
@@ -168,13 +173,63 @@ int rtc_write(int* buf) {
  * RETURN VALUE: rate integer
  */
 int ret_rate(int freq) {
+    //default ret value
     if (freq <= 1) {
         return RT_ST;
     }
     int log = 0;
+    //logarithm implementation
     while (freq > 1) {
         freq >>= 1;
         log++;
     }
+    //rate formula from frequency
     return RT_OP + 1 - log;
+}
+
+/*
+ * counter
+ * DESCRIPTION:  returns count
+ * INPUTS: none
+ * SIDE EFFECTS: none
+ * RETURN VALUE: current count
+ */
+int counter() {
+    return count;
+}
+
+/*
+ * count_init
+ * DESCRIPTION:  initiates count for a given frequency
+ * INPUTS: none
+ * SIDE EFFECTS: none
+ * RETURN VALUE: none
+ */
+void count_init(int freq) {
+    count = 3*freq;
+    return;
+}
+
+/*
+ * print_on
+ * DESCRIPTION:  turns on print flag
+ * INPUTS: none
+ * SIDE EFFECTS: none
+ * RETURN VALUE: none
+ */
+void print_on() {
+    print_flag = 1;
+    return;
+}
+
+/*
+ * print_flag
+ * DESCRIPTION:  turns off print flag
+ * INPUTS: none
+ * SIDE EFFECTS: none
+ * RETURN VALUE: none
+ */
+void print_off() {
+    print_flag = 0;
+    return;
 }
