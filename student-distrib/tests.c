@@ -108,12 +108,23 @@ int no_page_fault(){
 // add more tests here
 
 /* Checkpoint 2 tests */
+
+/* RTC test
+ *
+ * Show that rtc_open(), rtc_close(), rtc_read(), rtc_write() all work
+ * Inputs: None
+ * Outputs: PASS
+ * Side Effects: None
+ * Coverage: RTC
+ * Files: rtc.c, rtc.h
+ */
 int rtc_test(){
 	TEST_HEADER;
 	int result = PASS;
 	int i, j, p;
 	int cur_freq = 1;
 
+	//frequency sweep test
 	clear();
 	printf("First let's do a frequency sweep! \n");
 	count_init(FREQ_ST);
@@ -139,7 +150,7 @@ int rtc_test(){
 	}
 	clear();
 
-
+	//rtc_open test
 	printf("Now let's check rtc_open()! \n");
 	j = rtc_open();
 	printf("Return result of rtc_open(): %d \n", j);
@@ -152,7 +163,7 @@ int rtc_test(){
 	print_off();
 	clear();
 
-
+	//rtc_close test
 	printf("Checking rtc_close() ... \n");
 	j = rtc_close();
 	printf("Return result of rtc_close(): %d \n", j);
@@ -162,6 +173,7 @@ int rtc_test(){
 	}
 	clear();
 
+	//rtc_read test
 	printf("Okay let's check rtc_read() now. \n");
 	j = rtc_close();
 	printf("Return result of rtc_close(): %d \n", j);
@@ -191,6 +203,7 @@ int rtc_test(){
 	}
 	clear();
 
+	//rtc_write test illegal input 9
 	printf("Finally time to do some final checks on rtc_write() \n");
 	printf("Let's do an illegal input 9 since 9 is not a power of 2 \n");
 	cur_freq = 9;
@@ -218,6 +231,7 @@ int rtc_test(){
 	}
 	clear();
 
+	//rtc_write test illegal input NULL
 	printf("Let's repeat the previous test but input a NULL pointer to rtc_write() \n");
 	count_init(FREQ_OP*CHECKNUM);
 	p = 1;
@@ -243,6 +257,7 @@ int rtc_test(){
 	}
 	clear();
 
+	//rtc_write test legal input change freq
 	printf("Finally let's change rtc_write() back to 1024 Hz and see the return value \n");
 	count_init(FREQ_ST);
 	p = 1;
