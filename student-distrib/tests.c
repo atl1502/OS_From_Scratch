@@ -189,7 +189,7 @@ int rtc_test(){
 				printf(" rtc_read() called! ");
 				p = 0;
 			}
-			rtc_read();
+			j = rtc_read();
 		}
 		continue;
 	}
