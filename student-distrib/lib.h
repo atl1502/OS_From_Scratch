@@ -17,6 +17,7 @@ uint32_t strlen(const int8_t* s);
 void clear(void);
 void program_clear(void);
 void program_reload(void);
+void update_cursor(int x, int y);
 
 void* memset(void* s, int32_t c, uint32_t n);
 void* memset_word(void* s, int32_t c, uint32_t n);

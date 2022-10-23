@@ -140,10 +140,16 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
     } else if (control_flag == 1 && scan_code == 0x26){ //ctrl+l
         clear();
         // reprint all chars in buffer
-        for (i = 0; i < keyboard_buffer_len; i++){
+        for (i = 0; i < keyboard_buffer_len - 1; i++){
             putc(keyboard_buffer[i]);
         }
     } else if (scan_code == 0x0E && keyboard_buffer_len > 0){ // backspace
+        //deal with tab case
+        if (keyboard_buffer[keyboard_buffer_len-1] == '\t') {
+            removec();
+            removec();
+            removec();
+        }
         removec();
         // remove from buffer;
         keyboard_buffer_len--;
@@ -192,16 +198,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
             if (ascii != 0x00){
                 putc(ascii);
                 keyboard_buffer[keyboard_buffer_len] = ascii;
-                if(ascii == '\t'){
-                    // add four spaces for the tab and add to keyboard_buffer_len
-                    for(i = 0; i < TAB_SIZE; i++){
-                        keyboard_buffer[keyboard_buffer_len] = ' ';
-                        keyboard_buffer_len++;
-                    }
-                } else{
-                    keyboard_buffer[keyboard_buffer_len] = ascii;
-                    keyboard_buffer_len++;
-                }
+                keyboard_buffer_len++;
             }
         }
     }

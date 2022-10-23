@@ -12,6 +12,13 @@
 #define SCREEN_SIZE NUM_COLS*NUM_ROWS*2
 #define ROW_SIZE    2*NUM_COLS
 
+#define MASK1F 0x0F
+#define MASK2F 0xFF
+#define MASK1E 0x0E
+#define PORT4 0x3D4
+#define PORT5 0x3D5
+#define RSHIFT1 8
+
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
@@ -32,6 +39,7 @@ void clear(void) {
     }
     screen_x = 0;
     screen_y = 0;
+    update_cursor(screen_x, screen_y);
 }
 
 /* void program_clear(void);
@@ -49,6 +57,7 @@ void program_clear(void) {
     }
     screen_x = 0;
     screen_y = 0;
+    update_cursor(screen_x, screen_y);
 }
 
 /* void program_reload(void);
@@ -59,6 +68,21 @@ void program_reload(void) {
     memcpy(video_mem, prev_screen_buff, SCREEN_SIZE);
     screen_x = prev_screen_x;
     screen_y = prev_screen_y;
+    update_cursor(screen_x, screen_y);
+}
+
+/* void update_cursor(int x, int y);
+ * Inputs: int x, int y
+ * Return Value: none
+ * Function: Updates cursor to specified location */
+void update_cursor(int x, int y) {
+	uint16_t pos = y * NUM_COLS + x;
+
+	outb(MASK1F, PORT4);
+	outb((uint8_t) (pos & MASK2F), PORT5);
+	outb(MASK1E, PORT4);
+	outb((uint8_t) ((pos >> RSHIFT1) & MASK2F), PORT5);
+
 }
 
 /* Standard printf().
@@ -235,6 +259,7 @@ void putc(uint8_t c) {
         memcpy(video_mem, screen_buff, SCREEN_SIZE);
         screen_y--;
     }
+    update_cursor(screen_x, screen_y);
 }
 
 /* void removec();
@@ -256,6 +281,7 @@ void removec() {
     // print out space in the current location
     *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = 0x20;
     *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+    update_cursor(screen_x, screen_y);
 }
 
 
