@@ -61,8 +61,6 @@ void rtc_handle_interrupt(void) {
     if (print_flag) {
         printf("1");
     }
-    // printf("Current frequency: %d \n", frequency);
-    // printf("h");
     //send EOI to PIC
     flag = 0;
     count--;
