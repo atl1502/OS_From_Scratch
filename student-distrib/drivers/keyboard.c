@@ -143,14 +143,14 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
         for (i = 0; i < keyboard_buffer_len; i++){
             putc(keyboard_buffer[i]);
         }
+    } else if (scan_code == 0x0E && keyboard_buffer_len > 0){ // backspace
+        removec();
+        // remove from buffer;
+        keyboard_buffer_len--;
+        keyboard_buffer[keyboard_buffer_len] = 0x00;
     } else if (keyboard_buffer_len < BUF_LEN-1){ // ensure buffer is < 127
         // add char to buffer and prints
-        if (scan_code == 0x0E){                                 // backspace
-            removec();
-            // remove from buffer;
-            keyboard_buffer_len--;
-            keyboard_buffer[keyboard_buffer_len] = 0x00;
-        } else if ((scan_code > BOTTOM_ASCII) && (scan_code < TOTAL_ASCII)) {
+        if ((scan_code > BOTTOM_ASCII) && (scan_code < TOTAL_ASCII)) {
             // if alt or ctl are being depressed dont print anything (skip rest)
             if(!(alt_flag || control_flag)){
                 // if shift or caps lock but not both
@@ -192,7 +192,16 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
             if (ascii != 0x00){
                 putc(ascii);
                 keyboard_buffer[keyboard_buffer_len] = ascii;
-                keyboard_buffer_len++;
+                if(ascii == '\t'){
+                    // add four spaces for the tab and add to keyboard_buffer_len
+                    for(i = 0; i < TAB_SIZE; i++){
+                        keyboard_buffer[keyboard_buffer_len] = ' ';
+                        keyboard_buffer_len++;
+                    }
+                } else{
+                    keyboard_buffer[keyboard_buffer_len] = ascii;
+                    keyboard_buffer_len++;
+                }
             }
         }
     }

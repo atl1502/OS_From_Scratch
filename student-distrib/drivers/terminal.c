@@ -44,7 +44,7 @@ int terminal_read(int32_t fd, void* buf, int32_t nbytes) {
         if(nbytes > 0 && ((char *)buf)[nbytes-1] == '\n')
             break;
     }
-
+    reset_keyboard_buffer();
     return nbytes;
 }
 

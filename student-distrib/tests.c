@@ -116,11 +116,12 @@ int no_page_fault_test(){
  */
 int terminal_open_close_test(){
 	TEST_HEADER;
-	char buff[128];
+	char buff[128] = {0};
 	uint32_t len;
 	terminal_open(0);
 	// will hold untill newline
 	len = terminal_read(0, buff, 0);
+	terminal_write(0,buff,len);
 	terminal_close(1);
 	printf("%d\n", len);
 	return PASS;
@@ -138,15 +139,17 @@ int terminal_open_close_test(){
  */
 int terminal_run_test(){
 	TEST_HEADER;
-	char buff[128];
+	char buff[128] = {0};
 	uint32_t len;
+	uint32_t i;
 	terminal_open(0);
 	while(1){
 		// will hold untill newline
-		terminal_read(0, buff, 0);
-		terminal_write(0, "cmd executed", 0);
+		len = terminal_read(0, buff, 0);
+		terminal_write(0, buff, len);
+		for(i = 0; i < len; i++)
+			buff[i] = 0;
 	}
-	printf("%d\n", len);
 	return PASS;
 }
 
@@ -164,7 +167,6 @@ void launch_tests(){
 	// TEST_OUTPUT("divide_by_zero_test", divide_by_zero_test());
 	// TEST_OUTPUT("page_fault_test", page_fault_test());
 	// CP 2 Tests:
-	TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
-	TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
-	// TEST_OUTPUT("terminal_run_test", terminal_run_test());
+	// TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
+	TEST_OUTPUT("terminal_run_test", terminal_run_test());
 }
