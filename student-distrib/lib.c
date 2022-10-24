@@ -233,11 +233,13 @@ static char screen_buff[SCREEN_SIZE] = {0x20};
 void putc(uint8_t c) {
     uint8_t i;
     if(c == '\n' || c == '\r') {
-        screen_y = (screen_y + 1);
+        screen_y++;
         screen_x = 0;
     } else if (c == '\t'){
         // print 4 spaces for the tab
         for (i = 0; i <4 ; i++){
+            if(screen_x >= NUM_COLS)
+		    break;
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
             screen_x++;
@@ -248,12 +250,12 @@ void putc(uint8_t c) {
         screen_x++;
     }
     // move down to next line if it is over the x value
-    if(screen_x == NUM_COLS){
+    if(screen_x >= NUM_COLS){
         screen_x = 0;
         screen_y++;
     }
     // if at the end of the screen have the screen move down
-    if(screen_y == NUM_ROWS){
+    if(screen_y >= NUM_ROWS){
         // copy all but the top line into buffer
         memcpy(screen_buff, video_mem+ROW_SIZE, SCREEN_SIZE-ROW_SIZE);
         memcpy(video_mem, screen_buff, SCREEN_SIZE);

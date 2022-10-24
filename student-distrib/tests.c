@@ -164,11 +164,14 @@ int filesystem_print_files() {
  * Side Effects: Prints file contents along with any errors
  * return value: 0 or -1 if errors
  */
+
+static unsigned char char_buffer[5349] = { 0 };
+
 int print_file_contents() {
-	unsigned char char_buffer[5349] = { 0 };
 	fd_t fd;
 
 	#if (TEST_FILE == 1)
+	printf("Long File Test");
 	if (file_open ((const uint8_t *)"verylargetextwithverylongname.tx", &fd)) {
 		printf("FAILED FILE FILE!\n");
 		return -1;
@@ -179,10 +182,26 @@ int print_file_contents() {
 		return -1;
 	}
 	printf("File Contents: %s\n", char_buffer);
+
+
+	printf("Frame 0 Test\n");
+
+	if (file_open ((const uint8_t *)"frame0.txt", &fd)) {
+		printf("FAILED FILE FILE!\n");
+		return -1;
+	}
+
+	if (file_read (&fd, char_buffer, 187)) {
+		printf("FAILED READ DATA!\n");
+		return -1;
+	}
+	char_buffer[187] = 0;
+	printf("File Contents:\n%s\n", char_buffer);
+
 	#endif
 
 	#if (TEST_BINARY == 1)
-	if (file_open ((const uint8_t *)"ls.tx", &fd)) {
+	if (file_open ((const uint8_t *)"ls", &fd)) {
 		printf("FAILED FILE FILE!\n");
 		return -1;
 	}
@@ -191,11 +210,11 @@ int print_file_contents() {
 		printf("FAILED READ DATA!\n");
 		return -1;
 	}
-	printf("File Contents: ");
-	int i;
+	printf("File Contents: %d\n", num);
+	int i = 0;
 	for (i = 0; i < 5350; i++) {
 		if (char_buffer[i])
-			printf("%c", char_buffer[i]);
+			putc(char_buffer[i]);
 	}
 	printf("\n");
 	#endif
@@ -446,6 +465,6 @@ void launch_tests(){
 	// TEST_OUTPUT("rtc_test", rtc_test());
 	// TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
 	TEST_OUTPUT("Filename Test", filesystem_print_files());
-	/* TEST_OUTPUT("Contents Test", print_file_contents()); */
+	TEST_OUTPUT("Contents Test", print_file_contents());
 	/* TEST_OUTPUT("terminal_run_test", terminal_run_test()); */
 }
