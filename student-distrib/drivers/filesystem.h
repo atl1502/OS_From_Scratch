@@ -1,5 +1,6 @@
 #include "../types.h"
 #include "../lib.h"
+#include "../fd.h"
 
 #ifndef FILESYSTEM
 #define FILESYSTEM
@@ -24,10 +25,14 @@ typedef struct boot_block {
 	dentry_t direntries[63];
 } boot_block_t;
 
+int32_t file_open(const uint8_t * fname, fd_t * fd);
+int32_t file_close(fd_t * fd);
+int32_t file_read (fd_t * fd, void* buf, int32_t nbytes);
+int32_t file_write(fd_t * fd);
 
 int32_t filesystem_init (uint32_t file_start, uint32_t file_end);
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry);
 int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry);
-int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
+int32_t read_data (uint32_t inode, uint32_t offset, void* buf, uint32_t length);
 
 #endif

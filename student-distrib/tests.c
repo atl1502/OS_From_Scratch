@@ -109,6 +109,16 @@ int no_page_fault(){
 // add more tests here
 
 /* Checkpoint 2 tests */
+
+/*
+ * Filesystem Filename test
+ *
+ * Should print all file names in the root directory
+ * Inputs: file_start (start of filesystem in mem)
+ * Outputs: none
+ * Side Effects: Prints file names to screen and all errors
+ * return value: 0 or -1 if errors
+ */
 int filesystem_print_files(uint32_t file_start) {
 	printf("Filesystem Directory Names:\n");
 	int index;
@@ -125,18 +135,26 @@ int filesystem_print_files(uint32_t file_start) {
 	return 0;
 }
 
+/*
+ * Filesystem File Contents test
+ *
+ * Should print all filecontents of ls and verylargetext...
+ * Inputs: none
+ * Outputs: none
+ * Side Effects: Prints file contents along with any errors
+ * return value: 0 or -1 if errors
+ */
 int print_file_contents() {
-	unsigned char char_buffer[5400] = { 0 };
-	dentry_t dentry;
+	unsigned char char_buffer[5349] = { 0 };
+	fd_t fd;
 
 	#if (TEST_FILE == 1)
-	if (read_dentry_by_name ((const uint8_t *)"verylargetextwithverylongname.tx", &dentry)) {
-		printf("FAILED READ DENTRY!\n");
+	if (file_open ((const uint8_t *)"verylargetextwithverylongname.tx", &fd)) {
+		printf("FAILED FILE FILE!\n");
 		return -1;
 	}
-	printf("Filename: %s\n", dentry.filename);
 
-	if (read_data (dentry.inode_num, 0, char_buffer, 5277)) {
+	if (file_read (&fd, char_buffer, 5277)) {
 		printf("FAILED READ DATA!\n");
 		return -1;
 	}
@@ -144,13 +162,12 @@ int print_file_contents() {
 	#endif
 
 	#if (TEST_BINARY == 1)
-	if (read_dentry_by_name ((const uint8_t *)"ls", &dentry)) {
-		printf("FAILED READ DENTRY!\n");
+	if (file_open ((const uint8_t *)"ls.tx", &fd)) {
+		printf("FAILED FILE FILE!\n");
 		return -1;
 	}
-	printf("Filename: %s\n", dentry.filename);
 
-	if (read_data (dentry.inode_num, 0, char_buffer, 5349)) {
+	if (file_read (&fd, char_buffer, 5349)) {
 		printf("FAILED READ DATA!\n");
 		return -1;
 	}
