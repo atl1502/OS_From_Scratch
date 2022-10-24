@@ -174,12 +174,12 @@ int print_file_contents_long() {
 	printf("Long File Test");
 	if (file_open ((const uint8_t *)"verylargetextwithverylongname.tx", &fd)) {
 		printf("FAILED FILE FILE!\n");
-		return -1;
+		return FAIL;
 	}
 
 	if (file_read (&fd, char_buffer, 5277)) {
 		printf("FAILED READ DATA!\n");
-		return -1;
+		return FAIL;
 	}
 	printf("File Contents: %s\n", char_buffer);
 	return PASS;
@@ -193,12 +193,12 @@ int print_file_contents_frame0() {
 
 	if (file_open ((const uint8_t *)"frame0.txt", &fd)) {
 		printf("FAILED FILE FILE!\n");
-		return -1;
+		return FAIL;
 	}
 
 	if (file_read (&fd, char_buffer, 187)) {
 		printf("FAILED READ DATA!\n");
-		return -1;
+		return FAIL;
 	}
 	char_buffer[187] = 0;
 	printf("File Contents: 187 Bytes\n%s\n", char_buffer);	
@@ -212,12 +212,12 @@ int print_file_contents_ls() {
 	printf("ls Test\n");
 	if (file_open ((const uint8_t *)"ls", &fd)) {
 		printf("FAILED FILE FILE!\n");
-		return -1;
+		return FAIL;
 	}
 
 	if (file_read (&fd, char_buffer, 5349)) {
 		printf("FAILED READ DATA!\n");
-		return -1;
+		return FAIL;
 	}
 	printf("File Contents: %d Bytes:\n", 5349);
 	int i = 0;
@@ -419,12 +419,25 @@ int rtc_test(){
 int terminal_open_close_test(){
 	TEST_HEADER;
 	char buff[128] = {0};
+	int i;
 	uint32_t len;
-	terminal_open(0);
+	i = terminal_open(0);
+	if (i != 0) {
+		assertion_failure();
+		return FAIL;
+	}
 	// will hold untill newline
 	len = terminal_read(0, buff, 0);
-	terminal_write(0,buff,len);
-	terminal_close(1);
+	i = terminal_write(0,buff,len);
+	if (i == -1) {
+		assertion_failure();
+		return FAIL;
+	}
+	i = terminal_close(1);
+	if (i != 0) {
+		assertion_failure();
+		return FAIL;
+	}
 	printf("%d\n", len);
 	return PASS;
 }
@@ -455,6 +468,33 @@ int terminal_run_test(){
 	return PASS;
 }
 
+/* File system misc. test
+ *
+ * Tests return values for file system functions
+ * Inputs: None
+ * Outputs: PASS or held in an exception
+ * Side Effects: None
+ * Coverage: File systems
+ * Files: kernal.c
+ */
+int file_misc_test() {
+	TEST_HEADER;
+	fd_t * p;
+	int i;
+	i = file_close(p);
+	if (i != 0) {
+		assertion_failure();
+		return FAIL;
+	}
+	i = file_write(p);
+	if (i != -1) {
+		assertion_failure();
+		return FAIL;
+	}
+	return PASS;
+
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -469,11 +509,12 @@ void launch_tests(){
 	// TEST_OUTPUT("divide_by_zero_test", divide_by_zero_test());
 	// TEST_OUTPUT("page_fault_test", page_fault_test());
 	// CP 2 Tests:
-	// TEST_OUTPUT("rtc_test", rtc_test());
+	TEST_OUTPUT("rtc_test", rtc_test());
 	// TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
-	TEST_OUTPUT("Filename Test", filesystem_print_files());
+	// TEST_OUTPUT("Filename Test", filesystem_print_files());
 	// TEST_OUTPUT("Long File Test", print_file_contents_long());
 	// TEST_OUTPUT("frame0.txt Test", print_file_contents_frame0());
 	// TEST_OUTPUT("ls Test", print_file_contents_ls());
 	// TEST_OUTPUT("terminal_run_test", terminal_run_test());
+	// TEST_OUTPUT("file_misc_test", file_misc_test());
 }
