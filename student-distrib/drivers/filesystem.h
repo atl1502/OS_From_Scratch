@@ -5,6 +5,10 @@
 #ifndef FILESYSTEM
 #define FILESYSTEM
 
+#define BLOCK_SIZE 4096
+#define OFFSET_MASK 0xFFF
+#define OFFSET_SHIFT 12
+
 typedef struct dentry {
 	int8_t filename[32];
 	int32_t filetype;

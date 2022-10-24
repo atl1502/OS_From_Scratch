@@ -143,13 +143,16 @@ int filesystem_print_files() {
 	boot_block_t * filesys = (boot_block_t *) file_start;
 	char filename[33] = { 0 };
 	int index = 0;
+	inode_t* inode_cur;
+	inode_t* inode_start =(inode_t *)(file_start + BLOCK_SIZE);
 
 	printf("Filesystem Directory Names:\n");
 	for (index = 0; index < 63; index++) {
 		strcpy(filename, filesys->direntries[index].filename);
+		inode_cur = (filesys->direntries[index].inode_num) + inode_start;
 		filename[32] = 0;
 		if (filename[0]) {
-			printf("%s\n", filename);
+			printf("Size: %u Filename: %s\n", inode_cur->length, filename);
 		}
 	}
 	return PASS;
@@ -465,6 +468,6 @@ void launch_tests(){
 	// TEST_OUTPUT("rtc_test", rtc_test());
 	// TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
 	TEST_OUTPUT("Filename Test", filesystem_print_files());
-	TEST_OUTPUT("Contents Test", print_file_contents());
-	/* TEST_OUTPUT("terminal_run_test", terminal_run_test()); */
+	// TEST_OUTPUT("Contents Test", print_file_contents());
+	// TEST_OUTPUT("terminal_run_test", terminal_run_test());
 }

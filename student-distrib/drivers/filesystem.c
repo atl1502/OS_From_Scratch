@@ -87,8 +87,8 @@ int32_t filesystem_init (uint32_t file_start, uint32_t file_end) {
 
 	filesys = (boot_block_t *) file_start;
 	inode_count = (unsigned int)filesys->inode_count;
-	inode_start = (inode_t *) (file_start + 4096);
-	data_start = (void *) (file_start + 4096 + (inode_count * 4096));
+	inode_start = (inode_t *) (file_start + BLOCK_SIZE);
+	data_start = (void *) (file_start + BLOCK_SIZE + (inode_count * BLOCK_SIZE));
 	filesys_end = (void *) file_end;
 
 	if (!file_start || !file_end)
@@ -111,11 +111,12 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry) {
 		return -1;
 	uint32_t index;
 	unsigned char found = 0;
+	// 63 is number of files in the system
 	for (index = 0; index < 63; index++) {
 		char * filename = filesys->direntries[index].filename;
 		if (!filename)
 			continue;
-		else if (!strncmp((char *) fname, filename, 32)) {
+		else if (!strncmp((char *) fname, filename, 32)) { // 32 bytes being compared
 			found = 1;
 			break;
 		}
@@ -132,7 +133,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry) {
 /*
  * read_dentry_by_index
  * DESCRIPTION: given index modifies dentry with infomation on file
- * INPUTS: 
+ * INPUTS:
  * index: directory index
  * dentry: pointer to dentry to modify with inode
  * SIDE EFFECTS: Modifies dentry with new inode
@@ -150,6 +151,7 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry) {
 	strcpy(dentry->filename, entry.filename);
 	dentry->filetype = entry.filetype;
 	dentry->inode_num = entry.inode_num;
+	// 24 bytes are reserved
 	memcpy(dentry->reserved, entry.reserved, 24);
 
 	return 0;
@@ -183,34 +185,34 @@ int32_t read_data (uint32_t inode, uint32_t offset, void* buf, uint32_t length) 
 	}
 
 
-	/* Start at offset / 4096 for blocks */
-	int cur_block_num = inode_cur->data_block_num[offset >> 12];
+	/* Start at offset */
+	int cur_block_num = inode_cur->data_block_num[offset >> OFFSET_SHIFT];
 	int buffer_offset = 0;
 
 	/* If offset is not 4KB aligned, copy until next 4KB boundary, make length shorter and offset larger */
-	if (offset & 0xFFF) {
-		memcpy(buf + buffer_offset, data_start + (cur_block_num << 12) + (offset & 0xFFF), 4096 - (offset & 0xFFF));
-		buffer_offset += 4096 - (offset & 0xFFF);
-		length -= 4096 - (offset & 0xFFF);
-		offset += 4096 - (offset & 0xFFF);
+	if (offset & OFFSET_MASK) {
+		memcpy(buf + buffer_offset, data_start + (cur_block_num << OFFSET_SHIFT) + (offset & OFFSET_MASK), BLOCK_SIZE - (offset & OFFSET_MASK));
+		buffer_offset += BLOCK_SIZE - (offset & OFFSET_MASK);
+		length -= BLOCK_SIZE - (offset & OFFSET_MASK);
+		offset += BLOCK_SIZE - (offset & OFFSET_MASK);
 	}
 
 	/*
 	* Copy bytes until tail end of copying
 	*/
-	for ( ; length > 4096; length -= 4096) {
-		cur_block_num = inode_cur->data_block_num[offset >> 12];
-		memcpy(buf + buffer_offset, data_start + (cur_block_num << 12), 4096);
-		offset += 4096;
-		buffer_offset += 4096;
+	for ( ; length > BLOCK_SIZE; length -= BLOCK_SIZE) {
+		cur_block_num = inode_cur->data_block_num[offset >> OFFSET_SHIFT];
+		memcpy(buf + buffer_offset, data_start + (cur_block_num << OFFSET_SHIFT), BLOCK_SIZE);
+		offset += BLOCK_SIZE;
+		buffer_offset += BLOCK_SIZE;
 	}
 
 	/*
 	* Copy additional bytes that were not on 4KB boundary at the end.
 	*/
 	if (length) {
-		cur_block_num = inode_cur->data_block_num[offset >> 12];
-		memcpy(buf + buffer_offset, data_start + (cur_block_num << 12), length);
+		cur_block_num = inode_cur->data_block_num[offset >> OFFSET_SHIFT];
+		memcpy(buf + buffer_offset, data_start + (cur_block_num << OFFSET_SHIFT), length);
 	}
 
 	return 0;
