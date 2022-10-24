@@ -3,9 +3,10 @@
 #ifndef TESTS_H
 #define TESTS_H
 
+// init filesystem testing
+int filesystem_print_files_init(uint32_t file_start);
+
 // test launcher
-int filesystem_print_files(uint32_t file_start);
-int print_file_contents();
 void launch_tests();
 
 #endif /* TESTS_H */

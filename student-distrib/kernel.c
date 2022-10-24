@@ -173,11 +173,10 @@ void entry(unsigned long magic, unsigned long addr) {
     printf("Enabling Interrupts\n");
     sti();
 
-    filesystem_print_files(filesys_start);
-    print_file_contents();
 
 #ifdef RUN_TESTS
     /* Run tests */
+    filesystem_print_files_init(filesys_start);
     launch_tests();
 #endif
     /* Execute the first program ("shell") ... */

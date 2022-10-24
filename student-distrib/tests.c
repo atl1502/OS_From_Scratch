@@ -10,6 +10,7 @@
 
 #define TEST_BINARY 0
 #define TEST_FILE 1
+
 #define CHECKNUM 5
 #define CHECKNUM2 2
 
@@ -111,6 +112,22 @@ int no_page_fault_test(){
 }
 
 /* Checkpoint 2 tests */
+/*
+ * Filesystem Filename test init
+ *
+ * Initializes filesystem start in this file for testing
+ * Inputs: file_start (start of filesystem in mem)
+ * Outputs: none
+ * Side Effects: sets file_start global variable
+ * return value: 0 or -1 if errors
+ */
+
+static uint32_t file_start;
+
+int filesystem_print_files_init(uint32_t file_start_in) {
+	file_start = file_start_in;
+	return PASS;
+}
 
 /*
  * Filesystem Filename test
@@ -121,7 +138,7 @@ int no_page_fault_test(){
  * Side Effects: Prints file names to screen and all errors
  * return value: 0 or -1 if errors
  */
-int filesystem_print_files(uint32_t file_start) {
+int filesystem_print_files() {
 	printf("Filesystem Directory Names:\n");
 	int index;
 	boot_block_t * filesys = (boot_block_t *) file_start;
@@ -134,7 +151,7 @@ int filesystem_print_files(uint32_t file_start) {
 			printf("%s\n", filename);
 		}
 	}
-	return 0;
+	return PASS;
 }
 
 /*
@@ -182,7 +199,9 @@ int print_file_contents() {
 	printf("\n");
 	#endif
 
-	return 0;
+	return PASS;
+}
+
 /* RTC test
  *
  * Show that rtc_open(), rtc_close(), rtc_read(), rtc_write() all work
@@ -425,5 +444,7 @@ void launch_tests(){
 	// CP 2 Tests:
 	// TEST_OUTPUT("rtc_test", rtc_test());
 	// TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
-	TEST_OUTPUT("terminal_run_test", terminal_run_test());
+	TEST_OUTPUT("Filename Test", filesystem_print_files());
+	TEST_OUTPUT("Contents Test", print_file_contents());
+	/* TEST_OUTPUT("terminal_run_test", terminal_run_test()); */
 }
