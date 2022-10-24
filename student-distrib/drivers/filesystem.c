@@ -219,7 +219,28 @@ int32_t read_data (uint32_t inode, uint32_t offset, void* buf, uint32_t length) 
 }
 
 /*
- * read_data
+ * dir_read
+ * DESCRIPTION: Reads a single file from directory
+ * INPUTS:
+ * fd - file descriptor that holds desired entry to be read
+ * buf - buffer to copy filename to
+ * nbytes - number of bytes of filename to copy must be < 32
+ * SIDE EFFECTS: Files buf with desired filename with nbytes chars
+ * RETURN VALUE: Number of bytes copied
+ */
+int32_t dir_read(fd_t * fd, void * buf, int32_t nbytes) {
+	if (!fd || !buf)
+		return -1;
+	dentry_t dentry = filesys->direntries[fd->file_position];
+	fd->file_position++;
+	memcpy(buf, dentry.filename, nbytes);
+	return nbytes;
+}
+
+
+
+/*
+ * read_inode_size
  * DESCRIPTION: Reads file of Inode assuming it is on disk
  * INPUTS:
  * inode: Inode to get data from
@@ -227,5 +248,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, void* buf, uint32_t length) 
  * RETURN VALUE: Returns the size of the inode
  */
  int32_t read_inode_size (uint32_t inode){
+	 if (inode > inode_count)
+		 return -1;
 	 return (inode_start+inode)->length;
  }

@@ -136,7 +136,7 @@ int filesystem_print_files_init(uint32_t file_start_in) {
  * return value: 0 or -1 if errors
  */
 int filesystem_print_files() {
-
+	fd_t fd = { 0 };
 	boot_block_t * filesys = (boot_block_t *) file_start;
 	char filename[33] = { 0 };
 	int index = 0;
@@ -145,7 +145,7 @@ int filesystem_print_files() {
 	clear();
 	printf("Filesystem Directory Names:\n");
 	for (index = 0; index < 63; index++) {
-		strcpy(filename, filesys->direntries[index].filename);
+		dir_read(&fd, filename, 32);
 		inode_size = read_inode_size(filesys->direntries[index].inode_num);
 		filename[32] = 0;
 		if (filename[0]) {
@@ -471,9 +471,9 @@ void launch_tests(){
 	// CP 2 Tests:
 	// TEST_OUTPUT("rtc_test", rtc_test());
 	// TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
-	// TEST_OUTPUT("Filename Test", filesystem_print_files());
+	TEST_OUTPUT("Filename Test", filesystem_print_files());
 	// TEST_OUTPUT("Long File Test", print_file_contents_long());
 	// TEST_OUTPUT("frame0.txt Test", print_file_contents_frame0());
-	TEST_OUTPUT("ls Test", print_file_contents_ls());
+	// TEST_OUTPUT("ls Test", print_file_contents_ls());
 	// TEST_OUTPUT("terminal_run_test", terminal_run_test());
 }
