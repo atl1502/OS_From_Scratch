@@ -12,9 +12,20 @@
 #define SCREEN_SIZE NUM_COLS*NUM_ROWS*2
 #define ROW_SIZE    2*NUM_COLS
 
+#define MASK1F 0x0F
+#define MASK2F 0xFF
+#define MASK1E 0x0E
+#define PORT4 0x3D4
+#define PORT5 0x3D5
+#define RSHIFT1 8
+
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
+// buffer used for saving screen after a clear screen
+static char prev_screen_buff[SCREEN_SIZE] = {0x20};
+static int prev_screen_x;
+static int prev_screen_y;
 
 /* void clear(void);
  * Inputs: void
@@ -28,6 +39,50 @@ void clear(void) {
     }
     screen_x = 0;
     screen_y = 0;
+    update_cursor(screen_x, screen_y);
+}
+
+/* void program_clear(void);
+ * Inputs: void
+ * Return Value: none
+ * Function: Same as clear but it saves the previous screen */
+void program_clear(void) {
+    int32_t i;
+    memcpy(prev_screen_buff, video_mem, SCREEN_SIZE);
+    prev_screen_x = screen_x;
+    prev_screen_y = screen_y;
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+        *(uint8_t *)(video_mem + (i << 1)) = ' ';
+        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+    }
+    screen_x = 0;
+    screen_y = 0;
+    update_cursor(screen_x, screen_y);
+}
+
+/* void program_reload(void);
+ * Inputs: void
+ * Return Value: none
+ * Function: Loads screen saved in prev_screen_buff after program exits */
+void program_reload(void) {
+    memcpy(video_mem, prev_screen_buff, SCREEN_SIZE);
+    screen_x = prev_screen_x;
+    screen_y = prev_screen_y;
+    update_cursor(screen_x, screen_y);
+}
+
+/* void update_cursor(int x, int y);
+ * Inputs: int x, int y
+ * Return Value: none
+ * Function: Updates cursor to specified location */
+void update_cursor(int x, int y) {
+	uint16_t pos = y * NUM_COLS + x;
+
+	outb(MASK1F, PORT4);
+	outb((uint8_t) (pos & MASK2F), PORT5);
+	outb(MASK1E, PORT4);
+	outb((uint8_t) ((pos >> RSHIFT1) & MASK2F), PORT5);
+
 }
 
 /* Standard printf().
@@ -169,16 +224,24 @@ int32_t puts(int8_t* s) {
     return index;
 }
 
-// right shift since each position is 2 bytes fill with spaces
+// buffer used for scrolling
 static char screen_buff[SCREEN_SIZE] = {0x20};
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
+    uint8_t i;
     if(c == '\n' || c == '\r') {
         screen_y = (screen_y + 1);
         screen_x = 0;
+    } else if (c == '\t'){
+        // print 4 spaces for the tab
+        for (i = 0; i <4 ; i++){
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+            screen_x++;
+        }
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
@@ -196,6 +259,7 @@ void putc(uint8_t c) {
         memcpy(video_mem, screen_buff, SCREEN_SIZE);
         screen_y--;
     }
+    update_cursor(screen_x, screen_y);
 }
 
 /* void removec();
@@ -214,9 +278,10 @@ void removec() {
     } else {
         screen_x--;
     }
-    // print out space in the current location 
+    // print out space in the current location
     *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = 0x20;
     *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+    update_cursor(screen_x, screen_y);
 }
 
 

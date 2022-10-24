@@ -15,6 +15,16 @@
 #define RNMI 0x7F
 #define RTC_IRQ 8
 
+#define FREQ_ST 1024
+#define RT_ST 6
+#define FREQ_OP 2
+#define RT_OP 15
+
+int rate;
+int frequency;
+int count;
+int print_flag;
+
 /* Externally-visible functions */
 
 /* Initialize the RTC */
@@ -22,5 +32,32 @@ void rtc_init(void);
 
 /* Handle the RTC interrupt */
 void rtc_handle_interrupt(void);
+
+/* Open function of rtc, note not currently using spinlock */
+int rtc_open(void);
+
+/* Close function of rtc */
+int rtc_close(void);
+
+/* Read function of rtc */
+int rtc_read(void);
+
+/* Write function of rtc, note not currently using spinlock */
+int rtc_write(int*);
+
+/* Helper function of rtc for write */
+int ret_rate(int);
+
+/* Helper function for counting */
+int counter();
+
+/* Helper function for counting */
+void count_init(int);
+
+/* Helper function to turn on print_flag */
+void print_on();
+
+/* Helper function to turn off print_flag */
+void print_off();
 
 #endif // RTC_H

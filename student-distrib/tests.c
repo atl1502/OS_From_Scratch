@@ -2,12 +2,16 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "./drivers/filesystem.h"
+#include "drivers/terminal.h"
+#include "drivers/rtc.h"
 
 #define PASS 1
 #define FAIL 0
 
 #define TEST_BINARY 0
 #define TEST_FILE 1
+#define CHECKNUM 5
+#define CHECKNUM2 2
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
@@ -58,7 +62,7 @@ int idt_test(){
  * Coverage: Load IDT, IDT definition
  * Files: idt.h/c
  */
-int divide_by_zero(){
+int divide_by_zero_test(){
 	TEST_HEADER;
 	int result = FAIL;
 	int z;
@@ -79,7 +83,7 @@ int divide_by_zero(){
  * Coverage: Paging
  * Files: kernal.c
  */
-int page_fault(){
+int page_fault_test(){
 	TEST_HEADER;
 	int result = FAIL;
 	int* test = (int*)0x1000000;
@@ -97,7 +101,7 @@ int page_fault(){
  * Coverage: Paging
  * Files: kernal.c
  */
-int no_page_fault(){
+int no_page_fault_test(){
 	TEST_HEADER;
 	int result = PASS;
 	int* test = (int*)0x600000;
@@ -105,8 +109,6 @@ int no_page_fault(){
 	uhoh++;
 	return result;
 }
-
-// add more tests here
 
 /* Checkpoint 2 tests */
 
@@ -181,6 +183,230 @@ int print_file_contents() {
 	#endif
 
 	return 0;
+/* RTC test
+ *
+ * Show that rtc_open(), rtc_close(), rtc_read(), rtc_write() all work
+ * Inputs: None
+ * Outputs: PASS
+ * Side Effects: None
+ * Coverage: RTC
+ * Files: rtc.c, rtc.h
+ */
+int rtc_test(){
+	TEST_HEADER;
+	int result = PASS;
+	int i, j, p;
+	int cur_freq = 1;
+
+	//frequency sweep test
+	program_clear();
+	printf("First let's do a frequency sweep! \n");
+	count_init(FREQ_ST);
+	while (counter()) {
+		continue;
+	}
+
+	for (i = 1; i < 11; i++) {
+		clear();
+		cur_freq = cur_freq*2;
+		rtc_write(&cur_freq);
+		printf("Current frequency: %d \n", frequency);
+		count_init(cur_freq);
+		while (counter()) {
+			continue;
+		}
+		count_init(cur_freq);
+		print_on();
+		while (counter()) {
+			continue;
+		}
+		print_off();
+	}
+	clear();
+
+	//rtc_open test
+	printf("Now let's check rtc_open()! \n");
+	j = rtc_open();
+	printf("Return result of rtc_open(): %d \n", j);
+	printf("Current frequency after rtc_open(): %d \n", frequency);
+	count_init(FREQ_OP*CHECKNUM);
+	print_on();
+	while (counter()) {
+		continue;
+	}
+	print_off();
+	clear();
+
+	//rtc_close test
+	printf("Checking rtc_close() ... \n");
+	j = rtc_close();
+	printf("Return result of rtc_close(): %d \n", j);
+	count_init(FREQ_OP*CHECKNUM2);
+	while (counter()) {
+		continue;
+	}
+	clear();
+
+	//rtc_read test
+	printf("Okay let's check rtc_read() now. \n");
+	j = rtc_close();
+	printf("Return result of rtc_close(): %d \n", j);
+	clear();
+	printf("I will turn printing on again. \n");
+	printf("Then I will turn on rtc_read(). \n");
+	count_init(FREQ_OP*CHECKNUM);
+	p = 1;
+	print_on();
+	while (counter()) {
+		if (counter() == CHECKNUM) {
+			if (p == 1) {
+				printf(" rtc_read() called! ");
+				p = 0;
+			}
+			j = rtc_read();
+		}
+		continue;
+	}
+	print_off();
+	clear();
+
+	printf("Return result of rtc_read(): %d \n", j);
+	count_init(FREQ_OP);
+	while (counter()) {
+		continue;
+	}
+	clear();
+
+	//rtc_write test illegal input 9
+	printf("Finally time to do some final checks on rtc_write() \n");
+	printf("Let's do an illegal input 9 since 9 is not a power of 2 \n");
+	cur_freq = 9;
+	p = 1;
+	count_init(FREQ_OP*CHECKNUM);
+	print_on();
+	while (counter()) {
+		if (counter() == CHECKNUM2*CHECKNUM) {
+			if (p == 1) {
+				printf(" Illegal rtc_write() called! ");
+				p = 0;
+			}
+			j = rtc_write(&cur_freq);
+		}
+		continue;
+	}
+	print_off();
+	clear();
+
+	printf("As you can see the frequency didn't change \n");
+	printf("Return result of rtc_write(): %d \n", j);
+	count_init(FREQ_OP);
+	while (counter()) {
+		continue;
+	}
+	clear();
+
+	//rtc_write test illegal input NULL
+	printf("Let's repeat the previous test but input a NULL pointer to rtc_write() \n");
+	count_init(FREQ_OP*CHECKNUM);
+	p = 1;
+	print_on();
+	while (counter()) {
+		if (counter() == CHECKNUM2*CHECKNUM) {
+			if (p == 1) {
+				printf(" Illegal rtc_write() called! ");
+				p = 0;
+			}
+			j = rtc_write(NULL);
+		}
+		continue;
+	}
+	print_off();
+	clear();
+
+	printf("As you can see the frequency didn't change \n");
+	printf("Return result of rtc_write(): %d \n", j);
+	count_init(FREQ_OP);
+	while (counter()) {
+		continue;
+	}
+	clear();
+
+	//rtc_write test legal input change freq
+	printf("Finally let's change rtc_write() back to 1024 Hz and see the return value \n");
+	count_init(FREQ_ST);
+	p = 1;
+	cur_freq = FREQ_ST;
+	print_on();
+	while (counter()) {
+		if (counter() == 3*FREQ_ST - CHECKNUM) {
+			if (p == 1) {
+				printf(" Legal rtc_write() called! ");
+				p = 0;
+			}
+			j = rtc_write(&cur_freq);
+		}
+		continue;
+	}
+	print_off();
+	clear();
+
+	printf("As you can see the frequency did change \n");
+	printf("Return result of rtc_write(): %d \n", j);
+	count_init(FREQ_ST);
+	while (counter()) {
+		continue;
+	}
+	program_reload();
+
+	return result;
+}
+/* Terminal Open/Close Test
+ *
+ * Opens terminal and holds until newline and should exit terminal,
+ * printed value should match length of input (including newline)
+ * Inputs: None
+ * Outputs: PASS or held in an exception
+ * Side Effects: None
+ * Coverage: Terminal and keyboard
+ * Files: kernal.c
+ */
+int terminal_open_close_test(){
+	TEST_HEADER;
+	char buff[128] = {0};
+	uint32_t len;
+	terminal_open(0);
+	// will hold untill newline
+	len = terminal_read(0, buff, 0);
+	terminal_write(0,buff,len);
+	terminal_close(1);
+	printf("%d\n", len);
+	return PASS;
+}
+
+/* Terminal Run Test
+ *
+ * Opens terminal and holds until newline and should exit terminal,
+ * printed value should match length of input (including newline)
+ * Inputs: None
+ * Outputs: PASS or held in an exception
+ * Side Effects: None
+ * Coverage: Terminal and keyboard
+ * Files: kernal.c
+ */
+int terminal_run_test(){
+	TEST_HEADER;
+	char buff[128] = {0};
+	uint32_t len;
+	uint32_t i;
+	terminal_open(0);
+	while(1){
+		// will hold untill newline
+		len = terminal_read(0, buff, 0);
+		terminal_write(0, buff, len);
+		for(i = 0; i < len; i++)
+			buff[i] = 0;
+	}
+	return PASS;
 }
 
 /* Checkpoint 3 tests */
@@ -191,8 +417,13 @@ int print_file_contents() {
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	TEST_OUTPUT("no_page_fault_test", no_page_fault());
+	TEST_OUTPUT("no_page_fault_test", no_page_fault_test());
 	// Exception testing, comment out or in based on needs
-	// TEST_OUTPUT("divide_by_zero_test", divide_by_zero());
-	// TEST_OUTPUT("page_fault_test", page_fault());
+	// CP 1 Tests:
+	// TEST_OUTPUT("divide_by_zero_test", divide_by_zero_test());
+	// TEST_OUTPUT("page_fault_test", page_fault_test());
+	// CP 2 Tests:
+	// TEST_OUTPUT("rtc_test", rtc_test());
+	// TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
+	TEST_OUTPUT("terminal_run_test", terminal_run_test());
 }
