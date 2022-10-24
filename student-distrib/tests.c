@@ -8,10 +8,6 @@
 #define PASS 1
 #define FAIL 0
 
-#define TEST_BINARY 0
-#define TEST_FILE1 0
-#define TEST_FILE2 1
-
 #define CHECKNUM 5
 #define CHECKNUM2 2
 
@@ -171,10 +167,9 @@ int filesystem_print_files() {
 
 static unsigned char char_buffer[5349] = { 0 };
 
-int print_file_contents() {
+int print_file_contents_long() {
 	fd_t fd;
 
-	#if (TEST_FILE1 == 1)
 	clear();
 	printf("Long File Test");
 	if (file_open ((const uint8_t *)"verylargetextwithverylongname.tx", &fd)) {
@@ -187,9 +182,12 @@ int print_file_contents() {
 		return -1;
 	}
 	printf("File Contents: %s\n", char_buffer);
-	#endif
+	return PASS;
+}
 
-	#if (TEST_FILE2 == 1)
+int print_file_contents_frame0() {
+	fd_t fd;
+
 	clear();
 	printf("Frame 0 Test\n");
 
@@ -203,11 +201,15 @@ int print_file_contents() {
 		return -1;
 	}
 	char_buffer[187] = 0;
-	printf("File Contents: 187 Bytes\n%s\n", char_buffer);
-	#endif
+	printf("File Contents: 187 Bytes\n%s\n", char_buffer);	
+	return PASS;
+}
 
-	#if (TEST_BINARY == 1)
+int print_file_contents_ls() {
+	fd_t fd;
+
 	clear();
+	printf("ls Test\n");
 	if (file_open ((const uint8_t *)"ls", &fd)) {
 		printf("FAILED FILE FILE!\n");
 		return -1;
@@ -224,8 +226,6 @@ int print_file_contents() {
 			putc(char_buffer[i]);
 	}
 	printf("\n");
-	#endif
-
 	return PASS;
 }
 
@@ -462,8 +462,8 @@ int terminal_run_test(){
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
-	TEST_OUTPUT("no_page_fault_test", no_page_fault_test());
+	// TEST_OUTPUT("idt_test", idt_test());
+	// TEST_OUTPUT("no_page_fault_test", no_page_fault_test());
 	// Exception testing, comment out or in based on needs
 	// CP 1 Tests:
 	// TEST_OUTPUT("divide_by_zero_test", divide_by_zero_test());
@@ -472,6 +472,8 @@ void launch_tests(){
 	// TEST_OUTPUT("rtc_test", rtc_test());
 	// TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
 	// TEST_OUTPUT("Filename Test", filesystem_print_files());
-	TEST_OUTPUT("Contents Test", print_file_contents());
+	// TEST_OUTPUT("Long File Test", print_file_contents_long());
+	// TEST_OUTPUT("frame0.txt Test", print_file_contents_frame0());
+	TEST_OUTPUT("ls Test", print_file_contents_ls());
 	// TEST_OUTPUT("terminal_run_test", terminal_run_test());
 }
