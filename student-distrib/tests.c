@@ -8,8 +8,9 @@
 #define PASS 1
 #define FAIL 0
 
-#define TEST_BINARY 1
-#define TEST_FILE 1
+#define TEST_BINARY 0
+#define TEST_FILE1 0
+#define TEST_FILE2 1
 
 #define CHECKNUM 5
 #define CHECKNUM2 2
@@ -145,6 +146,7 @@ int filesystem_print_files() {
 	int index = 0;
 	uint32_t inode_size;
 
+	clear();
 	printf("Filesystem Directory Names:\n");
 	for (index = 0; index < 63; index++) {
 		strcpy(filename, filesys->direntries[index].filename);
@@ -172,7 +174,8 @@ static unsigned char char_buffer[5349] = { 0 };
 int print_file_contents() {
 	fd_t fd;
 
-	#if (TEST_FILE == 1)
+	#if (TEST_FILE1 == 1)
+	clear();
 	printf("Long File Test");
 	if (file_open ((const uint8_t *)"verylargetextwithverylongname.tx", &fd)) {
 		printf("FAILED FILE FILE!\n");
@@ -184,8 +187,10 @@ int print_file_contents() {
 		return -1;
 	}
 	printf("File Contents: %s\n", char_buffer);
+	#endif
 
-
+	#if (TEST_FILE2 == 1)
+	clear();
 	printf("Frame 0 Test\n");
 
 	if (file_open ((const uint8_t *)"frame0.txt", &fd)) {
@@ -199,10 +204,10 @@ int print_file_contents() {
 	}
 	char_buffer[187] = 0;
 	printf("File Contents: 187 Bytes\n%s\n", char_buffer);
-
 	#endif
 
 	#if (TEST_BINARY == 1)
+	clear();
 	if (file_open ((const uint8_t *)"ls", &fd)) {
 		printf("FAILED FILE FILE!\n");
 		return -1;
@@ -466,7 +471,7 @@ void launch_tests(){
 	// CP 2 Tests:
 	// TEST_OUTPUT("rtc_test", rtc_test());
 	// TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
-	TEST_OUTPUT("Filename Test", filesystem_print_files());
-	// TEST_OUTPUT("Contents Test", print_file_contents());
+	// TEST_OUTPUT("Filename Test", filesystem_print_files());
+	TEST_OUTPUT("Contents Test", print_file_contents());
 	// TEST_OUTPUT("terminal_run_test", terminal_run_test());
 }
