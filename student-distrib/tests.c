@@ -8,7 +8,7 @@
 #define PASS 1
 #define FAIL 0
 
-#define TEST_BINARY 0
+#define TEST_BINARY 1
 #define TEST_FILE 1
 
 #define CHECKNUM 5
@@ -196,7 +196,7 @@ int print_file_contents() {
 		return -1;
 	}
 	char_buffer[187] = 0;
-	printf("File Contents:\n%s\n", char_buffer);
+	printf("File Contents: 187 Bytes\n%s\n", char_buffer);
 
 	#endif
 
@@ -210,7 +210,7 @@ int print_file_contents() {
 		printf("FAILED READ DATA!\n");
 		return -1;
 	}
-	printf("File Contents: %d\n", num);
+	printf("File Contents: %d Bytes:\n", 5349);
 	int i = 0;
 	for (i = 0; i < 5350; i++) {
 		if (char_buffer[i])
