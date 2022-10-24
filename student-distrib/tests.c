@@ -143,16 +143,15 @@ int filesystem_print_files() {
 	boot_block_t * filesys = (boot_block_t *) file_start;
 	char filename[33] = { 0 };
 	int index = 0;
-	inode_t* inode_cur;
-	inode_t* inode_start =(inode_t *)(file_start + BLOCK_SIZE);
+	uint32_t inode_size;
 
 	printf("Filesystem Directory Names:\n");
 	for (index = 0; index < 63; index++) {
 		strcpy(filename, filesys->direntries[index].filename);
-		inode_cur = (filesys->direntries[index].inode_num) + inode_start;
+		inode_size = read_inode_size(filesys->direntries[index].inode_num);
 		filename[32] = 0;
 		if (filename[0]) {
-			printf("Size: %u Filename: %s\n", inode_cur->length, filename);
+			printf("Size: %u Filename: %s\n", inode_size, filename);
 		}
 	}
 	return PASS;

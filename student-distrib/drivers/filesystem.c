@@ -217,3 +217,15 @@ int32_t read_data (uint32_t inode, uint32_t offset, void* buf, uint32_t length) 
 
 	return 0;
 }
+
+/*
+ * read_data
+ * DESCRIPTION: Reads file of Inode assuming it is on disk
+ * INPUTS:
+ * inode: Inode to get data from
+ * SIDE EFFECTS: None
+ * RETURN VALUE: Returns the size of the inode
+ */
+ int32_t read_inode_size (uint32_t inode){
+	 return (inode_start+inode)->length;
+ }
