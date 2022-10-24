@@ -139,15 +139,16 @@ int filesystem_print_files_init(uint32_t file_start_in) {
  * return value: 0 or -1 if errors
  */
 int filesystem_print_files() {
-	printf("Filesystem Directory Names:\n");
-	int index;
+
 	boot_block_t * filesys = (boot_block_t *) file_start;
+	char filename[33] = { 0 };
+	int index = 0;
+
+	printf("Filesystem Directory Names:\n");
 	for (index = 0; index < 63; index++) {
-		char * filename = filesys->direntries[index].filename;
-		if (!(*filename)) {
-			continue;
-		}
-		else {
+		strcpy(filename, filesys->direntries[index].filename);
+		filename[32] = 0;
+		if (filename[0]) {
 			printf("%s\n", filename);
 		}
 	}
@@ -445,6 +446,6 @@ void launch_tests(){
 	// TEST_OUTPUT("rtc_test", rtc_test());
 	// TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
 	TEST_OUTPUT("Filename Test", filesystem_print_files());
-	TEST_OUTPUT("Contents Test", print_file_contents());
+	/* TEST_OUTPUT("Contents Test", print_file_contents()); */
 	/* TEST_OUTPUT("terminal_run_test", terminal_run_test()); */
 }
