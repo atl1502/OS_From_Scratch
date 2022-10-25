@@ -26,7 +26,7 @@ int terminal_open(const uint8_t* filename) {
 int terminal_close(int32_t fd) {
     set_terminal_mode(0);
     program_reload();
-    return 0;
+    return -1; // terminal should never be closed
 }
 
 /*
@@ -37,6 +37,9 @@ int terminal_close(int32_t fd) {
  * RETURN VALUE: return number of bytes read
  */
 int terminal_read(int32_t fd, void* buf, int32_t nbytes) {
+    if (buf == NULL) {
+        return -1;
+    }
     // hold until there is a new line char
     while(1){
         nbytes = (int32_t)get_keyboard_buffer_length();
