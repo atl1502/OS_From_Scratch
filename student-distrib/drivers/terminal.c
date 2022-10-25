@@ -37,9 +37,9 @@ int terminal_close(int32_t fd) {
  * RETURN VALUE: return number of bytes read
  */
 int terminal_read(int32_t fd, void* buf, int32_t nbytes) {
-    if (buf == NULL) {
+    if (buf == NULL) // null check
         return -1;
-    }
+    
     // hold until there is a new line char
     while(1){
         nbytes = (int32_t)get_keyboard_buffer_length();
@@ -47,7 +47,7 @@ int terminal_read(int32_t fd, void* buf, int32_t nbytes) {
         if(nbytes > 0 && ((char *)buf)[nbytes-1] == '\n')
             break;
     }
-    reset_keyboard_buffer();
+    reset_keyboard_buffer(); // ENTER pressed reset buf
     return nbytes;
 }
 
@@ -61,13 +61,14 @@ int terminal_read(int32_t fd, void* buf, int32_t nbytes) {
 int terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
     int i;
     int bytes = 0;
-    if (buf == NULL){
+    if (buf == NULL) // null check
         return -1;
-    }
+    
+    // iterate through keyboard buffer and print character to screen
     for (i = 0; i < nbytes; i++) {
         if ( ((char *) buf)[i] != NULL ) {
             putc( ((char *) buf)[i] );
-            bytes++;
+            bytes++; // byte written
         }
     }
     return bytes;
