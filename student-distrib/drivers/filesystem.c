@@ -23,8 +23,8 @@ int32_t file_open(const uint8_t * fname, fd_t * fd) {
 	if (!fname || !fd || !(*fname))
 		return -1;
 
-    if (strlen(fname) > FILESYSTEM_NAME_MAX)
-        return -1;
+	if (strlen(fname) > FILESYSTEM_NAME_MAX)
+		return -1;
 
 	dentry_t dentry;
 	read_dentry_by_name (fname, &dentry);
