@@ -201,7 +201,7 @@ int print_file_contents_frame0() {
 		return FAIL;
 	}
 	char_buffer[187] = 0;
-	printf("File Contents: 187 Bytes\n%s\n", char_buffer);	
+	printf("File Contents: 187 Bytes\n%s\n", char_buffer);
 	return PASS;
 }
 
@@ -406,41 +406,6 @@ int rtc_test(){
 
 	return result;
 }
-/* Terminal Open/Close Test
- *
- * Opens terminal and holds until newline and should exit terminal,
- * printed value should match length of input (including newline)
- * Inputs: None
- * Outputs: PASS or held in an exception
- * Side Effects: None
- * Coverage: Terminal and keyboard
- * Files: kernal.c
- */
-int terminal_open_close_test(){
-	TEST_HEADER;
-	char buff[128] = {0};
-	int i;
-	uint32_t len;
-	i = terminal_open(0);
-	if (i != 0) {
-		assertion_failure();
-		return FAIL;
-	}
-	// will hold untill newline
-	len = terminal_read(0, buff, 0);
-	i = terminal_write(0,buff,len);
-	if (i == -1) {
-		assertion_failure();
-		return FAIL;
-	}
-	i = terminal_close(1);
-	if (i != 0) {
-		assertion_failure();
-		return FAIL;
-	}
-	printf("%d\n", len);
-	return PASS;
-}
 
 /* Terminal Run Test
  *
@@ -457,7 +422,6 @@ int terminal_run_test(){
 	char buff[128] = {0};
 	uint32_t len;
 	uint32_t i;
-	terminal_open(0);
 	while(1){
 		// will hold untill newline
 		len = terminal_read(0, buff, 0);
@@ -515,6 +479,6 @@ void launch_tests(){
 	// TEST_OUTPUT("Long File Test", print_file_contents_long());
 	// TEST_OUTPUT("frame0.txt Test", print_file_contents_frame0());
 	// TEST_OUTPUT("ls Test", print_file_contents_ls());
-	// TEST_OUTPUT("terminal_run_test", terminal_run_test());
 	// TEST_OUTPUT("file_misc_test", file_misc_test());
+	TEST_OUTPUT("terminal_run_test", terminal_run_test());
 }

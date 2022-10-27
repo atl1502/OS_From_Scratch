@@ -11,8 +11,6 @@
  * RETURN VALUE: 0
  */
 int terminal_open(const uint8_t* filename) {
-    program_clear();
-    set_terminal_mode(1);
     return 0;
 }
 
@@ -24,9 +22,7 @@ int terminal_open(const uint8_t* filename) {
  * RETURN VALUE: 0
  */
 int terminal_close(int32_t fd) {
-    set_terminal_mode(0);
-    program_reload();
-    return -1; // terminal should never be closed
+    return -1;
 }
 
 /*
@@ -39,7 +35,7 @@ int terminal_close(int32_t fd) {
 int terminal_read(int32_t fd, void* buf, int32_t nbytes) {
     if (buf == NULL) // null check
         return -1;
-    
+
     // hold until there is a new line char
     while(1){
         nbytes = (int32_t)get_keyboard_buffer_length();
@@ -63,7 +59,7 @@ int terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
     int bytes = 0;
     if (buf == NULL) // null check
         return -1;
-    
+
     // iterate through keyboard buffer and print character to screen
     for (i = 0; i < nbytes; i++) {
         if ( ((char *) buf)[i] != NULL ) {

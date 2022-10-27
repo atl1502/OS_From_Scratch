@@ -11,6 +11,7 @@
 #include "idt.h"
 #include "paging.h"
 #include "drivers/filesystem.h"
+#include "drivers/keyboard.h"
 
 #define RUN_TESTS
 
@@ -162,6 +163,9 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Initializing paging */
     paging_init();
+
+    /* Start Tertminal */
+    set_terminal_mode(1);
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
