@@ -11,7 +11,7 @@
 .globl tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl gdt_ptr
 .globl idt_desc_ptr, idt
-.globl page_directory
+.globl page_directory,pd_p0,pd_p1,pd_p2,pd_p3,pd_p4,pd_p5
 .globl page_table
 
 .align 4
@@ -122,6 +122,59 @@ _page_directory:
 	.endr
 page_directory_bottom:
 
+.align 4096
+
+pd_p0:
+_pd_p0:
+    .rept 1024
+    .long 0
+	.endr
+pd_bottom_p0:
+
+.align 4096
+
+pd_p1:
+_pd_p1:
+    .rept 1024
+    .long 0
+	.endr
+pd_bottom_p1:
+
+.align 4096
+
+pd_p2:
+_pd_p2:
+    .rept 1024
+    .long 0
+	.endr
+pd_bottom_p2:
+
+.align 4096
+
+pd_p3:
+_pd_p3:
+    .rept 1024
+    .long 0
+	.endr
+pd_bottom_p3:
+
+.align 4096
+
+pd_p4:
+_pd_p4:
+    .rept 1024
+    .long 0
+	.endr
+pd_bottom_p4:
+
+.align 4096
+
+pd_p5:
+_pd_p5:
+    .rept 1024
+    .long 0
+	.endr
+pd_bottom_p5:
 
 .align 4096
 

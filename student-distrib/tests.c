@@ -466,14 +466,14 @@ int file_misc_test() {
 
 /* Test suite entry point */
 void launch_tests(){
-	// TEST_OUTPUT("idt_test", idt_test());
-	// TEST_OUTPUT("no_page_fault_test", no_page_fault_test());
+	TEST_OUTPUT("idt_test", idt_test());
+	TEST_OUTPUT("no_page_fault_test", no_page_fault_test());
 	// Exception testing, comment out or in based on needs
 	// CP 1 Tests:
 	// TEST_OUTPUT("divide_by_zero_test", divide_by_zero_test());
 	// TEST_OUTPUT("page_fault_test", page_fault_test());
 	// CP 2 Tests:
-	TEST_OUTPUT("rtc_test", rtc_test());
+	// TEST_OUTPUT("rtc_test", rtc_test());
 	// TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
 	// TEST_OUTPUT("Filename Test", filesystem_print_files());
 	// TEST_OUTPUT("Long File Test", print_file_contents_long());

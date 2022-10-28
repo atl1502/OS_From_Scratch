@@ -126,6 +126,12 @@ extern tss_t tss;
 
 /* External page directory and table */
 extern uint32_t page_directory[1024];
+extern uint32_t pd_p0[1024];
+extern uint32_t pd_p1[1024];
+extern uint32_t pd_p2[1024];
+extern uint32_t pd_p3[1024];
+extern uint32_t pd_p4[1024];
+extern uint32_t pd_p5[1024];
 extern uint32_t page_table[1024];
 
 /* Sets runtime-settable parameters in the GDT entry for the LDT */
