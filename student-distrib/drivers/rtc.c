@@ -6,10 +6,18 @@
 #include "../lib.h"
 #include "../spinlock.h"
 #include "../i8259.h"
+#include "../fd.h"
 
 static spinlock_t rtc_lock = SPIN_LOCK_UNLOCKED;
 
 volatile int flag;
+
+static fd_opts_t rtc_ops = {
+	.read = rtc_read,
+	.write = rtc_write,
+	.open = rtc_open,
+	.close = rtc_close
+};
 
 /*
  * rtc_init

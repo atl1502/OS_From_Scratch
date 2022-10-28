@@ -250,8 +250,16 @@ int32_t dir_read(fd_t * fd, void * buf, int32_t nbytes) {
  * SIDE EFFECTS: None
  * RETURN VALUE: Returns the size of the inode
  */
- int32_t read_inode_size (uint32_t inode){
-	 if (inode > inode_count)
-		 return -1;
-	 return (inode_start+inode)->length;
- }
+int32_t read_inode_size (uint32_t inode){
+	if (inode > inode_count)
+		return -1;
+	return (inode_start+inode)->length;
+}
+
+static fd_opts_t dir_ops = {
+
+};
+
+static fd_opts_t file_ops = {
+
+};
