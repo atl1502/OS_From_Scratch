@@ -4,6 +4,7 @@
 #include "./drivers/filesystem.h"
 #include "drivers/terminal.h"
 #include "drivers/rtc.h"
+#include "paging.h"
 
 #define PASS 1
 #define FAIL 0
@@ -415,7 +416,7 @@ int rtc_test(){
  * Outputs: PASS or held in an exception
  * Side Effects: None
  * Coverage: Terminal and keyboard
- * Files: kernal.c
+ * Files: terminal.c
  */
 int terminal_run_test(){
 	TEST_HEADER;
@@ -439,7 +440,7 @@ int terminal_run_test(){
  * Outputs: PASS or held in an exception
  * Side Effects: None
  * Coverage: File systems
- * Files: kernal.c
+ * Files: filesystem.c
  */
 int file_misc_test() {
 	TEST_HEADER;
@@ -460,6 +461,111 @@ int file_misc_test() {
 }
 
 /* Checkpoint 3 tests */
+
+/* Virtual to physical Test
+ *
+ * Check the translation is being done correctly
+ * Inputs: None
+ * Outputs: PASS or FAIL
+ * Side Effects:
+ * Coverage: Paging
+ * Files: paging.c
+ */
+int virtual_to_physical_test(){
+	TEST_HEADER;
+	uint32_t test = 0xA00000;
+	int result = PASS;
+	// check outside of allocated page
+	if(virtual_to_physical(test) != 0xFFFFFFFF){
+		result = FAIL;
+	}
+
+	// check for big page
+	test = 0x4E3543;
+	if(virtual_to_physical(test) != test){
+		result = FAIL;
+	}
+
+	// check for small page
+	test = 0xB82A0;
+	if(virtual_to_physical(test) != test){
+		result = FAIL;
+	}
+
+	return result;
+}
+
+/* Page Alloc/Context Switch Test
+ *
+ * Page alloc and check using mem info
+ * Inputs: None
+ * Outputs: PASS or held in an exception
+ * Side Effects: Changes the PD being used to a user one
+ * Coverage: Paging
+ * Files: paging.c
+ */
+int page_alloc_context_switch_test() {
+	TEST_HEADER;
+	int pid;
+	// create new process
+	pid = alloc_new_process();
+	// switch to process PD
+	if (pid == -1 || context_switch_paging(pid) == -1){
+		return FAIL;
+	}
+	// check mem mapping is okay
+	if(virtual_to_physical(0x80420B0) != 0x8420B0){
+		return FAIL;
+	}
+
+	// switch back to kernal PD to remove process
+	if (context_switch_paging(6) == -1){
+		return FAIL;
+	}
+	// remove data in process PD
+	if (dealloc_process(pid) == -1){
+		return FAIL;
+	}
+
+	// test allocating multiple PDs
+	pid = alloc_new_process();
+	if (pid == -1 || context_switch_paging(pid) == -1){
+		return FAIL;
+	}
+	// check mem mapping is okay
+	if(virtual_to_physical(0x80420B0) != 0x8420B0){
+		return FAIL;
+	}
+
+	pid = alloc_new_process();
+	if (pid == -1 || context_switch_paging(pid) == -1){
+		return FAIL;
+	}
+	// check mem mapping is okay
+	if(virtual_to_physical(0x80420B0) != 0xC420B0){
+		return FAIL;
+	}
+
+	pid = alloc_new_process();
+	if (pid == -1 || context_switch_paging(pid) == -1){
+		return FAIL;
+	}
+	// check mem mapping is okay
+	if(virtual_to_physical(0x80420B0) != 0x10420B0){
+		return FAIL;
+	}
+
+	pid = alloc_new_process();
+	if (pid == -1 || context_switch_paging(pid) == -1){
+		return FAIL;
+	}
+	// check mem mapping is okay
+	if(virtual_to_physical(0x80420B0) != 0x14420B0){
+		return FAIL;
+	}
+	return PASS;
+}
+
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -480,5 +586,9 @@ void launch_tests(){
 	// TEST_OUTPUT("frame0.txt Test", print_file_contents_frame0());
 	// TEST_OUTPUT("ls Test", print_file_contents_ls());
 	// TEST_OUTPUT("file_misc_test", file_misc_test());
+	// CP 3 Tests:
+	TEST_OUTPUT("virtual_to_physical_test", virtual_to_physical_test());
+	TEST_OUTPUT("page_alloc_context_switch_test", page_alloc_context_switch_test());
+	// hold at end
 	TEST_OUTPUT("terminal_run_test", terminal_run_test());
 }
