@@ -9,6 +9,20 @@ static void * data_start;
 static uint32_t inode_count;
 static void * filesys_end;
 
+static fd_opts_t file_syscalls = {
+    .open  = file_open,
+    .read  = file_read,
+    .write = file_write,
+    .close = file_close,
+};
+
+static fd_opts_t dir_syscalls = {
+    .open  = dir_open,
+    .read  = dir_read,
+    .write = dir_write,
+    .close = dir_close,
+};
+
 /*
  * file_open
  * DESCRIPTION: Opens the file by searching for dentry from filename
@@ -26,12 +40,12 @@ int32_t file_open(const uint8_t * fname, fd_t * fd) {
 	if (strlen((int8_t*)fname) > FILESYSTEM_NAME_MAX)
 		return -1;
 
-	dentry_t dentry;
-	read_dentry_by_name (fname, &dentry);
-	fd->table_pointer = 0;
-	fd->inode_num = dentry.inode_num;
+	// dentry_t dentry;
+	// read_dentry_by_name (fname, &dentry);
+	fd->table_pointer = &file_syscalls;
+	// no need to set inode as it's set in syscall // fd->inode_num;
 	fd->file_position = 0;
-	fd->flags = 0;
+	// flags was already marked in use // fd->flags;
 	return 0;
 }
 
@@ -74,6 +88,43 @@ int32_t file_read (fd_t * fd, void* buf, int32_t nbytes) {
  * RETURN VALUE: -1
  */
 int32_t file_write(fd_t * fd) {
+	return -1;
+}
+
+// TODO: implement
+int32_t dir_open(const uint8_t * dname, fd_t * fd) {
+	fd->table_pointer = &dir_syscalls;
+	// no need to set inode as it's set in syscall // fd->inode_num;
+	fd->file_position = 0;
+	// flags was already marked in use // fd->flags;
+	
+	return 0;
+}
+
+int32_t dir_close(fd_t * fd) {
+	return -1;
+}
+
+/*
+ * dir_read
+ * DESCRIPTION: Reads a single file from directory
+ * INPUTS:
+ * fd - file descriptor that holds desired entry to be read
+ * buf - buffer to copy filename to
+ * nbytes - number of bytes of filename to copy must be < 32
+ * SIDE EFFECTS: Files buf with desired filename with nbytes chars
+ * RETURN VALUE: Number of bytes copied
+ */
+int32_t dir_read(fd_t * fd, void * buf, int32_t nbytes) {
+	if (!fd || !buf)
+		return -1;
+	dentry_t dentry = filesys->direntries[fd->file_position];
+	fd->file_position++;
+	memcpy(buf, dentry.filename, nbytes);
+	return nbytes;
+}
+
+int32_t dir_write(fd_t * fd) {
 	return -1;
 }
 
@@ -222,27 +273,6 @@ int32_t read_data (uint32_t inode, uint32_t offset, void* buf, uint32_t length) 
 }
 
 /*
- * dir_read
- * DESCRIPTION: Reads a single file from directory
- * INPUTS:
- * fd - file descriptor that holds desired entry to be read
- * buf - buffer to copy filename to
- * nbytes - number of bytes of filename to copy must be < 32
- * SIDE EFFECTS: Files buf with desired filename with nbytes chars
- * RETURN VALUE: Number of bytes copied
- */
-int32_t dir_read(fd_t * fd, void * buf, int32_t nbytes) {
-	if (!fd || !buf)
-		return -1;
-	dentry_t dentry = filesys->direntries[fd->file_position];
-	fd->file_position++;
-	memcpy(buf, dentry.filename, nbytes);
-	return nbytes;
-}
-
-
-
-/*
  * read_inode_size
  * DESCRIPTION: Reads file of Inode assuming it is on disk
  * INPUTS:
@@ -255,11 +285,3 @@ int32_t read_inode_size (uint32_t inode){
 		return -1;
 	return (inode_start+inode)->length;
 }
-
-static fd_opts_t dir_ops = {
-
-};
-
-static fd_opts_t file_ops = {
-
-};

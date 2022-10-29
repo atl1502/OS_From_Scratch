@@ -42,33 +42,31 @@ int32_t sys_open (const uint8_t* filename) {
 			free = 1;
 			curr_fd.file_position = 0;
 			curr_fd.flags |= 0x80000000; // mark fd as unavailable (sig bit = 1)
-			// if RTC
-			read_dentry_by_name(filename, &dentry);
-			switch (dentry.filetype)
-			{
+			
+			// read dentry, if null return -1
+			if (read_dentry_by_name(filename, &dentry) == -1) 
+				return -1;
+			
+			switch (dentry.filetype) {
 				// rtc
 				case 0:
-					curr_fd.inode_num = 0;
-					curr_fd.table_pointer = ;
+					curr_fd.inode_num = dentry.inode_num;
+					return rtc_open(filename, &curr_fd);
 					break;
-
 				// dir
 				case 1:
-					curr_fd.inode_num = 0;
-					curr_fd.table_pointer;
+					curr_fd.inode_num = dentry.inode_num;
+					return dir_open(filename, &curr_fd);
 					break;
-
 				// file
 				case 2:
 					curr_fd.inode_num = dentry.inode_num;
-					curr_fd.table_pointer;
+					return file_open(filename, &curr_fd);
 					break;
-				
+				// if we're here it's wrong
 				default:
 					return -1;
 			}
-
-			// if directory
 			break;
 		}
 	}

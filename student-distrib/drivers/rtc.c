@@ -12,7 +12,7 @@ static spinlock_t rtc_lock = SPIN_LOCK_UNLOCKED;
 
 volatile int flag;
 
-static fd_opts_t rtc_ops = {
+static fd_opts_t rtc_syscalls = {
 	.read = rtc_read,
 	.write = rtc_write,
 	.open = rtc_open,
@@ -82,7 +82,7 @@ void rtc_handle_interrupt(void) {
  * SIDE EFFECTS: initializes RTC frequency to 2Hz
  * RETURN VALUE: 0
  */
-int rtc_open(void) {
+int rtc_open(const char* filename, fd_t* fd) {
     frequency = FREQ_OP;
     rate = RT_OP;
     //disable interrupts
@@ -101,6 +101,12 @@ int rtc_open(void) {
     inb(PORT2);
     // reenable interrupts
     sti();
+
+    // fill in fd
+    fd->table_pointer = &rtc_syscalls;
+    // no need to set inode as it's set in syscall // fd->inode_num;
+    fd->file_position = 0;
+    // flags was already marked in use // fd->flags;
     return 0;
 }
 

@@ -6,6 +6,7 @@
 
 
 #include "../types.h"
+#include "../fd.h"
 
 #define PORT1 0x70
 #define PORT2 0x71
@@ -34,7 +35,7 @@ void rtc_init(void);
 void rtc_handle_interrupt(void);
 
 /* Open function of rtc, note not currently using spinlock */
-int rtc_open(void);
+int rtc_open(const char* filename, fd_t* fd);
 
 /* Close function of rtc */
 int rtc_close(void);

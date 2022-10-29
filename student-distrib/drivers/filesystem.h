@@ -36,11 +36,15 @@ int32_t file_close(fd_t * fd);
 int32_t file_read (fd_t * fd, void* buf, int32_t nbytes);
 int32_t file_write(fd_t * fd);
 
+int32_t dir_open(const uint8_t * dname, fd_t * fd);
+int32_t dir_close(fd_t * fd);
+int32_t dir_read (fd_t * fd, void * buf, int32_t nbytes);
+int32_t dir_write(fd_t * fd);
+
 int32_t filesystem_init (uint32_t file_start, uint32_t file_end);
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry);
 int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry);
 int32_t read_data (uint32_t inode, uint32_t offset, void* buf, uint32_t length);
 int32_t read_inode_size (uint32_t inode);
-int32_t dir_read (fd_t * fd, void * buf, int32_t nbytes);
 
 #endif
