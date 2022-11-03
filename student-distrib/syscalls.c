@@ -13,11 +13,26 @@ int32_t sys_execute (const uint8_t* command) {
 }
 
 int32_t sys_read (int32_t fd, void* buf, int32_t nbytes) {
-	return 0;
+	pcb_t* curr_pcb = get_pcb();
+	if (fd >= MAX_FILES || fd < 0) 
+		return -1;
+	
+	if (fd == NULL)
+		return -1;
+	
+	if (fd->table_pointer == NULL)
+		return -1;
+	
+	if (fd->table_pointer->read == NULL)
+		return -1;
+
+	return fd->table_pointer->read(fd, buf, nbytes);
 }
 
 int32_t sys_write (int32_t fd, const void* buf, int32_t nbytes) {
-	return 0;
+	pcb_t* curr_pcb = get_pcb();
+	if (fd >= MAX_FILES || fd < 0) 
+		return -1;
 }
 
 // The call should find the directory entry corresponding to the named file, 
