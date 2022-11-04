@@ -4,19 +4,19 @@
 #include "drivers/filesystem.h"
 #include "drivers/rtc.h"
 
+static int pid = 0;
+
 int32_t sys_execute (const uint8_t* command) {
 	return 0;
 }
 
-int32_t sys_read (fd_t* fd, void* buf, int32_t nbytes) {
-
-	if (fd->table_pointer == 0)
-		return -1;
-
+int32_t sys_read (uint32_t fd, void* buf, int32_t nbytes) {
+	pcb_t* cur_pcb = get_pcb(pid);
 	return 0;
 }
 
-int32_t sys_write (fd_t* fd, const void* buf, int32_t nbytes) {
+int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes) {
+	pcb_t* cur_pcb = get_pcb(pid);
 	return 0;
 }
 
@@ -29,7 +29,7 @@ int32_t sys_open (const uint8_t* filename) {
 	int free = 0;
 	int i;
 	dentry_t dentry;
-	pcb_t* curr_pcb = get_pcb();
+	pcb_t* curr_pcb = get_pcb(pid);
 
 	if (filename == NULL)
 		return -1;
@@ -84,7 +84,7 @@ int32_t sys_open (const uint8_t* filename) {
 
 // Trying to close an invalid descriptor should result in a return value of -1;
 // successful closes should return 0.
-int32_t sys_close (fd_t* fd) {
+int32_t sys_close (uint32_t fd) {
 	return 0;
 }
 

@@ -116,7 +116,7 @@ int32_t rtc_open(const uint8_t* filename, fd_t* fd) {
  * SIDE EFFECTS: none
  * RETURN VALUE: 0
  */
-int32_t rtc_close(fd_t* fd) {
+int32_t rtc_close(uint32_t fd) {
     return 0;
 }
 
@@ -127,7 +127,7 @@ int32_t rtc_close(fd_t* fd) {
  * SIDE EFFECTS: does not return until interrupt handler handled
  * RETURN VALUE: 0
  */
-int32_t rtc_read(fd_t* fd, void* buf, int32_t nbytes) {
+int32_t rtc_read(uint32_t fd, void* buf, int32_t nbytes) {
     flag = 1;
     while (flag != 0){
         continue;
@@ -142,7 +142,7 @@ int32_t rtc_read(fd_t* fd, void* buf, int32_t nbytes) {
  * SIDE EFFECTS: changes RTC frequency
  * RETURN VALUE: 0
  */
-int32_t rtc_write(fd_t* fd, void* buf, int32_t nbytes) {
+int32_t rtc_write(uint32_t fd, void* buf, int32_t nbytes) {
     //get frequency
     if (buf == NULL) {
         return -1;

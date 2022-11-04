@@ -32,18 +32,7 @@ static fd_opts_t dir_syscalls = {
  * RETURN VALUE: 0 or -1 iff NULL input
  */
 int32_t file_open(const uint8_t * fname, fd_t * fd) {
-	if (!fname || !fd || !(*fname))
-		return -1;
-
-	if (strlen((int8_t*)fname) > FILESYSTEM_NAME_MAX)
-		return -1;
-
-	// dentry_t dentry;
-	// read_dentry_by_name (fname, &dentry);
-	fd->table_pointer = &file_syscalls;
-	// no need to set inode as it's set in syscall // fd->inode_num;
-	fd->file_position = 0;
-	// flags was already marked in use // fd->flags;
+	
 	return 0;
 }
 
@@ -55,7 +44,7 @@ int32_t file_open(const uint8_t * fname, fd_t * fd) {
  * SIDE EFFECTS: NONE
  * RETURN VALUE: 0
  */
-int32_t file_close(fd_t * fd) {
+int32_t file_close(uint32_t fd) {
 	return 0;
 }
 
@@ -69,11 +58,8 @@ int32_t file_close(fd_t * fd) {
  * SIDE EFFECTS: Fills buffer with nbytes of file starting at last position
  * RETURN VALUE: 0 or -1 iff NULL input
  */
-int32_t file_read (fd_t * fd, void* buf, int32_t nbytes) {
-	if (!fd || !buf)
-		return -1;
-	read_data (fd->inode_num, fd->file_position, buf, nbytes);
-	fd->file_position += nbytes;
+int32_t file_read (uint32_t fd, void* buf, int32_t nbytes) {
+
 	return 0;
 }
 
@@ -85,21 +71,16 @@ int32_t file_read (fd_t * fd, void* buf, int32_t nbytes) {
  * SIDE EFFECTS: NONE
  * RETURN VALUE: -1
  */
-int32_t file_write(fd_t* fd, const void* buf, int32_t nbytes) {
+int32_t file_write(uint32_t fd, const void* buf, int32_t nbytes) {
 	return -1;
 }
 
 // TODO: implement
 int32_t dir_open(const uint8_t * dname, fd_t * fd) {
-	fd->table_pointer = &dir_syscalls;
-	// no need to set inode as it's set in syscall // fd->inode_num;
-	fd->file_position = 0;
-	// flags was already marked in use // fd->flags;
-
 	return 0;
 }
 
-int32_t dir_close(fd_t * fd) {
+int32_t dir_close(uint32_t fd) {
 	return -1;
 }
 
@@ -113,16 +94,11 @@ int32_t dir_close(fd_t * fd) {
  * SIDE EFFECTS: Files buf with desired filename with nbytes chars
  * RETURN VALUE: Number of bytes copied
  */
-int32_t dir_read(fd_t * fd, void * buf, int32_t nbytes) {
-	if (!fd || !buf)
-		return -1;
-	dentry_t dentry = filesys->direntries[fd->file_position];
-	fd->file_position++;
-	memcpy(buf, dentry.filename, nbytes);
+int32_t dir_read(uint32_t fd, void * buf, int32_t nbytes) {
 	return nbytes;
 }
 
-int32_t dir_write(fd_t* fd, const void* buf, int32_t nbytes) {
+int32_t dir_write(uint32_t fd, const void* buf, int32_t nbytes) {
 	return -1;
 }
 

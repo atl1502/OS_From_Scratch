@@ -32,14 +32,14 @@ typedef struct boot_block {
 } boot_block_t;
 
 int32_t file_open(const uint8_t * fname, fd_t * fd);
-int32_t file_close(fd_t * fd);
-int32_t file_read (fd_t * fd, void* buf, int32_t nbytes);
-int32_t file_write(fd_t* fd, const void* buf, int32_t nbytes);
+int32_t file_close(uint32_t fd);
+int32_t file_read (uint32_t fd, void* buf, int32_t nbytes);
+int32_t file_write(uint32_t fd, const void* buf, int32_t nbytes);
 
 int32_t dir_open(const uint8_t * dname, fd_t * fd);
-int32_t dir_close(fd_t * fd);
-int32_t dir_read (fd_t * fd, void * buf, int32_t nbytes);
-int32_t dir_write(fd_t* fd, const void* buf, int32_t nbytes);
+int32_t dir_close(uint32_t fd);
+int32_t dir_read (uint32_t fd, void * buf, int32_t nbytes);
+int32_t dir_write(uint32_t fd, const void* buf, int32_t nbytes);
 
 int32_t filesystem_init (uint32_t file_start, uint32_t file_end);
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry);

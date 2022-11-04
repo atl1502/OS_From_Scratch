@@ -14,9 +14,9 @@ typedef struct fd {
 } fd_t;
 
 struct fd_ops {
-	int32_t (*read) (fd_t* fd, void* buf, int32_t nbytes);
-	int32_t (*write) (fd_t* fd, const void* buf, int32_t nbytes);
-	int32_t (*close) (fd_t* fd);
+	int32_t (*read) (uint32_t fd, void* buf, int32_t nbytes);
+	int32_t (*write) (uint32_t fd, const void* buf, int32_t nbytes);
+	int32_t (*close) (uint32_t fd);
 };
 
 #endif
