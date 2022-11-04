@@ -1,8 +1,8 @@
-# Assembly linkage for the interupts and syscalls
+
+# Assembly linkage for the interupts
 
 .data
 
-# Interupt functions
 .globl handler_keyboard, handler_rtc, handler_interrupt
 
 .text
@@ -19,17 +19,28 @@ jmp handler_interrupt
 
 # common interupt (all interupts end up here)
 handler_interrupt:
-pusha
-cld
+pushl %EAX
+pushl %EBP
+pushl %EDI
+pushl %ESI
+pushl %EDX
+pushl %ECX
+pushl %EBX
+
 call do_IRQ
+
 jmp ret_from_intr
 
 # end of interupt
 ret_from_intr:
-popa
-
-# context switching and soft interrupts would happen here
-
-# Pop negative IRQ #
-addl $4, %esp
-iret
+# context switching would happen here
+popl %EBX
+popl %ECX
+popl %EDX
+popl %ESI
+popl %EDI
+popl %EBP
+popl %EAX
+# unsure josh help
+addl $4, %ESP
+IRET
