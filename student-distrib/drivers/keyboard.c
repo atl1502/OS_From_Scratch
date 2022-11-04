@@ -7,7 +7,8 @@
 #include "../spinlock.h"
 #include "../i8259.h"
 
-void keyboard_handle_interrupt_buffer(uint8_t scan_code);
+/* Handles keyboard buffer in interrupt context */
+static void keyboard_handle_interrupt_buffer(uint8_t scan_code);
 
 // reserved key codes 0x01, 0x1D, 0x2A, 0x36, 0x38
 static const char scan_code_array[TOTAL_ASCII] = {0x00, 0x00, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',

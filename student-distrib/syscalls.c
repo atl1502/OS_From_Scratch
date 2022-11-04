@@ -14,15 +14,15 @@ int32_t sys_execute (const uint8_t* command) {
 
 int32_t sys_read (int32_t fd, void* buf, int32_t nbytes) {
 	pcb_t* curr_pcb = get_pcb();
-	if (fd >= MAX_FILES || fd < 0) 
+	if (fd >= MAX_FILES || fd < 0)
 		return -1;
-	
+
 	if (fd == NULL)
 		return -1;
-	
+
 	if (fd->table_pointer == NULL)
 		return -1;
-	
+
 	if (fd->table_pointer->read == NULL)
 		return -1;
 
@@ -31,13 +31,13 @@ int32_t sys_read (int32_t fd, void* buf, int32_t nbytes) {
 
 int32_t sys_write (int32_t fd, const void* buf, int32_t nbytes) {
 	pcb_t* curr_pcb = get_pcb();
-	if (fd >= MAX_FILES || fd < 0) 
+	if (fd >= MAX_FILES || fd < 0)
 		return -1;
 }
 
-// The call should find the directory entry corresponding to the named file, 
+// The call should find the directory entry corresponding to the named file,
 // allocate an unused file descriptor, and set up any data necessary to handle the given type of file
-// (directory, RTC device, or regular file). 
+// (directory, RTC device, or regular file).
 
 // If the named file does not exist or no descriptors are free, the call returns -1.
 int32_t sys_open (const uint8_t* filename) {
@@ -57,11 +57,11 @@ int32_t sys_open (const uint8_t* filename) {
 			free = 1;
 			curr_fd.file_position = 0;
 			curr_fd.flags |= 0x80000000; // mark fd as unavailable (sig bit = 1)
-			
+
 			// read dentry, if null return -1
-			if (read_dentry_by_name(filename, &dentry) == -1) 
+			if (read_dentry_by_name(filename, &dentry) == -1)
 				return -1;
-			
+
 			switch (dentry.filetype) {
 				// rtc
 				case 0:
