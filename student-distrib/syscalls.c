@@ -1,3 +1,4 @@
+#include "lib.h"
 #include "syscalls.h"
 #include "pcb.h"
 #include "fd.h"
@@ -27,6 +28,7 @@ static fd_opts_t rtc_syscalls = {
 
 
 int32_t sys_execute (const uint8_t* command) {
+	printf("Execute Syscall: %s\n", command);
 	return 0;
 }
 
@@ -46,6 +48,10 @@ int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes) {
 
 // If the named file does not exist or no descriptors are free, the call returns -1.
 int32_t sys_open (const uint8_t* filename) {
+
+	printf("Open Syscall: Filename: %s\n", filename);
+	return 0;
+
 	int free = 0;
 	int i;
 	dentry_t dentry;
@@ -114,16 +120,15 @@ int32_t sys_close (uint32_t fd) {
 	return 0;
 }
 
-int32_t sys_halt (uint8_t status) {
-	return 0;
-}
 
 int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
+	printf("getargs Syscall: buffer: %x nbytes: %d\n", buf, nbytes);
 	// TODO: implement in 3.4
 	return -1;
 }
 
 int32_t sys_vidmap (uint8_t** screen_start) {
+	printf("vidmap Syscall: screen_start %x\n", screen_start);
 	// TODO: implement in 3.4
 	return -1;
 }

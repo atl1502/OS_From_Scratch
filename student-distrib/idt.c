@@ -1,5 +1,6 @@
 #include "x86_desc.h"
 #include "lib.h"
+#include "handlers.h"
 #include "i8259.h"
 #include "idt.h"
 #include "drivers/keyboard.h"
@@ -375,5 +376,8 @@ void idt_init() {
 	//irq
 	SET_IDT_ENTRY(idt[0x21], handler_keyboard);
 	SET_IDT_ENTRY(idt[0x28], handler_rtc);
+
+	// syscall
+	SET_IDT_ENTRY(idt[SYSCA], system_call);
 
 }

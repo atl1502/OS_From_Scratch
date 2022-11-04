@@ -1,5 +1,3 @@
-
-
 /*
  * system_call
  * DESCRIPTION: Generic default system call interrupt
@@ -7,4 +5,4 @@
  * SIDE EFFECTS: clears console, prints exception message
  * RETURN VALUE: never returns
  */
-void system_call(void)
+void system_call(void);

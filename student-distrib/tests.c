@@ -5,6 +5,7 @@
 #include "drivers/terminal.h"
 #include "drivers/rtc.h"
 #include "paging.h"
+#include "syscall_wrapper.h"
 
 #define PASS 1
 #define FAIL 0
@@ -454,6 +455,22 @@ int page_alloc_context_switch_test() {
 	return PASS;
 }
 
+/* System call tests */
+int system_call_test() {
+	TEST_HEADER;
+
+	halt(255);
+	execute((const uint8_t*) "magic_program");
+	read(7, (void*) 0xFFAB, 0x20);
+	write(8, (void*) 0xFFCD, 0x30);
+	open((const uint8_t*)"magic_file");
+	close(5);
+	getargs((uint8_t*) 0xABAB, 0x40);
+	vidmap((uint8_t**) 0xCDCD);
+
+	return PASS;
+}
+
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -469,6 +486,7 @@ void launch_tests(){
 	// CP 2 Tests:
 	TEST_OUTPUT("rtc_test", rtc_test());
 	// CP 3 Tests:
+	TEST_OUTPUT("systemcall test", system_call_test());
 	TEST_OUTPUT("virtual_to_physical_test", virtual_to_physical_test());
 	TEST_OUTPUT("page_alloc_context_switch_test", page_alloc_context_switch_test());
 	// hold at end
