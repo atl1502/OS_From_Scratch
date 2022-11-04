@@ -5,7 +5,7 @@
 #define SYSCA 0x80
 // Previous Registers Struct
 typedef struct prev_reg {
-	uint32_t EBX, ECX, EDX, ESI, EDI, EBP, EAX, IRQ;
+	uint32_t EDI, ESI, EBP, ESP, EBX, EDX, ECX, EAX, IRQ;
 } prev_reg_t;
 
 // internal irq table

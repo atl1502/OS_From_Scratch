@@ -19,28 +19,17 @@ jmp handler_interrupt
 
 # common interupt (all interupts end up here)
 handler_interrupt:
-pushl %EAX
-pushl %EBP
-pushl %EDI
-pushl %ESI
-pushl %EDX
-pushl %ECX
-pushl %EBX
-
+pushal
 call do_IRQ
 
 jmp ret_from_intr
 
 # end of interupt
 ret_from_intr:
+popal
+
 # context switching would happen here
-popl %EBX
-popl %ECX
-popl %EDX
-popl %ESI
-popl %EDI
-popl %EBP
-popl %EAX
 # unsure josh help
+
 addl $4, %ESP
 IRET
