@@ -4,15 +4,11 @@
 #include "drivers/filesystem.h"
 #include "drivers/rtc.h"
 
-int32_t sys_halt (uint8_t status) {
+asmlinkage int32_t sys_execute (const uint8_t* command) {
 	return 0;
 }
 
-int32_t sys_execute (const uint8_t* command) {
-	return 0;
-}
-
-int32_t sys_read (int32_t fd, void* buf, int32_t nbytes) {
+asmlinkage int32_t sys_read (int32_t fd, void* buf, int32_t nbytes) {
 	pcb_t* curr_pcb = get_pcb();
 	if (fd >= MAX_FILES || fd < 0)
 		return -1;
@@ -29,10 +25,11 @@ int32_t sys_read (int32_t fd, void* buf, int32_t nbytes) {
 	return fd->table_pointer->read(fd, buf, nbytes);
 }
 
-int32_t sys_write (int32_t fd, const void* buf, int32_t nbytes) {
+asmlinkage int32_t sys_write (int32_t fd, const void* buf, int32_t nbytes) {
 	pcb_t* curr_pcb = get_pcb();
 	if (fd >= MAX_FILES || fd < 0)
 		return -1;
+
 }
 
 // The call should find the directory entry corresponding to the named file,
@@ -40,7 +37,7 @@ int32_t sys_write (int32_t fd, const void* buf, int32_t nbytes) {
 // (directory, RTC device, or regular file).
 
 // If the named file does not exist or no descriptors are free, the call returns -1.
-int32_t sys_open (const uint8_t* filename) {
+asmlinkage int32_t sys_open (const uint8_t* filename) {
 	int free = 0;
 	int i;
 	dentry_t dentry;
@@ -99,26 +96,30 @@ int32_t sys_open (const uint8_t* filename) {
 
 // Trying to close an invalid descriptor should result in a return value of -1;
 // successful closes should return 0.
-int32_t sys_close (int32_t fd) {
+asmlinkage int32_t sys_close (int32_t fd) {
 	return 0;
 }
 
-int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
+asmlinkage int32_t sys_halt (uint8_t status) {
+	return 0;
+}
+
+asmlinkage int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
 	// TODO: implement in 3.4
 	return -1;
 }
 
-int32_t sys_vidmap (uint8_t** screen_start) {
+asmlinkage int32_t sys_vidmap (uint8_t** screen_start) {
 	// TODO: implement in 3.4
 	return -1;
 }
 
-int32_t sys_set_handler (int32_t signum, void* handler_address) {
+asmlinkage int32_t sys_set_handler (int32_t signum, void* handler_address) {
 	// TODO: EXTRA CREDIT
 	return -1;
 }
 
-int32_t sys_sigreturn (void) {
+asmlinakge int32_t sys_sigreturn (void) {
 	// TODO: EXTRA CREDIT
 	return -1;
 }

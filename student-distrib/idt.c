@@ -286,13 +286,6 @@ void handler_simd_fp() {
 	while(1) {}
 }
 
-/*
- * handler_sys_call
- * DESCRIPTION: Generic default system call interrupt
- * INPUTS: no inputs
- * SIDE EFFECTS: clears console, prints exception message
- * RETURN VALUE: never returns
- */
 void handler_sys_call() {
 	clear();
 	printf("System Call");
@@ -355,6 +348,7 @@ void idt_init() {
 
 		idt[i].seg_selector = KERNEL_CS;
 	}
+	// syscalls are callable from ring 3
 	idt[SYSCA].dpl = 3;
 
 	SET_IDT_ENTRY(idt[0], handler_divide); // divide error exception
@@ -383,6 +377,6 @@ void idt_init() {
 	SET_IDT_ENTRY(idt[0x28], handler_rtc);
 
 	// System call
-	SET_IDT_ENTRY(idt[SYSCA], handler_sys_call);
+	SET_IDT_ENTRY(idt[SYSCA], system_call);
 
 }
