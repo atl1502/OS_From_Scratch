@@ -10,14 +10,12 @@ static uint32_t inode_count;
 static void * filesys_end;
 
 static fd_opts_t file_syscalls = {
-    .open  = file_open,
     .read  = file_read,
     .write = file_write,
     .close = file_close,
 };
 
 static fd_opts_t dir_syscalls = {
-    .open  = dir_open,
     .read  = dir_read,
     .write = dir_write,
     .close = dir_close,
@@ -87,7 +85,7 @@ int32_t file_read (fd_t * fd, void* buf, int32_t nbytes) {
  * SIDE EFFECTS: NONE
  * RETURN VALUE: -1
  */
-int32_t file_write(fd_t * fd) {
+int32_t file_write(fd_t* fd, const void* buf, int32_t nbytes) {
 	return -1;
 }
 
@@ -97,7 +95,7 @@ int32_t dir_open(const uint8_t * dname, fd_t * fd) {
 	// no need to set inode as it's set in syscall // fd->inode_num;
 	fd->file_position = 0;
 	// flags was already marked in use // fd->flags;
-	
+
 	return 0;
 }
 
@@ -124,7 +122,7 @@ int32_t dir_read(fd_t * fd, void * buf, int32_t nbytes) {
 	return nbytes;
 }
 
-int32_t dir_write(fd_t * fd) {
+int32_t dir_write(fd_t* fd, const void* buf, int32_t nbytes) {
 	return -1;
 }
 

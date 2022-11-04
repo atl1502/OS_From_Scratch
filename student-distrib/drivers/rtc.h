@@ -21,12 +21,11 @@
 #define FREQ_OP 2
 #define RT_OP 15
 
+/* Externally-visible functions */
 int rate;
 int frequency;
 int count;
 int print_flag;
-
-/* Externally-visible functions */
 
 /* Initialize the RTC */
 void rtc_init(void);
@@ -35,16 +34,16 @@ void rtc_init(void);
 void rtc_handle_interrupt(void);
 
 /* Open function of rtc, note not currently using spinlock */
-int rtc_open(const char* filename, fd_t* fd);
+int32_t rtc_open(const uint8_t* filename, fd_t* fd);
 
 /* Close function of rtc */
-int rtc_close(void);
+int32_t rtc_close(fd_t* fd);
 
 /* Read function of rtc */
-int rtc_read(void);
+int32_t rtc_read(fd_t* fd, void* buf, int32_t nbytes);
 
 /* Write function of rtc, note not currently using spinlock */
-int rtc_write(int*);
+int32_t rtc_write(fd_t* fd, void* buf, int32_t nbytes);
 
 /* Helper function of rtc for write */
 int ret_rate(int);

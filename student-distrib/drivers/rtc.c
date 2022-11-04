@@ -15,7 +15,6 @@ volatile int flag;
 static fd_opts_t rtc_syscalls = {
 	.read = rtc_read,
 	.write = rtc_write,
-	.open = rtc_open,
 	.close = rtc_close
 };
 
@@ -82,7 +81,7 @@ void rtc_handle_interrupt(void) {
  * SIDE EFFECTS: initializes RTC frequency to 2Hz
  * RETURN VALUE: 0
  */
-int rtc_open(const char* filename, fd_t* fd) {
+int32_t rtc_open(const uint8_t* filename, fd_t* fd) {
     frequency = FREQ_OP;
     rate = RT_OP;
     //disable interrupts
@@ -117,7 +116,7 @@ int rtc_open(const char* filename, fd_t* fd) {
  * SIDE EFFECTS: none
  * RETURN VALUE: 0
  */
-int rtc_close(void) {
+int32_t rtc_close(fd_t* fd) {
     return 0;
 }
 
@@ -128,7 +127,7 @@ int rtc_close(void) {
  * SIDE EFFECTS: does not return until interrupt handler handled
  * RETURN VALUE: 0
  */
-int rtc_read(void) {
+int32_t rtc_read(fd_t* fd, void* buf, int32_t nbytes) {
     flag = 1;
     while (flag != 0){
         continue;
@@ -143,12 +142,12 @@ int rtc_read(void) {
  * SIDE EFFECTS: changes RTC frequency
  * RETURN VALUE: 0
  */
-int rtc_write(int* buf) {
+int32_t rtc_write(fd_t* fd, void* buf, int32_t nbytes) {
     //get frequency
     if (buf == NULL) {
         return -1;
     }
-    frequency = *buf;
+    frequency = *((int*)buf);
     //check if frequency is multiple of 2
     if ((frequency == 0) || ((frequency & (frequency - 1)) != 0)) {
         return -1;

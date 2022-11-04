@@ -376,7 +376,4 @@ void idt_init() {
 	SET_IDT_ENTRY(idt[0x21], handler_keyboard);
 	SET_IDT_ENTRY(idt[0x28], handler_rtc);
 
-	// System call
-	SET_IDT_ENTRY(idt[SYSCA], system_call);
-
 }
