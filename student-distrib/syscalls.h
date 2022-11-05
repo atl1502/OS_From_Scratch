@@ -39,20 +39,20 @@ typedef struct __attribute__((packed)) program_header {
 	uint32_t p_vaddr; // Virtual address of where to load seg
 	uint32_t p_paddr; // Physical address No Need
 	uint32_t p_filesz; // Segment size in filesys
-	uint32_t p_memsz; // Segment size in memory 
+	uint32_t p_memsz; // Segment size in memory
 	uint32_t p_flags; // Flags
 	uint32_t p_align; // If not 0 or 1, where p_vaddr = p_offset - p_align
 } program_header_t;
 
-int32_t sys_halt (uint8_t status); // syscall #1
-int32_t sys_execute (const uint8_t* command); // syscall #2
-int32_t sys_read (uint32_t fd, void* buf, int32_t nbytes); // syscall #3
-int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes); // syscall #4
-int32_t sys_open (const uint8_t* filename); // syscall #5
-int32_t sys_close (uint32_t fd); // syscall #6
-int32_t sys_getargs (uint8_t* buf, int32_t nbytes); // syscall #7
-int32_t sys_vidmap (uint8_t** screen_start); // syscall #8
-int32_t sys_set_handler (int32_t signum, void* handler_address); // syscall #9
-int32_t sys_sigreturn (void); // syscall #10
+int32_t sys_halt (uint8_t status); // syscall #0
+int32_t sys_execute (const uint8_t* command); // syscall #1
+int32_t sys_read (uint32_t fd, void* buf, int32_t nbytes); // syscall #2
+int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes); // syscall #3
+int32_t sys_open (const uint8_t* filename); // syscall #4
+int32_t sys_close (uint32_t fd); // syscall #5
+int32_t sys_getargs (uint8_t* buf, int32_t nbytes); // syscall #6
+int32_t sys_vidmap (uint8_t** screen_start); // syscall #7
+int32_t sys_set_handler (int32_t signum, void* handler_address); // syscall #8
+int32_t sys_sigreturn (void); // syscall #9
 
 #endif

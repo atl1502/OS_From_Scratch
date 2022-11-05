@@ -69,3 +69,27 @@ int terminal_write(uint32_t fd, const void* buf, int32_t nbytes) {
     }
     return bytes;
 }
+
+/*
+ * terminal_bad_read
+ * DESCRIPTION: For fd 1 should not be called
+ * INPUTS: fd : file    buf: buffer to be writen    nbytes: number of bytes of buf
+ * SIDE EFFECTS: bad boy
+ * RETURN VALUE:  -1
+ */
+int terminal_bad_read(uint32_t fd, void* buf, int32_t nbytes){
+    printf("bad boy");
+    return -1;
+}
+
+/*
+ * terminal_bad_write
+ * DESCRIPTION: For fd 0 should not be called
+ * INPUTS: fd : file    buf: buffer to be writen    nbytes: number of bytes of buf
+ * SIDE EFFECTS: bad boy
+ * RETURN VALUE:  -1
+ */
+int terminal_bad_write(uint32_t fd, const void* buf, int32_t nbytes){
+    printf("bad boy");
+    return -1;
+}
