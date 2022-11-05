@@ -49,7 +49,7 @@ int32_t sys_execute (const uint8_t* command) {
 	int i;
 
 	// PCB Address pointer
-	task_stack_t * task_stack = (task_stack_t*) (0x800000 - (0x2000 * pid));
+	task_stack_t * task_stack = (task_stack_t*) (0x800000 - (0x2000 * (pid+1)));
 
 	// Get executable file header from filesys
 	read_dentry_by_name (command, &curr_dentry);
@@ -78,7 +78,8 @@ int32_t sys_execute (const uint8_t* command) {
 	memset((void*) 0x08048000, 0, 0x400000-0x48000);
 
 	// Load ELF segments into memory
-	for (i = 0; i < curr_elf_header.e_phnum; i++) {
+	// -1 since 0 indexed
+	for (i = 0; i < curr_elf_header.e_phnum-1; i++) {
 		read_data(curr_dentry.inode_num, curr_elf_header.e_phoff + (curr_elf_header.e_phentsize * i),
 			&curr_program_header, sizeof(program_header_t));
 		if (curr_program_header.p_type != 1) {
@@ -89,11 +90,14 @@ int32_t sys_execute (const uint8_t* command) {
 	}
 
 	// TSS Setup for context switch with PCB init
-	__asm__("movl %%ebp, %[prev_kebp]\n\t"
-		"movl %[k_stack], %[prev_kesp]\n\t"
-		: [prev_kesp] "=g"(task_stack->task_pcb.k_esp), [prev_kebp] "=g" (task_stack->task_pcb.k_ebp)
-		: [k_stack] "g"(tss.esp0)
-		);
+	asm volatile ("             \n\
+			movl %%ebp, %0      \n\
+	 		movl %2, %1         \n\
+            "
+            : "=r"(task_stack->task_pcb.k_esp), "=r"(task_stack->task_pcb.k_ebp)
+            : "r"(tss.esp0)
+            : "memory", "cc"
+    );
 
 	__asm__("movl %[u_base], %[prev_uebp]\n\t"
 		"movl %[u_stack], %[prev_uesp]\n\t"
@@ -102,11 +106,11 @@ int32_t sys_execute (const uint8_t* command) {
 		"pushfl\n\t"
 		"pushl %%cs\n\t"
 		"pushl %[entry]\n\t"
-		"iret\n\t"
 		: [prev_uesp] "=g"(task_stack->task_pcb.u_esp), [prev_uebp] "=g" (task_stack->task_pcb.u_ebp)
 		: [u_stack] "g"(tss.esp), [u_base] "g"(tss.ebp), [entry] "g"(curr_elf_header.e_entry)
 		);
 
+	asm volatile("iret"::);
 
 	return 0;
 }
