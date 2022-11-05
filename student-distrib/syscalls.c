@@ -30,7 +30,33 @@ static fd_opts_t rtc_syscalls = {
 
 int32_t sys_halt (uint8_t status) {
 	printf("HALTING WITH STATUS %d", status);
-	return 0;
+	task_stack_t * curr_task_stack = (task_stack_t*) (0x800000 - (0x2000 * pid));
+	pcb_t curr_pcb = curr_task_stack->pcb;
+	task_stack_t * parent_task_stack = (task_stack_t*) (0x800000 - (0x2000 * curr_pcb.parent_id));
+
+	if (curr_pcb.pid != pid) {
+		printf("YOU SHOULD NOT BE HERE !!! PID of HALT != PID GLOBAL\n");
+		return -1;
+	}
+
+	// Restore Parent Data (esp0)
+	__asm__("movl %[saved_kesp], %[kesp]\n\t"
+		"movl %[saved_kebp], %%ebp\n\t"
+		: [kesp] "=g" (tss.esp0)
+		: [saved_kesp] "g" (curr_pcb.esp), [saved_kebp] "g" (curr_pcb.ebp)
+		);
+
+	// Restore Parent Paging
+	context_switch_paging(task_stack->pcb.parent_id);
+
+	// Close all files (Nothing happens yay!)
+
+	// Return to where execute was called
+	__asm__("leave\n\t"
+		"ret\n\t"
+		);
+
+
 }
 
 int32_t sys_execute (const uint8_t* command) {
@@ -119,14 +145,14 @@ int32_t sys_read (uint32_t fd, void* buf, int32_t nbytes) {
 	if (buf == NULL) {
 		return -1;
 	}
-    pcb_t* curr_pcb = get_pcb(pid);
-    // execute via function pointer table
+	pcb_t* curr_pcb = get_pcb(pid);
+	// execute via function pointer table
 	return (curr_pcb->fd_array)[fd].table_pointer->read(fd, buf, nbytes);
 }
 
 int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes) {
-    pcb_t* curr_pcb = get_pcb(pid);
-    // execute via function pointer table
+	pcb_t* curr_pcb = get_pcb(pid);
+	// execute via function pointer table
 	return (curr_pcb->fd_array)[fd].table_pointer->write(fd, buf, nbytes);
 }
 
@@ -185,9 +211,9 @@ int32_t sys_open (const uint8_t* filename) {
 					break;
 				// file type not 0-2
 				default:
-                    //set to unused
-                    curr_fd->flags &= ~FD_USED;
-					return -1;
+			//set to unused
+			curr_fd->flags &= ~FD_USED;
+				return -1;
 			}
 			break;
 		}
@@ -207,13 +233,13 @@ int32_t sys_open (const uint8_t* filename) {
 // Trying to close an invalid descriptor should result in a return value of -1;
 // successful closes should return 0.
 int32_t sys_close (uint32_t fd) {
-    pcb_t* curr_pcb = get_pcb(pid);
-    fd_t* curr_fd = &(curr_pcb->fd_array[fd]);
-    // check that file is present and not 1 or 0
-    if ( ~((curr_fd->flags) & FD_USED) || fd == 0 || fd == 1)
-        return -1;
-    // set present to 0
-    curr_fd->flags &= ~FD_USED;
+	pcb_t* curr_pcb = get_pcb(pid);
+	fd_t* curr_fd = &(curr_pcb->fd_array[fd]);
+	// check that file is present and not 1 or 0
+	if ( ~((curr_fd->flags) & FD_USED) || fd == 0 || fd == 1)
+		return -1;
+	// set present to 0
+	curr_fd->flags &= ~FD_USED;
 	return (curr_pcb->fd_array)[fd].table_pointer->close(fd);
 }
 

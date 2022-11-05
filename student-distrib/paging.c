@@ -170,7 +170,7 @@ int alloc_new_process(){
   * DESCRIPTION: Switches PD to a given pid (7 is kernal PD)
   * CALL BEFORE CONTEXT DEALLOC
   * INPUTS:
-  * int pid: the PID of the process you want to stop
+  * int pid: the PID of the process you want to point to
   * SIDE EFFECTS: Changes value in cr3
   * RETURN VALUE: -1: process not occuring   0: on success
   */
