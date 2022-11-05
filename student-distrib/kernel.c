@@ -177,6 +177,8 @@ void entry(unsigned long magic, unsigned long addr) {
 	printf("Enabling Interrupts\n");
 	sti();
 
+	execute("shell");
+
 
 #ifdef RUN_TESTS
 	/* Run tests */

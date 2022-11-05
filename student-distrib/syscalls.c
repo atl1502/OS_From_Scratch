@@ -2,6 +2,7 @@
 #include "syscalls.h"
 #include "pcb.h"
 #include "fd.h"
+#include "x86_desc.h"
 #include "drivers/filesystem.h"
 #include "drivers/rtc.h"
 #include "drivers/terminal.h"
@@ -9,15 +10,15 @@
 
 // table ptrs for fds
 static fd_opts_t file_syscalls = {
-    .read  = file_read,
-    .write = file_write,
-    .close = file_close
+	.read  = file_read,
+	.write = file_write,
+	.close = file_close
 };
 
 static fd_opts_t dir_syscalls = {
-    .read  = dir_read,
-    .write = dir_write,
-    .close = dir_close
+	.read  = dir_read,
+	.write = dir_write,
+	.close = dir_close
 };
 
 static fd_opts_t rtc_syscalls = {
@@ -26,13 +27,91 @@ static fd_opts_t rtc_syscalls = {
 	.close = rtc_close
 };
 
+int32_t sys_halt (uint8_t status) {
+	printf("HALTING WITH STATUS %d", status);
+	return 0;
+}
+
 
 int32_t sys_halt (uint8_t status){
     return 0;
 }
 
 int32_t sys_execute (const uint8_t* command) {
-	printf("Execute Syscall: %s\n", command);
+
+	// Magic string at start of ELF file
+	char magic_string[4] = { 0x7F, 'E', 'L', 'F' };
+
+	// ELF Headers
+	elf_header_t curr_elf_header = {{ 0 }};
+	program_header_t curr_program_header = { 0 };
+
+	// Filesys Dentry
+	dentry_t curr_dentry = {{ 0 }};
+
+	// Loop counter
+	int i;
+
+	// PCB Address pointer
+	task_stack_t * task_stack = (task_stack_t*) (0x800000 - (0x2000 * pid));
+
+	// Get executable file header from filesys
+	read_dentry_by_name (command, &curr_dentry);
+	if (curr_dentry.filetype != 2) {
+		printf("Filetype incorrect!!!!\n");
+		return -1;
+	}
+	read_data (curr_dentry.inode_num, 0, &curr_elf_header, sizeof(elf_header_t));
+
+	// Verify magic string
+	if (strncmp((const char*) curr_elf_header.e_ident, magic_string, 4)) {
+		printf("MAGIC STRING WRONG!!!!\n");
+		return -1;
+	}
+	printf("LOADING EXEC\n");
+	// Continue, the file is correct
+
+	// Allocate new PID and new page directory
+	int proc_pid = alloc_new_process();
+	if (proc_pid == -1) {
+		printf("PID COULD NOT BE ALLOCATED");
+		return -1;
+	}
+	context_switch_paging(proc_pid);
+	// MAGIC
+	memset((void*) 0x08048000, 0, 0x400000);
+
+	// Load ELF segments into memory
+	for (i = 0; i < curr_elf_header.e_phnum; i++) {
+		read_data(curr_dentry.inode_num, curr_elf_header.e_phoff + (curr_elf_header.e_phentsize * i),
+			&curr_program_header, sizeof(program_header_t));
+		if (curr_program_header.p_type != 1) {
+			printf("SEGMENT NOT LOADABLE!!!\n");
+			continue;
+		}
+		read_data(curr_dentry.inode_num, curr_program_header.p_offset, (void*)curr_program_header.p_vaddr, curr_program_header.p_memsz);
+	}
+
+	// TSS Setup for context switch with PCB init
+	__asm__("movl %%ebp, %[prev_kebp]\n\t"
+		"movl %[k_stack], %[prev_kesp]\n\t"
+		: [prev_kesp] "=g"(task_stack->task_pcb.k_esp), [prev_kebp] "=g" (task_stack->task_pcb.k_ebp)
+		: [k_stack] "g"(tss.esp0)
+		);
+
+	__asm__("movl %[u_base], %[prev_uebp]\n\t"
+		"movl %[u_stack], %[prev_uesp]\n\t"
+		"pushl %%ss\n\t"
+		"pushl %%esp\n\t"
+		"pushfl\n\t"
+		"pushl %%cs\n\t"
+		"pushl %[entry]\n\t"
+		"iret\n\t"
+		: [prev_uesp] "=g"(task_stack->task_pcb.u_esp), [prev_uebp] "=g" (task_stack->task_pcb.u_ebp)
+		: [u_stack] "g"(tss.esp), [u_base] "g"(tss.ebp), [entry] "g"(curr_elf_header.e_entry)
+		);
+
+
 	return 0;
 }
 

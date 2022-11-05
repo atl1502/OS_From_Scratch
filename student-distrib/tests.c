@@ -456,20 +456,52 @@ int page_alloc_context_switch_test() {
 }
 
 /* System call tests */
-int system_call_test() {
+int syscall_halt() {
 	TEST_HEADER;
-
 	halt(255);
-	execute((const uint8_t*) "magic_program");
-	read(7, (void*) 0xFFAB, 0x20);
-	write(8, (void*) 0xFFCD, 0x30);
-	open((const uint8_t*)"magic_file");
-	close(5);
-	getargs((uint8_t*) 0xABAB, 0x40);
-	vidmap((uint8_t**) 0xCDCD);
-
 	return PASS;
 }
+
+int syscall_execute() {
+	TEST_HEADER;
+	execute((const uint8_t*) "ls");
+	return PASS;
+}
+
+int syscall_read() {
+	TEST_HEADER;
+	read(7, (void*) 0xFFAB, 0x20);
+	return PASS;
+}
+
+int syscall_write() {
+	TEST_HEADER;
+	write(8, (void*) 0xFFCD, 0x30);
+	return PASS;
+}
+
+int syscall_open() {
+	TEST_HEADER;
+	open((const uint8_t*)"magic_file");
+	return PASS;
+}
+
+int syscall_close() {
+	TEST_HEADER;
+	close(5);
+	return PASS;
+}
+
+int syscall_getargs() {
+	getargs((uint8_t*) 0xABAB, 0x40);
+	return PASS;
+}
+
+int syscall_vidmap() {
+	vidmap((uint8_t**) 0xCDCD);
+	return PASS;
+}
+
 
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -477,18 +509,18 @@ int system_call_test() {
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
-	TEST_OUTPUT("no_page_fault_test", no_page_fault_test());
+	// TEST_OUTPUT("idt_test", idt_test());
+	// TEST_OUTPUT("no_page_fault_test", no_page_fault_test());
 	// Exception testing, comment out or in based on needs
 	// CP 1 Tests:
 	// TEST_OUTPUT("divide_by_zero_test", divide_by_zero_test());
 	// TEST_OUTPUT("page_fault_test", page_fault_test());
 	// CP 2 Tests:
-	TEST_OUTPUT("rtc_test", rtc_test());
+	// TEST_OUTPUT("rtc_test", rtc_test());
 	// CP 3 Tests:
-	TEST_OUTPUT("systemcall test", system_call_test());
-	TEST_OUTPUT("virtual_to_physical_test", virtual_to_physical_test());
-	TEST_OUTPUT("page_alloc_context_switch_test", page_alloc_context_switch_test());
+	TEST_OUTPUT("systemcall test", syscall_execute());
+	// TEST_OUTPUT("virtual_to_physical_test", virtual_to_physical_test());
+	// TEST_OUTPUT("page_alloc_context_switch_test", page_alloc_context_switch_test());
 	// hold at end
 	TEST_OUTPUT("terminal_run_test", terminal_run_test());
 }

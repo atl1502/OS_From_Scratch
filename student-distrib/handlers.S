@@ -68,7 +68,6 @@ popl %esi
 popl %edi
 popl %ebx
 
-movl $0, %eax
 iret
 
 system_call_error:
