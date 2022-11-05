@@ -43,8 +43,10 @@ static fd_opts_t stdout = {
 int32_t sys_halt (uint8_t status) {
 	printf("HALTING WITH STATUS %d", status);
 	task_stack_t * curr_task_stack = (task_stack_t*) (0x800000 - (0x2000 * pid));
-	pcb_t curr_pcb = curr_task_stack->pcb;
+	pcb_t curr_pcb = curr_task_stack->task_pcb;
+
 	task_stack_t * parent_task_stack = (task_stack_t*) (0x800000 - (0x2000 * curr_pcb.parent_id));
+	pcb_t parent_pcb = parent_task_stack->task_pcb;
 
 	if (curr_pcb.pid != pid) {
 		printf("YOU SHOULD NOT BE HERE !!! PID of HALT != PID GLOBAL\n");
@@ -55,20 +57,24 @@ int32_t sys_halt (uint8_t status) {
 	__asm__("movl %[saved_kesp], %[kesp]\n\t"
 		"movl %[saved_kebp], %%ebp\n\t"
 		: [kesp] "=g" (tss.esp0)
-		: [saved_kesp] "g" (curr_pcb.esp), [saved_kebp] "g" (curr_pcb.ebp)
+		: [saved_kesp] "g" (parent_pcb.esp), [saved_kebp] "g" (curr_pcb.ebp)
 		);
 
 	// Restore Parent Paging
-	context_switch_paging(task_stack->pcb.parent_id);
+	context_switch_paging(curr_task_stack->task_pcb.parent_id);
 
 	// Close all files (Nothing happens yay!)
 
 	// Return to where execute was called
-	__asm__("leave\n\t"
+	__asm__(
+		"movl %[halt_stat], %%eax\n\t"
+		"leave\n\t"
 		"ret\n\t"
+		:
+		: [halt_stat] "g" (status)
 		);
 
-
+		return status;
 }
 
 int32_t sys_execute (const uint8_t* command) {
@@ -88,6 +94,10 @@ int32_t sys_execute (const uint8_t* command) {
 
 	// PCB Address pointer
 	task_stack_t * task_stack = (task_stack_t*) (0x800000 - (0x2000 * (pid+1)));
+
+	// User address stack and base pointer
+	uint32_t user_esp = 0;
+
 
 	// Get executable file header from filesys
 	read_dentry_by_name (command, &curr_dentry);
@@ -116,7 +126,6 @@ int32_t sys_execute (const uint8_t* command) {
 	memset((void*) 0x08048000, 0, 0x400000-0x48000);
 
 	// Load ELF segments into memory
-	// -1 since 0 indexed
 	for (i = 0; i < curr_elf_header.e_phnum-1; i++) {
 		read_data(curr_dentry.inode_num, curr_elf_header.e_phoff + (curr_elf_header.e_phentsize * i),
 			&curr_program_header, sizeof(program_header_t));
@@ -125,7 +134,12 @@ int32_t sys_execute (const uint8_t* command) {
 			continue;
 		}
 		read_data(curr_dentry.inode_num, curr_program_header.p_offset, (void*)curr_program_header.p_vaddr, curr_program_header.p_memsz);
+
+		if (i == curr_elf_header.e_phnum - 2) {
+			user_esp = curr_program_header.p_vaddr + curr_program_header.p_memsz;
+		}
 	}
+
 
 	int stack_addr = 0x800000 - (0x2000 * (pid));
 	// TSS Setup for context switch with PCB init
@@ -134,26 +148,29 @@ int32_t sys_execute (const uint8_t* command) {
 	 		movl %3, %1         \n\
 			movl %4, %2         \n\
             "
-            : "=r"(task_stack->task_pcb.k_ebp), "=r"(task_stack->task_pcb.k_esp), "=r"(tss.esp0)
+            : "=r"(task_stack->task_pcb.ebp), "=r"(task_stack->task_pcb.esp), "=r"(tss.esp0)
             : "r"(tss.esp0), "r"(stack_addr)
             : "memory", "cc"
     );
 
 	// file descriptor set up for 0 and 1
-	task_stack->task_pcb.fd_array[0].table_pointer = &stdin;
+	task_stack->task_pcb.fd_array[0].read = terminal_read;
+	task_stack->task_pcb.fd_array[0].write = terminal_bad_write;
+	task_stack->task_pcb.fd_array[0].close = terminal_close;
 	task_stack->task_pcb.fd_array[0].flags |= FD_USED;
-	task_stack->task_pcb.fd_array[1].table_pointer = &stdout;
+	task_stack->task_pcb.fd_array[1].read = terminal_bad_read;
+	task_stack->task_pcb.fd_array[1].write = terminal_write;
+	task_stack->task_pcb.fd_array[1].close = terminal_close;
 	task_stack->task_pcb.fd_array[1].flags |= FD_USED;
 
-	__asm__("movl %[u_base], %[prev_uebp]\n\t"
-		"movl %[u_stack], %[prev_uesp]\n\t"
+	__asm__(
 		"pushl %%ss\n\t"
-		"pushl %%esp\n\t"
+		"pushl %[user_esp]\n\t"
 		"pushfl\n\t"
 		"pushl %%cs\n\t"
 		"pushl %[entry]\n\t"
-		: [prev_uesp] "=g"(task_stack->task_pcb.u_esp), [prev_uebp] "=g" (task_stack->task_pcb.u_ebp)
-		: [u_stack] "g"(tss.esp), [u_base] "g"(tss.ebp), [entry] "g"(curr_elf_header.e_entry)
+		:
+		: [entry] "g"(curr_elf_header.e_entry), [user_esp] "g"(user_esp)
 		);
 
 	asm volatile("iret"::);
@@ -167,13 +184,13 @@ int32_t sys_read (uint32_t fd, void* buf, int32_t nbytes) {
 	}
 	pcb_t* curr_pcb = get_pcb(pid);
 	// execute via function pointer table
-	return (curr_pcb->fd_array)[fd].table_pointer->read(fd, buf, nbytes);
+	return (curr_pcb->fd_array)[fd].read(fd, buf, nbytes);
 }
 
 int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes) {
 	pcb_t* curr_pcb = get_pcb(pid);
 	// execute via function pointer table
-	return (curr_pcb->fd_array)[fd].table_pointer->write(fd, buf, nbytes);
+	return (curr_pcb->fd_array)[fd].write(fd, buf, nbytes);
 }
 
 // The call should find the directory entry corresponding to the named file,
@@ -214,19 +231,19 @@ int32_t sys_open (const uint8_t* filename) {
 				// rtc
 				case 0:
 					curr_fd->inode_num = dentry.inode_num;
-					curr_fd->table_pointer = &rtc_syscalls;
+					curr_fd->table_pointer = rtc_syscalls;
 					open_ret_val = rtc_open(filename);
 					break;
 				// dir
 				case 1:
 					curr_fd->inode_num = dentry.inode_num;
-					curr_fd->table_pointer = &dir_syscalls;
+					curr_fd->table_pointer = dir_syscalls;
 					open_ret_val = dir_open(filename);
 					break;
 				// file
 				case 2:
 					curr_fd->inode_num = dentry.inode_num;
-					curr_fd->table_pointer = &file_syscalls;
+					curr_fd->table_pointer = file_syscalls;
 					open_ret_val = file_open(filename);
 					break;
 				// file type not 0-2
@@ -260,7 +277,7 @@ int32_t sys_close (uint32_t fd) {
 		return -1;
 	// set present to 0
 	curr_fd->flags &= ~FD_USED;
-	return (curr_pcb->fd_array)[fd].table_pointer->close(fd);
+	return (curr_pcb->fd_array)[fd].close(fd);
 }
 
 

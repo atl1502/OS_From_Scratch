@@ -8,5 +8,5 @@
 
 pcb_t* get_pcb(int pid) {
 	// 8MB - 8KB times the pid number plus one since its at bottom
-	return ((pcb_t*)K_PAGE_ADDR-((pid+1)*EIGHT_KB));
+	return ((pcb_t*) (K_PAGE_ADDR-((pid+1)*EIGHT_KB)));
 }

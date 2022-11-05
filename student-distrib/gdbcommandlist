@@ -1,0 +1,4 @@
+target remote 10.0.2.2:1234
+b sys_write
+b sys_execute
+add-symbol-file ../syscalls/shell.exe 0x08048094

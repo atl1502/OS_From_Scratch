@@ -45,6 +45,7 @@ iret
 
 system_call:
 
+decl %eax
 cmpl $10, %eax
 ja system_call_error
 
