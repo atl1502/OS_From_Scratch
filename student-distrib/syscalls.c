@@ -7,6 +7,7 @@
 #include "drivers/rtc.h"
 #include "drivers/terminal.h"
 #include "x86_desc.h"
+#include "paging.h"
 
 // table ptrs for fds
 static fd_opts_t file_syscalls = {
@@ -30,11 +31,6 @@ static fd_opts_t rtc_syscalls = {
 int32_t sys_halt (uint8_t status) {
 	printf("HALTING WITH STATUS %d", status);
 	return 0;
-}
-
-
-int32_t sys_halt (uint8_t status){
-    return 0;
 }
 
 int32_t sys_execute (const uint8_t* command) {

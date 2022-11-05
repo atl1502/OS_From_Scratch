@@ -12,6 +12,7 @@
 #include "pcb.h"
 #include "drivers/filesystem.h"
 #include "drivers/keyboard.h"
+#include "syscall_wrapper.h"
 
 #define RUN_TESTS
 
@@ -177,7 +178,7 @@ void entry(unsigned long magic, unsigned long addr) {
 	printf("Enabling Interrupts\n");
 	sti();
 
-	execute("shell");
+	execute((unsigned char*)"shell");
 
 
 #ifdef RUN_TESTS
