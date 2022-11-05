@@ -198,6 +198,7 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry) {
  * DESCRIPTION: Reads file of Inode assuming it is on disk
  * INPUTS:
  * inode: Inode to get data from
+ * offset: where in file to read from
  * buf: buffer to copy from file to
  * nbytes: number of bytes to copy
  * SIDE EFFECTS: Fills buffer with nbytes of file starting at last position
@@ -224,13 +225,13 @@ int32_t read_data (uint32_t inode, uint32_t offset, void* buf, uint32_t length) 
 	/* Start at offset */
 	int cur_block_num = inode_cur->data_block_num[offset >> OFFSET_SHIFT];
 	int buffer_offset = 0;
-
+	int masked_offset = offset & OFFSET_MASK;
 	/* If offset is not 4KB aligned, copy until next 4KB boundary, make length shorter and offset larger */
-	if (offset & OFFSET_MASK) {
-		memcpy(buf + buffer_offset, data_start + (cur_block_num << OFFSET_SHIFT) + (offset & OFFSET_MASK), BLOCK_SIZE - (offset & OFFSET_MASK));
-		buffer_offset += BLOCK_SIZE - (offset & OFFSET_MASK);
-		length -= BLOCK_SIZE - (offset & OFFSET_MASK);
-		offset += BLOCK_SIZE - (offset & OFFSET_MASK);
+	if (masked_offset != 0) {
+		memcpy(buf + buffer_offset, data_start + (cur_block_num << OFFSET_SHIFT) + (masked_offset), BLOCK_SIZE - (masked_offset));
+		buffer_offset += BLOCK_SIZE - (masked_offset);
+		length -= BLOCK_SIZE - (masked_offset);
+		offset += BLOCK_SIZE - (masked_offset);
 	}
 
 	/*

@@ -59,7 +59,7 @@ int32_t sys_execute (const uint8_t* command) {
 	}
 	read_data (curr_dentry.inode_num, 0, &curr_elf_header, sizeof(elf_header_t));
 
-	// Verify magic string
+	// Verify executable string
 	if (strncmp((const char*) curr_elf_header.e_ident, magic_string, 4)) {
 		printf("MAGIC STRING WRONG!!!!\n");
 		return -1;
@@ -75,7 +75,7 @@ int32_t sys_execute (const uint8_t* command) {
 	}
 	context_switch_paging(proc_pid);
 	// MAGIC
-	memset((void*) 0x08048000, 0, 0x400000);
+	memset((void*) 0x08048000, 0, 0x400000-0x48000);
 
 	// Load ELF segments into memory
 	for (i = 0; i < curr_elf_header.e_phnum; i++) {
