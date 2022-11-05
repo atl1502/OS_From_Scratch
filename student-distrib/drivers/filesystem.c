@@ -62,17 +62,30 @@ int32_t file_read (uint32_t fd, void* buf, int32_t nbytes) {
  * INPUTS:
  * fd: File descriptor to be modified (ignored)
  * SIDE EFFECTS: NONE
- * RETURN VALUE: -1
+ * RETURN VALUE: -1 (fails)
  */
 int32_t file_write(uint32_t fd, const void* buf, int32_t nbytes) {
 	return -1;
 }
 
-
+/*
+ * dir_open
+ * DESCRIPTION: open directory (already open)
+ * INPUTS: fd to be closed (ignored)
+ * SIDE EFFECTS: NONE
+ * RETURN VALUE: 0 (directory open)
+ */
 int32_t dir_open(const uint8_t * dname) {
 	return 0;
 }
 
+/*
+ * dir_close
+ * DESCRIPTION: fails to close directory
+ * INPUTS: fd to be closed (ignored)
+ * SIDE EFFECTS: NONE
+ * RETURN VALUE: -1 (fails)
+ */
 int32_t dir_close(uint32_t fd) {
 	return -1;
 }
@@ -106,6 +119,13 @@ int32_t dir_read(uint32_t fd, void * buf, int32_t nbytes) {
 	return nbytes;
 }
 
+/*
+ * dir_write
+ * DESCRIPTION: Does nothing
+ * INPUTS: fd to write to, buf to write from, nbytes to write
+ * SIDE EFFECTS: none
+ * RETURN VALUE: -1 (never used)
+ */
 int32_t dir_write(uint32_t fd, const void* buf, int32_t nbytes) {
 	return -1;
 }
