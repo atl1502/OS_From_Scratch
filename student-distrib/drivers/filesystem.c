@@ -226,12 +226,14 @@ int32_t read_data (uint32_t inode, uint32_t offset, void* buf, uint32_t length) 
 	int cur_block_num = inode_cur->data_block_num[offset >> OFFSET_SHIFT];
 	int buffer_offset = 0;
 	int masked_offset = offset & OFFSET_MASK;
+	// copy size is either block size-offset of the desired length of copy
+	int copy_size = BLOCK_SIZE-(masked_offset) > length ? length : (BLOCK_SIZE - (masked_offset));
 	/* If offset is not 4KB aligned, copy until next 4KB boundary, make length shorter and offset larger */
 	if (masked_offset != 0) {
-		memcpy(buf + buffer_offset, data_start + (cur_block_num << OFFSET_SHIFT) + (masked_offset), BLOCK_SIZE - (masked_offset));
-		buffer_offset += BLOCK_SIZE - (masked_offset);
-		length -= BLOCK_SIZE - (masked_offset);
-		offset += BLOCK_SIZE - (masked_offset);
+		memcpy(buf + buffer_offset, data_start + (cur_block_num << OFFSET_SHIFT) + (masked_offset), copy_size);
+		buffer_offset += copy_size;
+		length -= copy_size;
+		offset += copy_size;
 	}
 
 	/*
