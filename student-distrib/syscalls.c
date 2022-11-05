@@ -112,6 +112,9 @@ int32_t sys_execute (const uint8_t* command) {
 }
 
 int32_t sys_read (uint32_t fd, void* buf, int32_t nbytes) {
+	if (buf == NULL) {
+		return -1;
+	}
     pcb_t* curr_pcb = get_pcb(pid);
     // execute via function pointer table
 	return (curr_pcb->fd_array)[fd].table_pointer->read(fd, buf, nbytes);
