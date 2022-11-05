@@ -179,7 +179,6 @@ void entry(unsigned long magic, unsigned long addr) {
 
 #ifdef RUN_TESTS
 	/* Run tests */
-	filesystem_print_files_init(filesys_start);
 	launch_tests();
 #endif
 	/* Execute the first program ("shell") ... */

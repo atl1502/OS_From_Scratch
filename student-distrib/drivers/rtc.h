@@ -34,7 +34,7 @@ void rtc_init(void);
 void rtc_handle_interrupt(void);
 
 /* Open function of rtc, note not currently using spinlock */
-int32_t rtc_open(const uint8_t* filename, fd_t* fd);
+int32_t rtc_open(const uint8_t* filename);
 
 /* Close function of rtc */
 int32_t rtc_close(uint32_t fd);
@@ -43,7 +43,7 @@ int32_t rtc_close(uint32_t fd);
 int32_t rtc_read(uint32_t fd, void* buf, int32_t nbytes);
 
 /* Write function of rtc, note not currently using spinlock */
-int32_t rtc_write(uint32_t fd, void* buf, int32_t nbytes);
+int32_t rtc_write(uint32_t fd, const void* buf, int32_t nbytes);
 
 /* Helper function of rtc for write */
 int ret_rate(int);

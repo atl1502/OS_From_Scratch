@@ -6,18 +6,38 @@
 
 static int pid = 0;
 
+// table ptrs for fds
+static fd_opts_t file_syscalls = {
+    .read  = file_read,
+    .write = file_write,
+    .close = file_close
+};
+
+static fd_opts_t dir_syscalls = {
+    .read  = dir_read,
+    .write = dir_write,
+    .close = dir_close
+};
+
+static fd_opts_t rtc_syscalls = {
+	.read = rtc_read,
+	.write = rtc_write,
+	.close = rtc_close
+};
+
+
 int32_t sys_execute (const uint8_t* command) {
 	return 0;
 }
 
 int32_t sys_read (uint32_t fd, void* buf, int32_t nbytes) {
-	pcb_t* cur_pcb = get_pcb(pid);
-	return 0;
+	pcb_t* curr_pcb = get_pcb(pid);
+	return (curr_pcb->fd_array)[fd].table_pointer->read(fd, buf, nbytes);
 }
 
 int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes) {
-	pcb_t* cur_pcb = get_pcb(pid);
-	return 0;
+	pcb_t* curr_pcb = get_pcb(pid);
+	return (curr_pcb->fd_array)[fd].table_pointer->write(fd, buf, nbytes);
 }
 
 // The call should find the directory entry corresponding to the named file,
@@ -29,6 +49,8 @@ int32_t sys_open (const uint8_t* filename) {
 	int free = 0;
 	int i;
 	dentry_t dentry;
+	int32_t fd;
+	int32_t open_ret_val = 0;
 	pcb_t* curr_pcb = get_pcb(pid);
 
 	if (filename == NULL)
@@ -36,12 +58,13 @@ int32_t sys_open (const uint8_t* filename) {
 
 	// find a free descriptor
 	for (i = 0; i < MAX_FILES; i++) {
-		fd_t curr_fd = curr_pcb->fd[i];
+		fd_t* curr_fd = &(curr_pcb->fd_array[i]);
 
-		if ( ~((curr_fd.flags) & 0x80000000) ) { // fd is available (sig bit = 0)
+		if ( ~((curr_fd->flags) & FD_USED) ) { // fd is available (sig bit = 0)
 			free = 1;
-			curr_fd.file_position = 0;
-			curr_fd.flags |= 0x80000000; // mark fd as unavailable (sig bit = 1)
+			fd = i;
+			curr_fd->file_position = 0;
+			curr_fd->flags |= FD_USED; // mark fd as unavailable (sig bit = 1)
 
 			// read dentry, if null return -1
 			if (read_dentry_by_name(filename, &dentry) == -1)
@@ -50,20 +73,23 @@ int32_t sys_open (const uint8_t* filename) {
 			switch (dentry.filetype) {
 				// rtc
 				case 0:
-					curr_fd.inode_num = dentry.inode_num;
-					return rtc_open(filename, &curr_fd);
+					curr_fd->inode_num = dentry.inode_num;
+					curr_fd->table_pointer = &rtc_syscalls;
+					open_ret_val = rtc_open(filename);
 					break;
 				// dir
 				case 1:
-					curr_fd.inode_num = dentry.inode_num;
-					return dir_open(filename, &curr_fd);
+					curr_fd->inode_num = dentry.inode_num;
+					curr_fd->table_pointer = &dir_syscalls;
+					open_ret_val = dir_open(filename);
 					break;
 				// file
 				case 2:
-					curr_fd.inode_num = dentry.inode_num;
-					return file_open(filename, &curr_fd);
+					curr_fd->inode_num = dentry.inode_num;
+					curr_fd->table_pointer = &file_syscalls;
+					open_ret_val = file_open(filename);
 					break;
-				// if we're here it's wrong
+				// file type not 0-2
 				default:
 					return -1;
 			}
@@ -71,11 +97,11 @@ int32_t sys_open (const uint8_t* filename) {
 		}
 	}
 
-	// no descriptors are free
-	if (free == 0)
+	// no descriptors are free / open returned -1
+	if (free == 0 || open_ret_val == -1)
 		return -1;
-
-	return 0;
+	// return the fd to user space
+	return fd;
 }
 
 // The close system call closes the specified file descriptor and makes it

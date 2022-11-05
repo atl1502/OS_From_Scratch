@@ -14,7 +14,7 @@
 typedef struct pcb {
 	int pid;
 	int parent_id;
-	fd_t fd[MAX_FILES];
+	fd_t fd_array[MAX_FILES];
 	uint32_t esp;
 	uint32_t eip;
 

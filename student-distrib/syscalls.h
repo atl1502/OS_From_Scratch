@@ -14,6 +14,7 @@
 #define SYS_VIDMAP 8
 #define SYS_SET_HANDLER 9
 #define SYS_SIGRETURN 10
+#define FD_USED 0x80000000
 
 int32_t sys_halt (uint8_t status); // syscall #1
 int32_t sys_execute (const uint8_t* command); // syscall #2

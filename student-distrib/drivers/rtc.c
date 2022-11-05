@@ -12,12 +12,6 @@ static spinlock_t rtc_lock = SPIN_LOCK_UNLOCKED;
 
 volatile int flag;
 
-static fd_opts_t rtc_syscalls = {
-	.read = rtc_read,
-	.write = rtc_write,
-	.close = rtc_close
-};
-
 /*
  * rtc_init
  * DESCRIPTION: Initialize the RTC
@@ -81,7 +75,7 @@ void rtc_handle_interrupt(void) {
  * SIDE EFFECTS: initializes RTC frequency to 2Hz
  * RETURN VALUE: 0
  */
-int32_t rtc_open(const uint8_t* filename, fd_t* fd) {
+int32_t rtc_open(const uint8_t* filename) {
     frequency = FREQ_OP;
     rate = RT_OP;
     //disable interrupts
@@ -100,12 +94,6 @@ int32_t rtc_open(const uint8_t* filename, fd_t* fd) {
     inb(PORT2);
     // reenable interrupts
     sti();
-
-    // fill in fd
-    fd->table_pointer = &rtc_syscalls;
-    // no need to set inode as it's set in syscall // fd->inode_num;
-    fd->file_position = 0;
-    // flags was already marked in use // fd->flags;
     return 0;
 }
 
@@ -142,7 +130,7 @@ int32_t rtc_read(uint32_t fd, void* buf, int32_t nbytes) {
  * SIDE EFFECTS: changes RTC frequency
  * RETURN VALUE: 0
  */
-int32_t rtc_write(uint32_t fd, void* buf, int32_t nbytes) {
+int32_t rtc_write(uint32_t fd, const void* buf, int32_t nbytes) {
     //get frequency
     if (buf == NULL) {
         return -1;

@@ -110,125 +110,6 @@ int no_page_fault_test(){
 }
 
 /* Checkpoint 2 tests */
-/*
- * Filesystem Filename test init
- *
- * Initializes filesystem start in this file for testing
- * Inputs: file_start (start of filesystem in mem)
- * Outputs: none
- * Side Effects: sets file_start global variable
- * return value: 0 or -1 if errors
- */
-
-static uint32_t file_start;
-
-int filesystem_print_files_init(uint32_t file_start_in) {
-	file_start = file_start_in;
-	return PASS;
-}
-
-/*
- * Filesystem Filename test
- *
- * Should print all file names in the root directory
- * Inputs: file_start (start of filesystem in mem)
- * Outputs: none
- * Side Effects: Prints file names to screen and all errors
- * return value: 0 or -1 if errors
- */
-int filesystem_print_files() {
-	fd_t fd = { 0 };
-	boot_block_t * filesys = (boot_block_t *) file_start;
-	char filename[33] = { 0 };
-	int index = 0;
-	uint32_t inode_size;
-
-	clear();
-	printf("Filesystem Directory Names:\n");
-	for (index = 0; index < 63; index++) {
-		dir_read(&fd, filename, 32);
-		inode_size = read_inode_size(filesys->direntries[index].inode_num);
-		filename[32] = 0;
-		if (filename[0]) {
-			printf("Size: %u Filename: %s\n", inode_size, filename);
-		}
-	}
-	return PASS;
-}
-
-/*
- * Filesystem File Contents test
- *
- * Should print all filecontents of ls and verylargetext...
- * Inputs: none
- * Outputs: none
- * Side Effects: Prints file contents along with any errors
- * return value: 0 or -1 if errors
- */
-
-static unsigned char char_buffer[5349] = { 0 };
-
-int print_file_contents_long() {
-	fd_t fd;
-
-	clear();
-	printf("Long File Test");
-	if (file_open ((const uint8_t *)"verylargetextwithverylongname.tx", &fd)) {
-		printf("FAILED FILE FILE!\n");
-		return FAIL;
-	}
-
-	if (file_read (&fd, char_buffer, 5277)) {
-		printf("FAILED READ DATA!\n");
-		return FAIL;
-	}
-	printf("File Contents: %s\n", char_buffer);
-	return PASS;
-}
-
-int print_file_contents_frame0() {
-	fd_t fd;
-
-	clear();
-	printf("Frame 0 Test\n");
-
-	if (file_open ((const uint8_t *)"frame0.txt", &fd)) {
-		printf("FAILED FILE FILE!\n");
-		return FAIL;
-	}
-
-	if (file_read (&fd, char_buffer, 187)) {
-		printf("FAILED READ DATA!\n");
-		return FAIL;
-	}
-	char_buffer[187] = 0;
-	printf("File Contents: 187 Bytes\n%s\n", char_buffer);
-	return PASS;
-}
-
-int print_file_contents_ls() {
-	fd_t fd;
-
-	clear();
-	printf("ls Test\n");
-	if (file_open ((const uint8_t *)"ls", &fd)) {
-		printf("FAILED FILE FILE!\n");
-		return FAIL;
-	}
-
-	if (file_read (&fd, char_buffer, 5349)) {
-		printf("FAILED READ DATA!\n");
-		return FAIL;
-	}
-	printf("File Contents: %d Bytes:\n", 5349);
-	int i = 0;
-	for (i = 0; i < 5350; i++) {
-		if (char_buffer[i])
-			putc(char_buffer[i]);
-	}
-	printf("\n");
-	return PASS;
-}
 
 /* RTC test
  *
@@ -273,7 +154,7 @@ int rtc_test(){
 
 	//rtc_open test
 	printf("Now let's check rtc_open()! \n");
-	j = rtc_open(0,0);
+	j = rtc_open(0);
 	printf("Return result of rtc_open(): %d \n", j);
 	printf("Current frequency after rtc_open(): %d \n", frequency);
 	count_init(FREQ_OP*CHECKNUM);
@@ -467,33 +348,6 @@ int terminal_run_test(){
 	return PASS;
 }
 
-/* File system misc. test
- *
- * Tests return values for file system functions
- * Inputs: None
- * Outputs: PASS or held in an exception
- * Side Effects: None
- * Coverage: File systems
- * Files: filesystem.c
- */
-int file_misc_test() {
-	TEST_HEADER;
-	fd_t * p;
-	int i;
-	i = file_close(p);
-	if (i != 0) {
-		assertion_failure();
-		return FAIL;
-	}
-	i = file_write(p, 0, 0);
-	if (i != -1) {
-		assertion_failure();
-		return FAIL;
-	}
-	return PASS;
-
-}
-
 /* Checkpoint 3 tests */
 
 /* Virtual to physical Test
@@ -614,12 +468,6 @@ void launch_tests(){
 	// TEST_OUTPUT("page_fault_test", page_fault_test());
 	// CP 2 Tests:
 	TEST_OUTPUT("rtc_test", rtc_test());
-	// TEST_OUTPUT("terminal_open_close_test", terminal_open_close_test());
-	// TEST_OUTPUT("Filename Test", filesystem_print_files());
-	// TEST_OUTPUT("Long File Test", print_file_contents_long());
-	// TEST_OUTPUT("frame0.txt Test", print_file_contents_frame0());
-	// TEST_OUTPUT("ls Test", print_file_contents_ls());
-	// TEST_OUTPUT("file_misc_test", file_misc_test());
 	// CP 3 Tests:
 	TEST_OUTPUT("virtual_to_physical_test", virtual_to_physical_test());
 	TEST_OUTPUT("page_alloc_context_switch_test", page_alloc_context_switch_test());

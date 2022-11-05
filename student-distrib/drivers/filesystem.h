@@ -31,12 +31,12 @@ typedef struct boot_block {
 	dentry_t direntries[63];
 } boot_block_t;
 
-int32_t file_open(const uint8_t * fname, fd_t * fd);
+int32_t file_open(const uint8_t * fname);
 int32_t file_close(uint32_t fd);
 int32_t file_read (uint32_t fd, void* buf, int32_t nbytes);
 int32_t file_write(uint32_t fd, const void* buf, int32_t nbytes);
 
-int32_t dir_open(const uint8_t * dname, fd_t * fd);
+int32_t dir_open(const uint8_t * dname);
 int32_t dir_close(uint32_t fd);
 int32_t dir_read (uint32_t fd, void * buf, int32_t nbytes);
 int32_t dir_write(uint32_t fd, const void* buf, int32_t nbytes);

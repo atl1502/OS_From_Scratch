@@ -9,18 +9,6 @@ static void * data_start;
 static uint32_t inode_count;
 static void * filesys_end;
 
-static fd_opts_t file_syscalls = {
-    .read  = file_read,
-    .write = file_write,
-    .close = file_close,
-};
-
-static fd_opts_t dir_syscalls = {
-    .read  = dir_read,
-    .write = dir_write,
-    .close = dir_close,
-};
-
 /*
  * file_open
  * DESCRIPTION: Opens the file by searching for dentry from filename
@@ -31,8 +19,8 @@ static fd_opts_t dir_syscalls = {
  * SIDE EFFECTS: Changes file descriptor to have inode of desired file
  * RETURN VALUE: 0 or -1 iff NULL input
  */
-int32_t file_open(const uint8_t * fname, fd_t * fd) {
-	
+int32_t file_open(const uint8_t * fname) {
+
 	return 0;
 }
 
@@ -76,7 +64,7 @@ int32_t file_write(uint32_t fd, const void* buf, int32_t nbytes) {
 }
 
 // TODO: implement
-int32_t dir_open(const uint8_t * dname, fd_t * fd) {
+int32_t dir_open(const uint8_t * dname) {
 	return 0;
 }
 
