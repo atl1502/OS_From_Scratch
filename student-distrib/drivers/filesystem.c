@@ -2,6 +2,8 @@
 #include "../types.h"
 #include "../lib.h"
 #include "../fd.h"
+#include "../pcb.h"
+#include "../x86_desc.h"
 
 static boot_block_t * filesys;
 static inode_t * inode_start;
@@ -11,22 +13,18 @@ static void * filesys_end;
 
 /*
  * file_open
- * DESCRIPTION: Opens the file by searching for dentry from filename
- * and copying info to descriptor
+ * DESCRIPTION: Does nothing
  * INPUTS:
- * fname: Name of file in string
- * fd: File descriptor to be modified
- * SIDE EFFECTS: Changes file descriptor to have inode of desired file
- * RETURN VALUE: 0 or -1 iff NULL input
+ * fname: Name of file in string (ignored)
+ * RETURN VALUE: 0
  */
 int32_t file_open(const uint8_t * fname) {
-
 	return 0;
 }
 
 /*
  * file_close
- * DESCRIPTION: Opens the file by doing nothing
+ * DESCRIPTION: Does nothing
  * INPUTS:
  * fd: File descriptor to be modified (ignored)
  * SIDE EFFECTS: NONE
@@ -47,8 +45,15 @@ int32_t file_close(uint32_t fd) {
  * RETURN VALUE: 0 or -1 iff NULL input
  */
 int32_t file_read (uint32_t fd, void* buf, int32_t nbytes) {
-
-	return 0;
+	pcb_t* curr_pcb = get_pcb(pid);
+    fd_t* curr_fd = &(curr_pcb->fd_array[fd]);
+	// check buffer validity
+	if (!fd || !buf)
+		return -1;
+	// get the data in the file
+	read_data (curr_fd->inode_num, curr_fd->file_position, buf, nbytes);
+	curr_fd->file_position += nbytes;
+	return nbytes;
 }
 
 /*
@@ -63,7 +68,7 @@ int32_t file_write(uint32_t fd, const void* buf, int32_t nbytes) {
 	return -1;
 }
 
-// TODO: implement
+
 int32_t dir_open(const uint8_t * dname) {
 	return 0;
 }
@@ -83,6 +88,21 @@ int32_t dir_close(uint32_t fd) {
  * RETURN VALUE: Number of bytes copied
  */
 int32_t dir_read(uint32_t fd, void * buf, int32_t nbytes) {
+	dentry_t dentry;
+	pcb_t* curr_pcb = get_pcb(pid);
+    fd_t* curr_fd = &(curr_pcb->fd_array[fd]);
+	// check buffer validity
+	if (!curr_fd || !buf || nbytes > FILESYSTEM_NAME_MAX)
+		return -1;
+	// read dentry values
+	read_dentry_by_index (curr_fd->file_position, &dentry);
+	// check if the file name is empty
+	nbytes = strlen(dentry.filename);
+	// copy data into the buffer
+	memcpy(buf, dentry.filename, nbytes);
+	curr_fd->file_position++;
+	if(nbytes == 0)
+		curr_fd->file_position = 0;
 	return nbytes;
 }
 

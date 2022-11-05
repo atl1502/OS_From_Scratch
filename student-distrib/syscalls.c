@@ -4,8 +4,8 @@
 #include "fd.h"
 #include "drivers/filesystem.h"
 #include "drivers/rtc.h"
-
-static int pid = 0;
+#include "drivers/terminal.h"
+#include "x86_desc.h"
 
 // table ptrs for fds
 static fd_opts_t file_syscalls = {
@@ -27,18 +27,24 @@ static fd_opts_t rtc_syscalls = {
 };
 
 
+int32_t sys_halt (uint8_t status){
+    return 0;
+}
+
 int32_t sys_execute (const uint8_t* command) {
 	printf("Execute Syscall: %s\n", command);
 	return 0;
 }
 
 int32_t sys_read (uint32_t fd, void* buf, int32_t nbytes) {
-	pcb_t* curr_pcb = get_pcb(pid);
+    pcb_t* curr_pcb = get_pcb(pid);
+    // execute via function pointer table
 	return (curr_pcb->fd_array)[fd].table_pointer->read(fd, buf, nbytes);
 }
 
 int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes) {
-	pcb_t* curr_pcb = get_pcb(pid);
+    pcb_t* curr_pcb = get_pcb(pid);
+    // execute via function pointer table
 	return (curr_pcb->fd_array)[fd].table_pointer->write(fd, buf, nbytes);
 }
 
@@ -97,6 +103,8 @@ int32_t sys_open (const uint8_t* filename) {
 					break;
 				// file type not 0-2
 				default:
+                    //set to unused
+                    curr_fd->flags &= ~FD_USED;
 					return -1;
 			}
 			break;
@@ -117,7 +125,14 @@ int32_t sys_open (const uint8_t* filename) {
 // Trying to close an invalid descriptor should result in a return value of -1;
 // successful closes should return 0.
 int32_t sys_close (uint32_t fd) {
-	return 0;
+    pcb_t* curr_pcb = get_pcb(pid);
+    fd_t* curr_fd = &(curr_pcb->fd_array[fd]);
+    // check that file is present and not 1 or 0
+    if ( ~((curr_fd->flags) & FD_USED) || fd == 0 || fd == 1)
+        return -1;
+    // set present to 0
+    curr_fd->flags &= ~FD_USED;
+	return (curr_pcb->fd_array)[fd].table_pointer->close(fd);
 }
 
 

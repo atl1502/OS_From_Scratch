@@ -32,10 +32,6 @@ void entry(unsigned long magic, unsigned long addr) {
 	uint32_t filesys_start = 0;
 	uint32_t filesys_end = 0;
 
-	/* PCB init */
-	task_stack_t * pcb_1 = (task_stack_t*) 0x800000 - 0x2000;
-	task_stack_t * pcb_2 = (task_stack_t*) 0x800000 - 0x4000;
-
 	/* Clear the screen. */
 	clear();
 

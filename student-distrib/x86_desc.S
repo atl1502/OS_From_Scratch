@@ -6,7 +6,7 @@
 
 .text
 
-.globl ldt_size, tss_size
+.globl ldt_size, tss_size, pid
 .globl gdt_desc, ldt_desc, tss_desc
 .globl tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl gdt_ptr
@@ -16,7 +16,8 @@
 
 .align 4
 
-
+pid:
+    .long 0
 tss_size:
     .long tss_bottom - tss - 1
 

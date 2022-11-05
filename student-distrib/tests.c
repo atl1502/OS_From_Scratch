@@ -315,7 +315,7 @@ int terminal_open_close_test(){
 		assertion_failure();
 		return FAIL;
 	}
-	i = terminal_close(1);
+	i = terminal_close(0);
 	if (i != 0) {
 		assertion_failure();
 		return FAIL;

@@ -21,7 +21,7 @@ int terminal_open(const uint8_t* filename) {
  * SIDE EFFECTS: Loads screen with previous data from memory
  * RETURN VALUE: 0
  */
-int terminal_close(int32_t fd) {
+int terminal_close(uint32_t fd) {
     return -1;
 }
 
@@ -32,7 +32,7 @@ int terminal_close(int32_t fd) {
  * SIDE EFFECTS:
  * RETURN VALUE: return number of bytes read
  */
-int terminal_read(int32_t fd, void* buf, int32_t nbytes) {
+int terminal_read(uint32_t fd, void* buf, int32_t nbytes) {
     if (buf == NULL) // null check
         return -1;
 
@@ -54,7 +54,7 @@ int terminal_read(int32_t fd, void* buf, int32_t nbytes) {
  * SIDE EFFECTS: prints the buf to screen
  * RETURN VALUE: number of bytes written or -1
  */
-int terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
+int terminal_write(uint32_t fd, const void* buf, int32_t nbytes) {
     int i;
     int bytes = 0;
     if (buf == NULL) // null check
