@@ -28,6 +28,18 @@ static fd_opts_t rtc_syscalls = {
 	.close = rtc_close
 };
 
+static fd_opts_t stdin = {
+	.read = terminal_read,
+	.write = terminal_bad_write,
+	.close = terminal_close
+};
+
+static fd_opts_t stdout = {
+	.read = terminal_bad_read,
+	.write = terminal_write,
+	.close = terminal_close
+};
+
 int32_t sys_halt (uint8_t status) {
 	printf("HALTING WITH STATUS %d", status);
 	return 0;
@@ -89,15 +101,23 @@ int32_t sys_execute (const uint8_t* command) {
 		read_data(curr_dentry.inode_num, curr_program_header.p_offset, (void*)curr_program_header.p_vaddr, curr_program_header.p_memsz);
 	}
 
+	int stack_addr = 0x800000 - (0x2000 * (pid));
 	// TSS Setup for context switch with PCB init
 	asm volatile ("             \n\
 			movl %%ebp, %0      \n\
-	 		movl %2, %1         \n\
+	 		movl %3, %1         \n\
+			movl %4, %2         \n\
             "
-            : "=r"(task_stack->task_pcb.k_esp), "=r"(task_stack->task_pcb.k_ebp)
-            : "r"(tss.esp0)
+            : "=r"(task_stack->task_pcb.k_ebp), "=r"(task_stack->task_pcb.k_esp), "=r"(tss.esp0)
+            : "r"(tss.esp0), "r"(stack_addr)
             : "memory", "cc"
     );
+
+	// file descriptor set up for 0 and 1
+	task_stack->task_pcb.fd_array[0].table_pointer = &stdin;
+	task_stack->task_pcb.fd_array[0].flags |= FD_USED;
+	task_stack->task_pcb.fd_array[1].table_pointer = &stdout;
+	task_stack->task_pcb.fd_array[1].flags |= FD_USED;
 
 	__asm__("movl %[u_base], %[prev_uebp]\n\t"
 		"movl %[u_stack], %[prev_uesp]\n\t"

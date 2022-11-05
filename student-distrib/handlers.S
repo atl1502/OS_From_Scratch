@@ -1,7 +1,7 @@
 # Assembly linkage for the interupts
 .data
 
-# Handler functions 
+# Handler functions
 .globl handler_keyboard, handler_rtc, handler_interrupt
 
 # Syscall functions
@@ -9,7 +9,7 @@
 
 .globl sys_halt, sys_execute, sys_read, sys_write, sys_open, sys_close, sys_getargs, sys_vidmap, sys_set_handler, sys_sigreturn
 
-# 
+#
 .align 4
 jump_table:
 .long sys_halt, sys_execute, sys_read, sys_write, sys_open, sys_close, sys_getargs, sys_vidmap, sys_set_handler, sys_sigreturn
@@ -47,6 +47,9 @@ system_call:
 
 cmpl $10, %eax
 ja system_call_error
+
+# set IF = 1
+sti
 
 # Pop callee saved registers
 pushl %ebx
