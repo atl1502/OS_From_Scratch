@@ -9,20 +9,22 @@
 #include "x86_desc.h"
 #include "paging.h"
 
-// table ptrs for fds
-static fd_ops_t file_syscalls = {
+// jump table ptrs for file fd's
+static fd_opts_t file_syscalls = {
 	.read  = file_read,
 	.write = file_write,
 	.close = file_close
 };
 
-static fd_ops_t dir_syscalls = {
+// jump table ptrs for directory fd
+static fd_opts_t dir_syscalls = {
 	.read  = dir_read,
 	.write = dir_write,
 	.close = dir_close
 };
 
-static fd_ops_t rtc_syscalls = {
+// jump table ptrs for RTC fd
+static fd_opts_t rtc_syscalls = {
 	.read = rtc_read,
 	.write = rtc_write,
 	.close = rtc_close
@@ -77,6 +79,16 @@ int32_t sys_halt (uint8_t status) {
 		return status;
 }
 
+/*
+ * sys_execute
+ * DESCRIPTION: attempts to load and execute a new program, handing off the processor to the new program until it terminates
+ * INPUTS: command: a space-separated sequence of words
+ * The first word is the file name of the program to be executed.
+ * The rest of the command should be provided to the new program on request via the getargs system call.
+ * SIDE EFFECTS:
+ * RETURN VALUE: -1 if unexecutable, 256 if dies by exception,
+ * 0 to 255 if the program executes a halt system call, given by the program’s call to halt
+ */
 int32_t sys_execute (const uint8_t* command) {
 
 	// Magic string at start of ELF file
@@ -180,6 +192,13 @@ int32_t sys_execute (const uint8_t* command) {
 	return 0;
 }
 
+/*
+ * sys_read
+ * DESCRIPTION: reads data from the keyboard, a file, device (RTC), or directory.
+ * INPUTS: file descriptor to read from, buffer to fill, # of bytes to read
+ * SIDE EFFECTS: calls corresponding read function
+ * RETURN VALUE: the number of bytes read, 0 if RTC, at or beyond end of file
+ */
 int32_t sys_read (uint32_t fd, void* buf, int32_t nbytes) {
 	if (buf == NULL) {
 		return -1;
@@ -189,6 +208,13 @@ int32_t sys_read (uint32_t fd, void* buf, int32_t nbytes) {
 	return (curr_pcb->fd_array)[fd].table_pointer.read(fd, buf, nbytes);
 }
 
+/*
+ * sys_write
+ * DESCRIPTION: The write system call writes data to the terminal or to a device (RTC)
+ * INPUTS: file descriptor to write to, buffer to write to, # of bytes to write
+ * SIDE EFFECTS: calls corresponding write function (i.e. sets rtc  rate, terminal putc)
+ * RETURN VALUE: the number of bytes written, or -1 on failure.
+ */
 int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes) {
 	pcb_t* curr_pcb = get_pcb(pid);
 	// execute via function pointer table
@@ -197,13 +223,16 @@ int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes) {
 	return val;
 }
 
-// The call should find the directory entry corresponding to the named file,
-// allocate an unused file descriptor, and set up any data necessary to handle the given type of file
-// (directory, RTC device, or regular file).
-
-// If the named file does not exist or no descriptors are free, the call returns -1.
+/*
+ * sys_open
+ * DESCRIPTION: finds the directory entry corresponding to the named file, allocate an
+ * unused file descriptor, and set up any data necessary to handle the given type of file
+ * (directory, RTC device, or regular file).
+ * INPUTS: filename
+ * SIDE EFFECTS: fd is filled out, calls associated file open function
+ * RETURN VALUE: returns the open file descriptor index, -1 if named file does not exist or no descriptors are free
+ */
 int32_t sys_open (const uint8_t* filename) {
-
 	printf("Open Syscall: Filename: %s\n", filename);
 	return 0;
 
@@ -214,23 +243,25 @@ int32_t sys_open (const uint8_t* filename) {
 	int32_t open_ret_val = 0;
 	pcb_t* curr_pcb = get_pcb(pid);
 
+    // filename null check
 	if (filename == NULL)
 		return -1;
 
-	// find a free descriptor
+	// go through all FDs to find a free descriptor
 	for (i = 0; i < MAX_FILES; i++) {
 		fd_t* curr_fd = &(curr_pcb->fd_array[i]);
 
 		if ( ~((curr_fd->flags) & FD_USED) ) { // fd is available (sig bit = 0)
-			free = 1;
+			free = 1; // flag that we found an open FD, save fd index
 			fd = i;
-			curr_fd->file_position = 0;
+			curr_fd->file_position = 0; // file_position is always 0
 			curr_fd->flags |= FD_USED; // mark fd as unavailable (sig bit = 1)
 
 			// read dentry, if null return -1
 			if (read_dentry_by_name(filename, &dentry) == -1)
 				return -1;
 
+            // switch based on filetype; assign assign inode and table pointers
 			switch (dentry.filetype) {
 				// rtc
 				case 0:
@@ -238,7 +269,7 @@ int32_t sys_open (const uint8_t* filename) {
 					curr_fd->table_pointer = rtc_syscalls;
 					open_ret_val = rtc_open(filename);
 					break;
-				// dir
+				// directory
 				case 1:
 					curr_fd->inode_num = dentry.inode_num;
 					curr_fd->table_pointer = dir_syscalls;
@@ -250,7 +281,7 @@ int32_t sys_open (const uint8_t* filename) {
 					curr_fd->table_pointer = file_syscalls;
 					open_ret_val = file_open(filename);
 					break;
-				// file type not 0-2
+				// invalid file type not 0-2
 				default:
 			//set to unused
 			curr_fd->flags &= ~FD_USED;
@@ -263,27 +294,34 @@ int32_t sys_open (const uint8_t* filename) {
 	// no descriptors are free / open returned -1
 	if (free == 0 || open_ret_val == -1)
 		return -1;
-	// return the fd to user space
+	// return the fd index to user space
 	return fd;
 }
 
-// The close system call closes the specified file descriptor and makes it
-// available for return from later calls to open.
-// You should not allow the user to close the default descriptors (0 for input and 1 for output).
-
-// Trying to close an invalid descriptor should result in a return value of -1;
-// successful closes should return 0.
+/*
+ * sys_close
+ * DESCRIPTION: The close system call closes the specified file descriptor
+ * and makes it available for return from later calls to open.
+ * You should not allow the user to close the default descriptors (0 for input and 1 for output).
+ * INPUTS: file descriptor to be cloesd
+ * SIDE EFFECTS: none
+ * RETURN VALUE: 0 if successful, -1 if descriptor is invalid
+ */
 int32_t sys_close (uint32_t fd) {
-	pcb_t* curr_pcb = get_pcb(pid);
-	fd_t* curr_fd = &(curr_pcb->fd_array[fd]);
-	// check that file is present and not 1 or 0
-	if ( ~((curr_fd->flags) & FD_USED) || fd == 0 || fd == 1)
-		return -1;
-	// set present to 0
-	curr_fd->flags &= ~FD_USED;
-	return (curr_pcb->fd_array)[fd].table_pointer.close(fd);
-}
+    // get current FD and PCB with PID
+    pcb_t* curr_pcb = get_pcb(pid);
+    fd_t* curr_fd = &(curr_pcb->fd_array[fd]);
 
+    // check that file is present and not 1 or 0 (output or input should not be closed)
+    if ( ~((curr_fd->flags) & FD_USED) || fd == 0 || fd == 1)
+        return -1;
+
+    // set present to 0
+    curr_fd->flags &= ~FD_USED;
+
+    // call corresponding close function within jump table
+	return (curr_pcb->fd_array)[fd].table_pointer->close(fd);
+}
 
 int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
 	printf("getargs Syscall: buffer: %x nbytes: %d\n", buf, nbytes);
