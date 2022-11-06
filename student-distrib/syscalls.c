@@ -10,31 +10,31 @@
 #include "paging.h"
 
 // table ptrs for fds
-static fd_opts_t file_syscalls = {
+static fd_ops_t file_syscalls = {
 	.read  = file_read,
 	.write = file_write,
 	.close = file_close
 };
 
-static fd_opts_t dir_syscalls = {
+static fd_ops_t dir_syscalls = {
 	.read  = dir_read,
 	.write = dir_write,
 	.close = dir_close
 };
 
-static fd_opts_t rtc_syscalls = {
+static fd_ops_t rtc_syscalls = {
 	.read = rtc_read,
 	.write = rtc_write,
 	.close = rtc_close
 };
 
-static fd_opts_t stdin = {
+static fd_ops_t file_stdin = {
 	.read = terminal_read,
 	.write = terminal_bad_write,
 	.close = terminal_close
 };
 
-static fd_opts_t stdout = {
+static fd_ops_t file_stdout = {
 	.read = terminal_bad_read,
 	.write = terminal_write,
 	.close = terminal_close
@@ -93,7 +93,7 @@ int32_t sys_execute (const uint8_t* command) {
 	int i;
 
 	// PCB Address pointer
-	task_stack_t * task_stack = (task_stack_t*) (0x800000 - (0x2000 * (pid+1)));
+	task_stack_t * const task_stack = (task_stack_t*) (0x800000 - (0x2000 * (pid+1)));
 
 	// User address stack and base pointer
 	uint32_t user_esp = 0;
@@ -154,14 +154,16 @@ int32_t sys_execute (const uint8_t* command) {
     );
 
 	// file descriptor set up for 0 and 1
-	task_stack->task_pcb.fd_array[0].read = terminal_read;
-	task_stack->task_pcb.fd_array[0].write = terminal_bad_write;
-	task_stack->task_pcb.fd_array[0].close = terminal_close;
-	task_stack->task_pcb.fd_array[0].flags |= FD_USED;
-	task_stack->task_pcb.fd_array[1].read = terminal_bad_read;
-	task_stack->task_pcb.fd_array[1].write = terminal_write;
-	task_stack->task_pcb.fd_array[1].close = terminal_close;
-	task_stack->task_pcb.fd_array[1].flags |= FD_USED;
+	fd_t * file_array = task_stack->task_pcb.fd_array;
+	file_array->table_pointer = file_stdin;
+	file_array->flags |= FD_USED;
+	(file_array+1)->table_pointer = file_stdout;
+	(file_array+1)->flags |= FD_USED;
+
+	task_stack->task_pcb.parent_id = pid;
+	task_stack->task_pcb.pid = proc_pid;
+
+	pid = proc_pid;
 
 	__asm__(
 		"pushl %%ss\n\t"
@@ -184,13 +186,15 @@ int32_t sys_read (uint32_t fd, void* buf, int32_t nbytes) {
 	}
 	pcb_t* curr_pcb = get_pcb(pid);
 	// execute via function pointer table
-	return (curr_pcb->fd_array)[fd].read(fd, buf, nbytes);
+	return (curr_pcb->fd_array)[fd].table_pointer.read(fd, buf, nbytes);
 }
 
 int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes) {
 	pcb_t* curr_pcb = get_pcb(pid);
 	// execute via function pointer table
-	return (curr_pcb->fd_array)[fd].write(fd, buf, nbytes);
+	fd_t * curr_fd = curr_pcb->fd_array;
+	int val = curr_fd[fd].table_pointer.write(fd, buf, nbytes);
+	return val;
 }
 
 // The call should find the directory entry corresponding to the named file,
@@ -277,7 +281,7 @@ int32_t sys_close (uint32_t fd) {
 		return -1;
 	// set present to 0
 	curr_fd->flags &= ~FD_USED;
-	return (curr_pcb->fd_array)[fd].close(fd);
+	return (curr_pcb->fd_array)[fd].table_pointer.close(fd);
 }
 
 
