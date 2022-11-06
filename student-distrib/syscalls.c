@@ -30,18 +30,27 @@ static fd_ops_t rtc_syscalls = {
 	.close = rtc_close
 };
 
+// jump table ptrs for stdin fd
 static fd_ops_t file_stdin = {
 	.read = terminal_read,
 	.write = terminal_bad_write,
 	.close = terminal_close
 };
 
+// jump table ptrs for stdout fd
 static fd_ops_t file_stdout = {
 	.read = terminal_bad_read,
 	.write = terminal_write,
 	.close = terminal_close
 };
 
+/*
+ * sys_halt
+ * DESCRIPTION: terminates a process, returning the specified value to its parent process
+ * INPUTS: file descriptor to read from, buffer to fill, # of bytes to read
+ * SIDE EFFECTS: expands the 8-bit argument from BL into the 32-bit return value to parent exec
+ * RETURN VALUE: -1 on failure, otherwise termination status
+ */
 int32_t sys_halt (uint8_t status) {
 	// printf("HALTING WITH STATUS %d\n", status);
 	task_stack_t * curr_task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
@@ -82,7 +91,7 @@ int32_t sys_halt (uint8_t status) {
 
 /*
  * sys_execute
- * DESCRIPTION: attempts to load and execute a new program, handing off the processor to the new program until it terminates
+ * DESCRIPTION: attempts to load and execute a new program, hands the processor to the new program until it terminates
  * INPUTS: command: a space-separated sequence of words
  * The first word is the file name of the program to be executed.
  * The rest of the command should be provided to the new program on request via the getargs system call.
