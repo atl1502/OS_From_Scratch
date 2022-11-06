@@ -111,6 +111,9 @@ int32_t dir_read(uint32_t fd, void * buf, int32_t nbytes) {
 	read_dentry_by_index (curr_fd->file_position, &dentry);
 	// check if the file name is empty
 	nbytes = strlen(dentry.filename);
+	// check file size and ensure it cuts off at given length
+	if(nbytes > FILESYSTEM_NAME_MAX)
+		nbytes = FILESYSTEM_NAME_MAX;
 	// copy data into the buffer
 	memcpy(buf, dentry.filename, nbytes);
 	curr_fd->file_position++;

@@ -43,7 +43,7 @@ static fd_ops_t file_stdout = {
 };
 
 int32_t sys_halt (uint8_t status) {
-	printf("HALTING WITH STATUS %d\n", status);
+	// printf("HALTING WITH STATUS %d\n", status);
 	task_stack_t * curr_task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
 	pcb_t curr_pcb = curr_task_stack->task_pcb;
 
@@ -196,7 +196,7 @@ int32_t sys_execute (const uint8_t* command) {
  * RETURN VALUE: the number of bytes read, 0 if RTC, at or beyond end of file
  */
 int32_t sys_read (uint32_t fd, void* buf, int32_t nbytes) {
-	if (buf == NULL) {
+	if (buf == NULL || fd > MAX_FD) {
 		return -1;
 	}
 	pcb_t* curr_pcb = get_pcb(pid);
@@ -212,6 +212,9 @@ int32_t sys_read (uint32_t fd, void* buf, int32_t nbytes) {
  * RETURN VALUE: the number of bytes written, or -1 on failure.
  */
 int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes) {
+	if (buf == NULL || fd > MAX_FD) {
+		return -1;
+	}
 	pcb_t* curr_pcb = get_pcb(pid);
 	// execute via function pointer table
 	fd_t * curr_fd = curr_pcb->fd_array;
@@ -228,8 +231,7 @@ int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes) {
  * RETURN VALUE: returns the open file descriptor index, -1 if named file does not exist or no descriptors are free
  */
 int32_t sys_open (const uint8_t* filename) {
-	printf("Open Syscall: Filename: %s\n", filename);
-	return 0;
+	// printf("Open Syscall: Filename: %s\n", filename);
 
 	int free = 0;
 	int i;
@@ -246,7 +248,7 @@ int32_t sys_open (const uint8_t* filename) {
 	for (i = 0; i < MAX_FILES; i++) {
 		fd_t* curr_fd = &(curr_pcb->fd_array[i]);
 
-		if ( ~((curr_fd->flags) & FD_USED) ) { // fd is available (sig bit = 0)
+		if (((curr_fd->flags) & FD_USED) != FD_USED) { // fd is available (sig bit = 0)
 			free = 1; // flag that we found an open FD, save fd index
 			fd = i;
 			curr_fd->file_position = 0; // file_position is always 0
@@ -303,6 +305,8 @@ int32_t sys_open (const uint8_t* filename) {
  * RETURN VALUE: 0 if successful, -1 if descriptor is invalid
  */
 int32_t sys_close (uint32_t fd) {
+	if(fd > MAX_FD)
+		return -1;
     // get current FD and PCB with PID
     pcb_t* curr_pcb = get_pcb(pid);
     fd_t* curr_fd = &(curr_pcb->fd_array[fd]);

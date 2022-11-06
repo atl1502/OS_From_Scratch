@@ -1,4 +1,3 @@
 target remote 10.0.2.2:1234
 add-symbol-file ../syscalls/shell.exe 0x08048094
-b sys_execute
-b sys_halt
+b sys_read
