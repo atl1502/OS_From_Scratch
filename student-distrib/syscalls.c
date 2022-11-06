@@ -47,36 +47,34 @@ int32_t sys_halt (uint8_t status) {
 	task_stack_t * curr_task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
 	pcb_t curr_pcb = curr_task_stack->task_pcb;
 
-	task_stack_t * parent_task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (curr_pcb.parent_id+1)));
-	pcb_t parent_pcb = parent_task_stack->task_pcb;
-
 	if (curr_pcb.pid != pid) {
 		printf("YOU SHOULD NOT BE HERE !!! PID of HALT != PID GLOBAL\n");
 		return -1;
 	}
 
-	// Restore Parent Data (esp0)
-	__asm__("movl %[saved_kesp], %[kesp]\n\t"
-		"movl %[saved_kebp], %%ebp\n\t"
-		: [kesp] "=g" (tss.esp0)
-		: [saved_kesp] "g" (parent_pcb.esp), [saved_kebp] "g" (curr_pcb.ebp)
-		);
-
 	// Restore Parent Paging
-	context_switch_paging(curr_task_stack->task_pcb.parent_id);
-	pid--;
+	context_switch_paging(curr_pcb.parent_id);
+
+	// Restore pid
+	pid = curr_pcb.parent_id;
+
 	// Close all files (Nothing happens yay!)
 
-	// Return to where execute was called
-	__asm__(
-		"movl %[halt_stat], %%eax\n\t"
-		"leave\n\t"
-		"ret\n\t"
-		:
-		: [halt_stat] "g" (status)
-		);
+	// Restore Parent Data (esp0) and return to where execute was called
+	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (pid));
+	uint32_t local_status = status;
+	asm volatile(
+			"movl %0, %%eax;"
+			"movl %1, %%esp;"
+			"movl %2, %%ebp;"
+			"leave;"
+			"ret;"
+			:
+			: "r" (local_status), "r" ((curr_pcb.esp)), "r" ((curr_pcb.ebp))
+			: "memory", "cc"
+	);
 
-		return status;
+	return status;
 }
 
 /*
@@ -152,8 +150,6 @@ int32_t sys_execute (const uint8_t* command) {
 	// PCB Address pointer
 	task_stack_t * const task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (proc_pid+1)));
 
-	int stack_addr = K_PAGE_ADDR - (EIGHT_KB * (proc_pid));
-
 	// file descriptor set up for 0 and 1
 	fd_t * file_array = task_stack->task_pcb.fd_array;
 	file_array->table_pointer = file_stdin;
@@ -166,14 +162,14 @@ int32_t sys_execute (const uint8_t* command) {
 
 	pid = proc_pid;
 
+	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (proc_pid));
 	// TSS Setup for context switch with PCB init
 	asm volatile ("             \n\
 			movl %%ebp, %0      \n\
-	 		movl %3, %1         \n\
-			movl %4, %2         \n\
+	 		movl %%esp, %1      \n\
             "
-            : "=r"(task_stack->task_pcb.ebp), "=r"(task_stack->task_pcb.esp), "=r"(tss.esp0)
-            : "r"(tss.esp0), "r"(stack_addr)
+            : "=r"(task_stack->task_pcb.ebp), "=r"(task_stack->task_pcb.esp)
+            :
             : "memory", "cc"
     );
 
@@ -222,7 +218,6 @@ int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes) {
 	int val = curr_fd[fd].table_pointer.write(fd, buf, nbytes);
 	return val;
 }
-
 /*
  * sys_open
  * DESCRIPTION: finds the directory entry corresponding to the named file, allocate an

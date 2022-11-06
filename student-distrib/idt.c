@@ -68,7 +68,7 @@ void handler_breakpoint() {
 /*
  * handler_overflow
  * DESCRIPTION: Indicates that an overflow trap occurred when an INTO instruction was executed. The INTO
- * instruction checks the state of the OF flag in the EFLAGS register. If the OF flag is set, an overflow
+ * instruction checks the state of the OF flag in the EFLAGS register. If t`e OF flag is set, an overflow
  * trap is generated.
  * INPUTS: no inputs
  * SIDE EFFECTS: clears console, prints exception message
