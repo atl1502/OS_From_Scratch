@@ -178,10 +178,10 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry) {
 		}
 	}
 	if (!found) {
-		printf("Cannot find file by that name!\n");
+		// printf("Cannot find file by that name!\n");
 		return -1;
 	}
-	printf("Index is: %d\n", index);
+	// printf("Index is: %d\n", index);
 	read_dentry_by_index(index, dentry);
 	return 0;
 }
@@ -227,17 +227,17 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry) {
 int32_t read_data (uint32_t inode, uint32_t offset, void* buf, uint32_t length) {
 
 	if (!buf) {
-		printf("Buffer NULL\n");
+		// printf("Buffer NULL\n");
 		return -1;
 	}
 	if (inode_count < inode) {
-		printf("Trying to read illegal inode\n");
+		// printf("Trying to read illegal inode\n");
 		return -1;
 	}
 
 	inode_t * inode_cur = inode + inode_start;
 	if (offset + length > inode_cur->length) {
-		printf("Trying to read past file\n");
+		// printf("Trying to read past file\n");
 		return -1;
 	}
 

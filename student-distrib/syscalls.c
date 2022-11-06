@@ -43,11 +43,11 @@ static fd_ops_t file_stdout = {
 };
 
 int32_t sys_halt (uint8_t status) {
-	printf("HALTING WITH STATUS %d", status);
-	task_stack_t * curr_task_stack = (task_stack_t*) (0x800000 - (0x2000 * pid));
+	printf("HALTING WITH STATUS %d\n", status);
+	task_stack_t * curr_task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
 	pcb_t curr_pcb = curr_task_stack->task_pcb;
 
-	task_stack_t * parent_task_stack = (task_stack_t*) (0x800000 - (0x2000 * curr_pcb.parent_id));
+	task_stack_t * parent_task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (curr_pcb.parent_id+1)));
 	pcb_t parent_pcb = parent_task_stack->task_pcb;
 
 	if (curr_pcb.pid != pid) {
@@ -64,7 +64,7 @@ int32_t sys_halt (uint8_t status) {
 
 	// Restore Parent Paging
 	context_switch_paging(curr_task_stack->task_pcb.parent_id);
-
+	pid--;
 	// Close all files (Nothing happens yay!)
 
 	// Return to where execute was called
@@ -104,9 +104,6 @@ int32_t sys_execute (const uint8_t* command) {
 	// Loop counter
 	int i;
 
-	// PCB Address pointer
-	task_stack_t * const task_stack = (task_stack_t*) (0x800000 - (0x2000 * (pid+1)));
-
 	// User address stack and base pointer
 	uint32_t user_esp = 0;
 
@@ -114,23 +111,23 @@ int32_t sys_execute (const uint8_t* command) {
 	// Get executable file header from filesys
 	read_dentry_by_name (command, &curr_dentry);
 	if (curr_dentry.filetype != 2) {
-		printf("Filetype incorrect!!!!\n");
+		// printf("Filetype incorrect!!!!\n");
 		return -1;
 	}
 	read_data (curr_dentry.inode_num, 0, &curr_elf_header, sizeof(elf_header_t));
 
 	// Verify executable string
 	if (strncmp((const char*) curr_elf_header.e_ident, magic_string, 4)) {
-		printf("MAGIC STRING WRONG!!!!\n");
+		// printf("MAGIC STRING WRONG!!!!\n");
 		return -1;
 	}
-	printf("LOADING EXEC\n");
+	// printf("LOADING EXEC\n");
 	// Continue, the file is correct
 
 	// Allocate new PID and new page directory
 	int proc_pid = alloc_new_process();
 	if (proc_pid == -1) {
-		printf("PID COULD NOT BE ALLOCATED");
+		// printf("PID COULD NOT BE ALLOCATED");
 		return -1;
 	}
 	context_switch_paging(proc_pid);
@@ -142,7 +139,7 @@ int32_t sys_execute (const uint8_t* command) {
 		read_data(curr_dentry.inode_num, curr_elf_header.e_phoff + (curr_elf_header.e_phentsize * i),
 			&curr_program_header, sizeof(program_header_t));
 		if (curr_program_header.p_type != 1) {
-			printf("SEGMENT NOT LOADABLE!!!\n");
+			// printf("SEGMENT NOT LOADABLE!!!\n");
 			continue;
 		}
 		read_data(curr_dentry.inode_num, curr_program_header.p_offset, (void*)curr_program_header.p_vaddr, curr_program_header.p_memsz);
@@ -152,18 +149,10 @@ int32_t sys_execute (const uint8_t* command) {
 		}
 	}
 
+	// PCB Address pointer
+	task_stack_t * const task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (proc_pid+1)));
 
-	int stack_addr = 0x800000 - (0x2000 * (pid));
-	// TSS Setup for context switch with PCB init
-	asm volatile ("             \n\
-			movl %%ebp, %0      \n\
-	 		movl %3, %1         \n\
-			movl %4, %2         \n\
-            "
-            : "=r"(task_stack->task_pcb.ebp), "=r"(task_stack->task_pcb.esp), "=r"(tss.esp0)
-            : "r"(tss.esp0), "r"(stack_addr)
-            : "memory", "cc"
-    );
+	int stack_addr = K_PAGE_ADDR - (EIGHT_KB * (proc_pid));
 
 	// file descriptor set up for 0 and 1
 	fd_t * file_array = task_stack->task_pcb.fd_array;
@@ -176,6 +165,17 @@ int32_t sys_execute (const uint8_t* command) {
 	task_stack->task_pcb.pid = proc_pid;
 
 	pid = proc_pid;
+
+	// TSS Setup for context switch with PCB init
+	asm volatile ("             \n\
+			movl %%ebp, %0      \n\
+	 		movl %3, %1         \n\
+			movl %4, %2         \n\
+            "
+            : "=r"(task_stack->task_pcb.ebp), "=r"(task_stack->task_pcb.esp), "=r"(tss.esp0)
+            : "r"(tss.esp0), "r"(stack_addr)
+            : "memory", "cc"
+    );
 
 	__asm__(
 		"pushl %%ss\n\t"

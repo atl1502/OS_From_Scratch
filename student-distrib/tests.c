@@ -518,9 +518,9 @@ void launch_tests(){
 	// CP 2 Tests:
 	// TEST_OUTPUT("rtc_test", rtc_test());
 	// CP 3 Tests:
-	TEST_OUTPUT("systemcall test", syscall_execute());
+	// TEST_OUTPUT("systemcall test", syscall_execute());
 	// TEST_OUTPUT("virtual_to_physical_test", virtual_to_physical_test());
 	// TEST_OUTPUT("page_alloc_context_switch_test", page_alloc_context_switch_test());
 	// hold at end
-	TEST_OUTPUT("terminal_run_test", terminal_run_test());
+	// TEST_OUTPUT("terminal_run_test", terminal_run_test());
 }
