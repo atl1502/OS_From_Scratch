@@ -24,8 +24,8 @@ typedef struct pcb {
 pcb_t* get_pcb(int pid);
 
 typedef struct task_stack {
-	int8_t kernel_stack[EIGHT_KB - sizeof(pcb_t)];
 	pcb_t task_pcb;
+	int8_t kernel_stack[EIGHT_KB - sizeof(pcb_t)];
 } task_stack_t;
 
 #endif
