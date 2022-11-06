@@ -3,6 +3,7 @@
 #include "handlers.h"
 #include "i8259.h"
 #include "idt.h"
+#include "syscalls.h"
 #include "drivers/keyboard.h"
 #include "drivers/rtc.h"
 
@@ -19,7 +20,7 @@
 void handler_divide() {
 	clear();
 	printf("divide by 0 error exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -32,7 +33,7 @@ void handler_divide() {
 void handler_debug() {
 	clear();
 	printf("debug exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -47,7 +48,7 @@ void handler_debug() {
 void handler_nmi() {
 	clear();
 	printf("NMI exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -62,7 +63,7 @@ void handler_nmi() {
 void handler_breakpoint() {
 	clear();
 	printf("breakpoint exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -77,7 +78,7 @@ void handler_breakpoint() {
 void handler_overflow() {
 	clear();
 	printf("overflow exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -92,7 +93,7 @@ void handler_overflow() {
 void handler_bounds() {
 	clear();
 	printf("BOUND range exceeded exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -105,7 +106,7 @@ void handler_bounds() {
 void handler_inv_opcode() {
 	clear();
 	printf("invalid opcode exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -118,7 +119,7 @@ void handler_inv_opcode() {
 void handler_dev_na() {
 	clear();
 	printf("device not available exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -132,7 +133,7 @@ void handler_dev_na() {
 void handler_doub_fault() {
 	clear();
 	printf("double fault exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -147,7 +148,7 @@ void handler_doub_fault() {
 void handler_cso() {
 	clear();
 	printf("coproc segment overrun exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -160,7 +161,7 @@ void handler_cso() {
 void handler_inv_tss() {
 	clear();
 	printf("invalid TSS exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -173,7 +174,7 @@ void handler_inv_tss() {
 void handler_seg_np() {
 	clear();
 	printf("segment not present exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -187,7 +188,7 @@ void handler_seg_np() {
 void handler_stk_fault() {
 	clear();
 	printf("stack fault exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -201,7 +202,7 @@ void handler_stk_fault() {
 void handler_gen_prot() {
 	clear();
 	printf("general protection fault exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -215,7 +216,7 @@ void handler_gen_prot() {
 void handler_page_fault() {
 	clear();
 	printf("page fault exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -228,7 +229,7 @@ void handler_page_fault() {
 void handler_assertion_failure() {
 	clear();
 	printf("assertion failure");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -241,7 +242,7 @@ void handler_assertion_failure() {
 void handler_fpu_error() {
 	clear();
 	printf("x87 FPU floating point error exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -255,7 +256,7 @@ void handler_fpu_error() {
 void handler_align_chk() {
 	clear();
 	printf("alignment check exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -269,7 +270,7 @@ void handler_align_chk() {
 void handler_machine_chk() {
 	clear();
 	printf("machine check exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*
@@ -284,13 +285,13 @@ void handler_machine_chk() {
 void handler_simd_fp() {
 	clear();
 	printf("SIMD floating point exception");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 void handler_sys_call() {
 	clear();
 	printf("System Call");
-	while(1) {}
+	sys_halt (EXCEPTION_ERROR);
 }
 
 /*

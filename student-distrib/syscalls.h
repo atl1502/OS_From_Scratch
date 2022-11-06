@@ -15,6 +15,7 @@
 #define SYS_SET_HANDLER 9
 #define SYS_SIGRETURN 10
 #define MAX_FD 7
+#define EXCEPTION_ERROR 69
 #define FD_USED 0x80000000
 
 typedef struct __attribute__((packed)) elf_header {

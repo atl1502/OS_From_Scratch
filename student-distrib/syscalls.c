@@ -54,6 +54,7 @@ int32_t sys_halt (uint8_t status) {
 
 	// Restore Parent Paging
 	context_switch_paging(curr_pcb.parent_id);
+	dealloc_process(curr_pcb.pid);
 
 	// Restore pid
 	pid = curr_pcb.parent_id;
@@ -63,6 +64,8 @@ int32_t sys_halt (uint8_t status) {
 	// Restore Parent Data (esp0) and return to where execute was called
 	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (pid));
 	uint32_t local_status = status;
+	if(status == EXCEPTION_ERROR)
+		local_status = 256;
 	asm volatile(
 			"movl %0, %%eax;"
 			"movl %1, %%esp;"
