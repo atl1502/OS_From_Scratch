@@ -10,21 +10,21 @@
 #include "paging.h"
 
 // jump table ptrs for file fd's
-static fd_opts_t file_syscalls = {
+static fd_ops_t file_syscalls = {
 	.read  = file_read,
 	.write = file_write,
 	.close = file_close
 };
 
 // jump table ptrs for directory fd
-static fd_opts_t dir_syscalls = {
+static fd_ops_t dir_syscalls = {
 	.read  = dir_read,
 	.write = dir_write,
 	.close = dir_close
 };
 
 // jump table ptrs for RTC fd
-static fd_opts_t rtc_syscalls = {
+static fd_ops_t rtc_syscalls = {
 	.read = rtc_read,
 	.write = rtc_write,
 	.close = rtc_close
@@ -320,7 +320,7 @@ int32_t sys_close (uint32_t fd) {
     curr_fd->flags &= ~FD_USED;
 
     // call corresponding close function within jump table
-	return (curr_pcb->fd_array)[fd].table_pointer->close(fd);
+	return (curr_pcb->fd_array)[fd].table_pointer.close(fd);
 }
 
 int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
