@@ -70,6 +70,9 @@ int32_t sys_halt (uint8_t status) {
 
 	// Close all files (Nothing happens yay!)
 
+	// Purge PCB's FD
+	memset(curr_pcb.fd_array, 0, sizeof(curr_pcb.fd_array));
+
 	// Restore Parent Data (esp0) and return to where execute was called
 	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (pid));
 	uint32_t local_status = status;
@@ -176,14 +179,14 @@ int32_t sys_execute (const uint8_t* command) {
 
 	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (proc_pid));
 	// TSS Setup for context switch with PCB init
-	asm volatile ("             \n\
+	asm volatile ("\n\
 			movl %%ebp, %0      \n\
-	 		movl %%esp, %1      \n\
-            "
-            : "=r"(task_stack->task_pcb.ebp), "=r"(task_stack->task_pcb.esp)
-            :
-            : "memory", "cc"
-    );
+			movl %%esp, %1      \n\
+			"
+			: "=r"(task_stack->task_pcb.ebp), "=r"(task_stack->task_pcb.esp)
+			:
+			: "memory", "cc"
+	);
 
 	__asm__(
 		"pushl %%ss\n\t"
@@ -205,13 +208,20 @@ int32_t sys_execute (const uint8_t* command) {
  * DESCRIPTION: reads data from the keyboard, a file, device (RTC), or directory.
  * INPUTS: file descriptor to read from, buffer to fill, # of bytes to read
  * SIDE EFFECTS: calls corresponding read function
- * RETURN VALUE: the number of bytes read, 0 if RTC, at or beyond end of file
+ * RETURN VALUE: the number of bytes read, 0 if RTC, at or beyond end of file or -1 if not legal
  */
 int32_t sys_read (uint32_t fd, void* buf, int32_t nbytes) {
 	if (buf == NULL || fd > MAX_FD) {
 		return -1;
 	}
+
 	pcb_t* curr_pcb = get_pcb(pid);
+
+	/* Make sure fd is present in array */
+	if (!((curr_pcb->fd_array[fd]).flags & FD_USED)) {
+		return -1;
+	}
+
 	// execute via function pointer table
 	return (curr_pcb->fd_array)[fd].table_pointer.read(fd, buf, nbytes);
 }
@@ -252,8 +262,8 @@ int32_t sys_open (const uint8_t* filename) {
 	int32_t open_ret_val = 0;
 	pcb_t* curr_pcb = get_pcb(pid);
 
-    // filename null check
-	if (filename == NULL)
+	// filename null check
+	if (filename == NULL || *filename == NULL)
 		return -1;
 
 	// go through all FDs to find a free descriptor
@@ -270,7 +280,7 @@ int32_t sys_open (const uint8_t* filename) {
 			if (read_dentry_by_name(filename, &dentry) == -1)
 				return -1;
 
-            // switch based on filetype; assign assign inode and table pointers
+			// switch based on filetype; assign assign inode and table pointers
 			switch (dentry.filetype) {
 				// rtc
 				case 0:
@@ -319,18 +329,18 @@ int32_t sys_open (const uint8_t* filename) {
 int32_t sys_close (uint32_t fd) {
 	if(fd > MAX_FD)
 		return -1;
-    // get current FD and PCB with PID
-    pcb_t* curr_pcb = get_pcb(pid);
-    fd_t* curr_fd = &(curr_pcb->fd_array[fd]);
+	// get current FD and PCB with PID
+	pcb_t* curr_pcb = get_pcb(pid);
+	fd_t* curr_fd = &(curr_pcb->fd_array[fd]);
 
-    // check that file is present and not 1 or 0 (output or input should not be closed)
-    if ( ~((curr_fd->flags) & FD_USED) || fd == 0 || fd == 1)
-        return -1;
+	// check that file is present and not 1 or 0 (output or input should not be closed)
+	if ( !((curr_fd->flags) & FD_USED) || fd == 0 || fd == 1)
+		return -1;
 
-    // set present to 0
-    curr_fd->flags &= ~FD_USED;
+	// set present to 0
+	curr_fd->flags &= ~FD_USED;
 
-    // call corresponding close function within jump table
+	// call corresponding close function within jump table
 	return (curr_pcb->fd_array)[fd].table_pointer.close(fd);
 }
 
