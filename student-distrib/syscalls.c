@@ -77,7 +77,7 @@ int32_t sys_halt (uint8_t status) {
 	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (pid));
 	uint32_t local_status = status;
 	if(status == EXCEPTION_ERROR)
-		local_status = 256;
+		local_status = SYS_ERROR_STAT;
 	asm volatile(
 			"movl %0, %%eax;"
 			"movl %1, %%esp;"

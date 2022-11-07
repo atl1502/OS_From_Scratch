@@ -14,6 +14,7 @@
 #define SYS_VIDMAP 8
 #define SYS_SET_HANDLER 9
 #define SYS_SIGRETURN 10
+#define SYS_ERROR_STAT 256
 
 #define MAX_FD 7
 #define EXCEPTION_ERROR 69

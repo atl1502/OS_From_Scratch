@@ -8,6 +8,9 @@
 
 #include "types.h"
 
+/* Page directory entry number*/
+#define PD_EN       1024
+
 /* Segment selector values */
 #define KERNEL_CS   0x0010
 #define KERNEL_DS   0x0018
@@ -126,14 +129,14 @@ extern seg_desc_t tss_desc_ptr;
 extern tss_t tss;
 
 /* External page directory and table */
-extern uint32_t page_directory[1024];
-extern uint32_t pd_p0[1024];
-extern uint32_t pd_p1[1024];
-extern uint32_t pd_p2[1024];
-extern uint32_t pd_p3[1024];
-extern uint32_t pd_p4[1024];
-extern uint32_t pd_p5[1024];
-extern uint32_t page_table[1024];
+extern uint32_t page_directory[PD_EN];
+extern uint32_t pd_p0[PD_EN];
+extern uint32_t pd_p1[PD_EN];
+extern uint32_t pd_p2[PD_EN];
+extern uint32_t pd_p3[PD_EN];
+extern uint32_t pd_p4[PD_EN];
+extern uint32_t pd_p5[PD_EN];
+extern uint32_t page_table[PD_EN];
 
 /* Sets runtime-settable parameters in the GDT entry for the LDT */
 #define SET_LDT_PARAMS(str, addr, lim)                          \
