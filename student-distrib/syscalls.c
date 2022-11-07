@@ -54,24 +54,24 @@ static fd_ops_t file_stdout = {
 int32_t sys_halt (uint8_t status) {
 	// printf("HALTING WITH STATUS %d\n", status);
 	task_stack_t * curr_task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
-	pcb_t curr_pcb = curr_task_stack->task_pcb;
+	pcb_t* curr_pcb = &(curr_task_stack->task_pcb);
 
-	if (curr_pcb.pid != pid) {
+	if (curr_pcb->pid != pid) {
 		printf("YOU SHOULD NOT BE HERE !!! PID of HALT != PID GLOBAL\n");
 		return -1;
 	}
 
 	// Restore Parent Paging
-	context_switch_paging(curr_pcb.parent_id);
-	dealloc_process(curr_pcb.pid);
+	context_switch_paging(curr_pcb->parent_id);
+	dealloc_process(curr_pcb->pid);
 
 	// Restore pid
-	pid = curr_pcb.parent_id;
+	pid = curr_pcb->parent_id;
 
 	// Close all files (Nothing happens yay!)
 
 	// Purge PCB's FD
-	memset(curr_pcb.fd_array, 0, sizeof(curr_pcb.fd_array));
+	memset(curr_pcb->fd_array, 0, sizeof(curr_pcb->fd_array));
 
 	// Restore Parent Data (esp0) and return to where execute was called
 	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (pid));
@@ -85,7 +85,7 @@ int32_t sys_halt (uint8_t status) {
 			"leave;"
 			"ret;"
 			:
-			: "r" (local_status), "r" ((curr_pcb.esp)), "r" ((curr_pcb.ebp))
+			: "r" (local_status), "r" ((curr_pcb->esp)), "r" ((curr_pcb->ebp))
 			: "memory", "cc"
 	);
 
@@ -302,8 +302,8 @@ int32_t sys_open (const uint8_t* filename) {
 					break;
 				// invalid file type not 0-2
 				default:
-			//set to unused
-			curr_fd->flags &= ~FD_USED;
+				//set to unused
+				curr_fd->flags &= ~FD_USED;
 				return -1;
 			}
 			break;
