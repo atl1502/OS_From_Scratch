@@ -145,7 +145,7 @@ int32_t sys_execute (const uint8_t* command) {
 	}
 	context_switch_paging(proc_pid);
 	// MAGIC
-	memset((void*) 0x08048000, 0, 0x400000-0x48000);
+	memset((void*) PROGRAM_VIRT_START, 0, PROGRAM_SIZE);
 
 	// Load ELF segments into memory
 	for (i = 0; i < curr_elf_header.e_phnum-1; i++) {
@@ -266,6 +266,10 @@ int32_t sys_open (const uint8_t* filename) {
 	if (filename == NULL || *filename == NULL)
 		return -1;
 
+	// read dentry, if null return -1
+	if (read_dentry_by_name(filename, &dentry) == -1)
+		return -1;
+
 	// go through all FDs to find a free descriptor
 	for (i = 0; i < MAX_FILES; i++) {
 		fd_t* curr_fd = &(curr_pcb->fd_array[i]);
@@ -275,10 +279,6 @@ int32_t sys_open (const uint8_t* filename) {
 			fd = i;
 			curr_fd->file_position = 0; // file_position is always 0
 			curr_fd->flags |= FD_USED; // mark fd as unavailable (sig bit = 1)
-
-			// read dentry, if null return -1
-			if (read_dentry_by_name(filename, &dentry) == -1)
-				return -1;
 
 			// switch based on filetype; assign assign inode and table pointers
 			switch (dentry.filetype) {
