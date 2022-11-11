@@ -44,6 +44,12 @@ static fd_ops_t file_stdout = {
 	.close = terminal_close
 };
 
+// command without args
+static uint8_t cmdstr[100];
+
+// args without command
+static uint8_t argstr[100];
+
 /*
  * sys_halt
  * DESCRIPTION: terminates a process, returning the specified value to its parent process
@@ -104,6 +110,24 @@ int32_t sys_halt (uint8_t status) {
  */
 int32_t sys_execute (const uint8_t* command) {
 
+	// Get command without args
+	uint8_t* cmd = cmdstr;
+	int i = 0;
+	int j = 1;
+	while ((command[i] != '\0') && (command[i] != SPACE)) {
+		cmd[i] = command[i];
+		i++;
+	}
+	cmd[i] = '\0';
+	
+	// Get args without command
+	uint8_t* arg = argstr;
+	while ((command[i+j] != '\0') ) {
+		arg[j-1] = command[i+j];
+		j++;
+	}
+	arg[j-1] = '\0';
+
 	// Magic string at start of ELF file
 	char magic_string[4] = { 0x7F, 'E', 'L', 'F' };
 
@@ -115,14 +139,14 @@ int32_t sys_execute (const uint8_t* command) {
 	dentry_t curr_dentry = {{ 0 }};
 
 	// Loop counter
-	int i;
+	i = 0;
 
 	// User address stack and base pointer
 	uint32_t user_esp = 0;
 
 
 	// Get executable file header from filesys
-	read_dentry_by_name (command, &curr_dentry);
+	read_dentry_by_name (cmd, &curr_dentry);
 	if (curr_dentry.filetype != 2) {
 		// printf("Filetype incorrect!!!!\n");
 		return -1;
