@@ -127,6 +127,10 @@ int32_t sys_execute (const uint8_t* command) {
 		j++;
 	}
 	arg[j-1] = '\0';
+	while (j < 100) {
+		arg[j] = '\0';
+		j++;
+	}
 
 	// Magic string at start of ELF file
 	char magic_string[4] = { 0x7F, 'E', 'L', 'F' };
@@ -369,9 +373,28 @@ int32_t sys_close (uint32_t fd) {
 }
 
 int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
-	printf("getargs Syscall: buffer: %x nbytes: %d\n", buf, nbytes);
+	// printf("getargs Syscall: buffer: %x nbytes: %d\n", buf, nbytes);
 	// TODO: implement in 3.4
-	return -1;
+	fd_t fd;
+	dentry_t dentry;
+
+	// no args
+	if (argstr[0] == -1) {
+		return -1;
+	}
+	// filename null check
+	if (argstr == NULL || buf == NULL)
+		return -1;
+
+	// read dentry, if null return -1
+	if (read_dentry_by_name(argstr, &dentry) == -1)
+		return -1;
+
+	// read data, if too long return -1
+	if (read_data(dentry.inode_num, 0, buf, nbytes) == -1)
+		return -1;
+	
+	return 0;
 }
 
 int32_t sys_vidmap (uint8_t** screen_start) {
