@@ -44,11 +44,8 @@ static fd_ops_t file_stdout = {
 	.close = terminal_close
 };
 
-// command without args
-static uint8_t cmdstr[100];
-
-// args without command
-static uint8_t argstr[100];
+uint8_t cmd[FILESYSTEM_NAME_MAX];
+uint8_t arg[FILESYSTEM_NAME_MAX];
 
 /*
  * sys_halt
@@ -110,10 +107,16 @@ int32_t sys_halt (uint8_t status) {
  */
 int32_t sys_execute (const uint8_t* command) {
 
+	if (command == NULL) {
+		return -1;
+	}
+
 	// Get command without args
-	uint8_t* cmd = cmdstr;
 	int i = 0;
 	int j = 1;
+
+	cmd[i] = "\0";
+
 	while ((command[i] != '\0') && (command[i] != SPACE)) {
 		cmd[i] = command[i];
 		i++;
@@ -121,14 +124,8 @@ int32_t sys_execute (const uint8_t* command) {
 	cmd[i] = '\0';
 	
 	// Get args without command
-	uint8_t* arg = argstr;
-	while ((command[i+j] != '\0') ) {
+	while (((i+j) < strlen((int8_t*)command)) && (command[i+j] != '\0')) {
 		arg[j-1] = command[i+j];
-		j++;
-	}
-	arg[j-1] = '\0';
-	while (j < 100) {
-		arg[j] = '\0';
 		j++;
 	}
 
@@ -202,6 +199,7 @@ int32_t sys_execute (const uint8_t* command) {
 
 	task_stack->task_pcb.parent_id = pid;
 	task_stack->task_pcb.pid = proc_pid;
+	strncpy(task_stack->task_pcb.arg, arg, FILESYSTEM_NAME_MAX);
 
 	pid = proc_pid;
 
@@ -375,30 +373,25 @@ int32_t sys_close (uint32_t fd) {
 int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
 	// printf("getargs Syscall: buffer: %x nbytes: %d\n", buf, nbytes);
 	// TODO: implement in 3.4
-	fd_t fd;
-	dentry_t dentry;
+
+	pcb_t* curr_pcb = get_pcb(pid);
+
+	// filename null check
+	if (curr_pcb->arg == NULL || buf == NULL)
+		return -1;
 
 	// no args
-	if (argstr[0] == -1) {
+	if (curr_pcb->arg[0] == '\0') {
 		return -1;
 	}
-	// filename null check
-	if (argstr == NULL || buf == NULL)
-		return -1;
 
-	// read dentry, if null return -1
-	if (read_dentry_by_name(argstr, &dentry) == -1)
-		return -1;
+	strncpy((int8_t*)buf, curr_pcb->arg, nbytes);
 
-	// read data, if too long return -1
-	if (read_data(dentry.inode_num, 0, buf, nbytes) == -1)
-		return -1;
-	
 	return 0;
 }
 
 int32_t sys_vidmap (uint8_t** screen_start) {
-	printf("vidmap Syscall: screen_start %x\n", screen_start);
+	// printf("vidmap Syscall: screen_start %x\n", screen_start);
 	// TODO: implement in 3.4
 	return -1;
 }
