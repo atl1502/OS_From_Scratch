@@ -16,7 +16,7 @@ void paging_init(){
      * Fill in PDE for 0-4MB Page table
      * For this paging Entry:
      * 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
-     *     000      1     0     0          0              0          0      0       1    1
+     *     000      1     0            0          0              0          0      0       1    1
      * which is 0x103 for last 12 bits
      * First 24 bits is page table address
     */
@@ -26,7 +26,7 @@ void paging_init(){
      * Fill in PDE for 4-8MB Kernel Big Page
      * For this paging Entry:
      * 21-13 '0' 12 PAT 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
-     * 000000000   0        000      1     1     0          0              0          0      0       1    1
+     * 000000000   0        000      1     1            0          0              0          0      0       1    1
      * Which is 0x183 for the last 12 bits
      * First 10 bits is page address, which is 1, since it is the second 4MB block (0 indexed)
     */
@@ -36,7 +36,7 @@ void paging_init(){
      * Fill in entry for address 0xB8, which is the page index for video mem
      * For this paging entry
      * 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
-     *     000      1     0     0          0              0          0      0       1    1
+     *     000      1     0            0          0              0          0      0       1    1
      * which is 0x103 for the last 12 bits
      * B8 for next eight bits to represent VGA 4KB aligned address
      */

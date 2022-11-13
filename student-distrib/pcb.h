@@ -17,8 +17,9 @@ typedef struct pcb {
 	fd_t fd_array[MAX_FILES];
 	uint32_t esp;
 	uint32_t ebp;
-
+	int8_t arg[FILESYSTEM_NAME_MAX];
 	int active; // 1 if active/started
+	int vid_flag;
 } pcb_t;
 
 pcb_t* get_pcb(int pid);

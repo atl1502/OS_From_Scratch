@@ -21,6 +21,14 @@
 #define FD_USED 0x80000000
 #define PROGRAM_VIRT_START 0x08048000
 #define PROGRAM_SIZE 0x400000-0x48000
+#define SPACE 32
+
+#define FOUR_KB 0x1000
+#define FOUR_MIB 0x400000
+#define EIGHT_MIB 0x800000
+#define BASE_VIRT_ADDR 0x08000000
+#define BUF_LEN 128
+#define VID_PAGE_START 0x9000000
 
 typedef struct __attribute__((packed)) elf_header {
 	uint8_t e_ident[16]; //Extraneous metadata

@@ -13,6 +13,7 @@
 .globl idt_desc_ptr, idt
 .globl page_directory,pd_p0,pd_p1,pd_p2,pd_p3,pd_p4,pd_p5
 .globl page_table
+.globl page_table_vid
 
 .align 4
 
@@ -185,3 +186,12 @@ _page_table:
     .long 0
 	.endr
 pd_bottom:
+
+.align 4096
+
+page_table_vid:
+_page_table_vid:
+    .rept 1024
+    .long 0
+	.endr
+pd_bottom_vid:

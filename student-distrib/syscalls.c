@@ -6,7 +6,6 @@
 #include "drivers/filesystem.h"
 #include "drivers/rtc.h"
 #include "drivers/terminal.h"
-#include "x86_desc.h"
 #include "paging.h"
 
 // jump table ptrs for file fd's
@@ -44,6 +43,9 @@ static fd_ops_t file_stdout = {
 	.close = terminal_close
 };
 
+uint8_t cmd[BUF_LEN];
+uint8_t arg[BUF_LEN];
+
 /*
  * sys_halt
  * DESCRIPTION: terminates a process, returning the specified value to its parent process
@@ -55,6 +57,15 @@ int32_t sys_halt (uint8_t status) {
 	// printf("HALTING WITH STATUS %d\n", status);
 	task_stack_t * curr_task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
 	pcb_t* curr_pcb = &(curr_task_stack->task_pcb);
+
+	if (curr_pcb->vid_flag == 1) {
+		page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0;
+	}
+
+	if (pid == 0) {
+		sys_execute((uint8_t *) "shell");
+		return 0;
+	}
 
 	if (curr_pcb->pid != pid) {
 		printf("YOU SHOULD NOT BE HERE !!! PID of HALT != PID GLOBAL\n");
@@ -76,7 +87,7 @@ int32_t sys_halt (uint8_t status) {
 	// Restore Parent Data (esp0) and return to where execute was called
 	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (pid));
 	uint32_t local_status = status;
-	if(status == EXCEPTION_ERROR)
+	if (status == EXCEPTION_ERROR)
 		local_status = SYS_ERROR_STAT;
 	asm volatile(
 			"movl %0, %%eax;"
@@ -104,6 +115,37 @@ int32_t sys_halt (uint8_t status) {
  */
 int32_t sys_execute (const uint8_t* command) {
 
+	if (command == NULL) {
+		return -1;
+	}
+
+	// Get command without args
+	int i = 0;
+	int j = 1;
+	int k = 0;
+
+	while ((command[i] != '\0') && (command[i] != SPACE)) {
+		cmd[i] = command[i];
+		i++;
+	}
+	cmd[i] = '\0'; // Terminate command with nullchar
+
+	// Remove additional whitespace
+	for (; command[i] == SPACE; i++)
+		;
+	i--;
+
+	// Zero args buffer
+	for (k = 0; k < sizeof(arg) / sizeof(*arg); k++) {
+		arg[k] = '\0';
+	}
+
+	// Get args without command
+	while (((i+j) < strlen((int8_t*)command)) && (command[i+j] != '\0')) {
+		arg[j-1] = command[i+j];
+		j++;
+	}
+
 	// Magic string at start of ELF file
 	char magic_string[4] = { 0x7F, 'E', 'L', 'F' };
 
@@ -115,14 +157,14 @@ int32_t sys_execute (const uint8_t* command) {
 	dentry_t curr_dentry = {{ 0 }};
 
 	// Loop counter
-	int i;
+	i = 0;
 
 	// User address stack and base pointer
 	uint32_t user_esp = 0;
 
 
 	// Get executable file header from filesys
-	read_dentry_by_name (command, &curr_dentry);
+	read_dentry_by_name (cmd, &curr_dentry);
 	if (curr_dentry.filetype != 2) {
 		// printf("Filetype incorrect!!!!\n");
 		return -1;
@@ -174,6 +216,8 @@ int32_t sys_execute (const uint8_t* command) {
 
 	task_stack->task_pcb.parent_id = pid;
 	task_stack->task_pcb.pid = proc_pid;
+	task_stack->task_pcb.vid_flag = 0;
+	strncpy(task_stack->task_pcb.arg, (int8_t*)arg, FILESYSTEM_NAME_MAX);
 
 	pid = proc_pid;
 
@@ -344,16 +388,92 @@ int32_t sys_close (uint32_t fd) {
 	return (curr_pcb->fd_array)[fd].table_pointer.close(fd);
 }
 
+/*
+ * sys_getargs
+ * DESCRIPTION: reads the program’s command line arguments into a user-level buffer
+ * INPUTS: buf buffer to fill, nbytes to read
+ * SIDE EFFECTS:
+ * RETURN VALUE:
+ */
+
 int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
-	printf("getargs Syscall: buffer: %x nbytes: %d\n", buf, nbytes);
+	// printf("getargs Syscall: buffer: %x nbytes: %d\n", buf, nbytes);
 	// TODO: implement in 3.4
-	return -1;
+
+	pcb_t* curr_pcb = get_pcb(pid);
+
+	// filename null check
+	if (curr_pcb->arg == NULL || buf == NULL)
+		return -1;
+
+	// no args
+	if (curr_pcb->arg[0] == '\0') {
+		return -1;
+	}
+
+	strncpy((int8_t*)buf, curr_pcb->arg, nbytes);
+
+	return 0;
 }
 
+/*
+ * sys_vidmap
+ * DESCRIPTION: maps the text-mode video memory into user space at a pre-set virtual address
+ * INPUTS: screen_start
+ * SIDE EFFECTS:
+ * RETURN VALUE:
+ */
 int32_t sys_vidmap (uint8_t** screen_start) {
-	printf("vidmap Syscall: screen_start %x\n", screen_start);
+	// printf("vidmap Syscall: screen_start %x\n", screen_start);
 	// TODO: implement in 3.4
-	return -1;
+	uint32_t* cur_pd;
+
+	// ensure screen_start isn't null
+	if (screen_start == NULL)
+		return -1;
+
+	// ensure screen_start is a userspace address
+	if ((uint32_t) screen_start < BASE_VIRT_ADDR)
+		return -1;
+
+	// set pcb vid_flag to 1
+	pcb_t* curr_pcb = get_pcb(pid);
+	curr_pcb->vid_flag = 1;
+
+	// get the current page directory
+	asm volatile("mov %%cr3, %0": "=r"(cur_pd));
+
+	// check to ensure userspace address
+	if (VID_PAGE_START < BASE_VIRT_ADDR + FOUR_MIB)
+		return -1;
+
+	// check address is 4 KB aligned
+	if (VID_PAGE_START & 0xFFF)
+		return -1;
+
+	/*
+	 * Fill in PDE for new Page table
+	 * For this paging Entry:
+	 * 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
+	 *     000      1     0            0          0              0          0      1       1    1
+	 * which is 0x107 for last 12 bits
+	 * First 24 bits is page table address
+	*/
+	cur_pd[VID_PAGE_START >> 22] = ((uint32_t) page_table_vid)  | USER_SPACE | WRITE_ENABLE | PRESENT;
+
+	/*
+	 * Fill in entry for address 0xB8, which ids the page index for video mem
+	 * For this paging entry
+	 * 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
+	 *     000      1     0            0          0              0          0      1       1    1
+	 * which is 0x107 for the last 12 bits
+	 * B8 for next eight bits to represent VGA 4KB aligned address
+	 */
+	page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0xB8107;
+
+	*screen_start = (uint8_t *) VID_PAGE_START;
+
+	return 0;
 }
 
 int32_t sys_set_handler (int32_t signum, void* handler_address) {
