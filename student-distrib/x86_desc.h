@@ -130,7 +130,7 @@ extern tss_t tss;
 
 /* External page directory and table */
 extern uint32_t page_directory[PD_EN];
-uint32_t page_table_vid[PD_EN];
+extern uint32_t page_table_vid[PD_EN];
 extern uint32_t pd_p0[PD_EN];
 extern uint32_t pd_p1[PD_EN];
 extern uint32_t pd_p2[PD_EN];
