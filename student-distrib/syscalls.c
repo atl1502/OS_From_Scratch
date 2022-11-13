@@ -6,7 +6,6 @@
 #include "drivers/filesystem.h"
 #include "drivers/rtc.h"
 #include "drivers/terminal.h"
-#include "x86_desc.h"
 #include "paging.h"
 
 // jump table ptrs for file fd's
@@ -416,7 +415,7 @@ int32_t sys_vidmap (uint8_t** screen_start) {
      * which is 0x107 for last 12 bits
      * First 24 bits is page table address
     */
-	cur_pd[40] = ((uint32_t) page_table_vid) | USER_SPACE | WRITE_ENABLE | PRESENT;
+	cur_pd[40] = ( (uint32_t) page_table_vid) | USER_SPACE | WRITE_ENABLE | PRESENT;
 
 	/*
      * Fill in entry for address 0xB8, which ids the page index for video mem
@@ -426,8 +425,8 @@ int32_t sys_vidmap (uint8_t** screen_start) {
      * which is 0x107 for the last 12 bits
      * B8 for next eight bits to represent VGA 4KB aligned address
      */
-    page_table_vid[0xB8] = 0xB8107;
-	*screen_start = page_table_vid + 0xB8*4096;
+	page_table_vid[0xB8] = 0xB8107;
+	*screen_start = (uint8_t *) (page_table_vid + 0xB8 * 4096);
 
 	return -1;
 }
