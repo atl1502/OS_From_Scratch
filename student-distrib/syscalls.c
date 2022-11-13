@@ -59,6 +59,10 @@ int32_t sys_halt (uint8_t status) {
 	task_stack_t * curr_task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
 	pcb_t* curr_pcb = &(curr_task_stack->task_pcb);
 
+	if (curr_pcb->vid_flag == 1) {
+		page_table_vid[0xB8] = 0;
+	}
+
 	if (curr_pcb->pid != pid) {
 		printf("YOU SHOULD NOT BE HERE !!! PID of HALT != PID GLOBAL\n");
 		return -1;
@@ -114,8 +118,6 @@ int32_t sys_execute (const uint8_t* command) {
 	// Get command without args
 	int i = 0;
 	int j = 1;
-
-	cmd[i] = "\0";
 
 	while ((command[i] != '\0') && (command[i] != SPACE)) {
 		cmd[i] = command[i];
@@ -199,7 +201,8 @@ int32_t sys_execute (const uint8_t* command) {
 
 	task_stack->task_pcb.parent_id = pid;
 	task_stack->task_pcb.pid = proc_pid;
-	strncpy(task_stack->task_pcb.arg, arg, FILESYSTEM_NAME_MAX);
+	task_stack->task_pcb.vid_flag = 0;
+	strncpy(task_stack->task_pcb.arg, (int8_t*)arg, FILESYSTEM_NAME_MAX);
 
 	pid = proc_pid;
 
@@ -393,6 +396,39 @@ int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
 int32_t sys_vidmap (uint8_t** screen_start) {
 	// printf("vidmap Syscall: screen_start %x\n", screen_start);
 	// TODO: implement in 3.4
+    uint32_t* cur_pd;
+
+	if (screen_start == NULL) {
+		return -1;
+	}
+
+	pcb_t* curr_pcb = get_pcb(pid);
+	curr_pcb->vid_flag = 1;
+
+    // get the current page directory
+    asm volatile("mov %%cr3, %0": "=r"(cur_pd));
+
+    /*
+     * Fill in PDE for new Page table
+     * For this paging Entry:
+     * 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
+     *     000      1     0            0          0              0          0      1       1    1
+     * which is 0x107 for last 12 bits
+     * First 24 bits is page table address
+    */
+	cur_pd[40] = ((uint32_t) page_table_vid) | USER_SPACE | WRITE_ENABLE | PRESENT;
+
+	/*
+     * Fill in entry for address 0xB8, which ids the page index for video mem
+     * For this paging entry
+     * 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
+     *     000      1     0            0          0              0          0      1       1    1
+     * which is 0x107 for the last 12 bits
+     * B8 for next eight bits to represent VGA 4KB aligned address
+     */
+    page_table_vid[0xB8] = 0xB8107;
+	*screen_start = page_table_vid + 0xB8*4096;
+
 	return -1;
 }
 

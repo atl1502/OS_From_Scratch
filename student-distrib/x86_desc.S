@@ -185,3 +185,10 @@ _page_table:
     .long 0
 	.endr
 pd_bottom:
+
+page_table_vid:
+_page_table_vid:
+    .rept 1024
+    .long 0
+	.endr
+pd_bottom_vid:
