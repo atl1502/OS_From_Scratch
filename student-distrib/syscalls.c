@@ -44,7 +44,7 @@ static fd_ops_t file_stdout = {
 };
 
 uint8_t cmd[FILESYSTEM_NAME_MAX];
-uint8_t arg[FILESYSTEM_NAME_MAX];
+uint8_t arg[128];
 
 /*
  * sys_halt
@@ -117,13 +117,24 @@ int32_t sys_execute (const uint8_t* command) {
 	// Get command without args
 	int i = 0;
 	int j = 1;
+	int k = 0;
 
 	while ((command[i] != '\0') && (command[i] != SPACE)) {
 		cmd[i] = command[i];
 		i++;
 	}
-	cmd[i] = '\0';
-	
+	cmd[i] = '\0'; // Terminate command with nullchar
+
+	// Remove additional whitespace
+	for (; command[i] == SPACE; i++)
+		;
+	i--;
+
+	// Zero args buffer
+	for (k = 0; k < sizeof(arg) / sizeof(*arg); k++) {
+		arg[k] = '\0';
+	}
+
 	// Get args without command
 	while (((i+j) < strlen((int8_t*)command)) && (command[i+j] != '\0')) {
 		arg[j-1] = command[i+j];

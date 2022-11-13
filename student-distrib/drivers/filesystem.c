@@ -46,14 +46,14 @@ int32_t file_close(uint32_t fd) {
  */
 int32_t file_read (uint32_t fd, void* buf, int32_t nbytes) {
 	pcb_t* curr_pcb = get_pcb(pid);
-    fd_t* curr_fd = &(curr_pcb->fd_array[fd]);
+	fd_t* curr_fd = &(curr_pcb->fd_array[fd]);
 	// check buffer validity
 	if (!fd || !buf)
 		return -1;
 	// get the data in the file
-	read_data (curr_fd->inode_num, curr_fd->file_position, buf, nbytes);
+	int32_t bytes_read = read_data (curr_fd->inode_num, curr_fd->file_position, buf, nbytes);
 	curr_fd->file_position += nbytes;
-	return nbytes;
+	return bytes_read;
 }
 
 /*
@@ -103,7 +103,7 @@ int32_t dir_close(uint32_t fd) {
 int32_t dir_read(uint32_t fd, void * buf, int32_t nbytes) {
 	dentry_t dentry;
 	pcb_t* curr_pcb = get_pcb(pid);
-    fd_t* curr_fd = &(curr_pcb->fd_array[fd]);
+	fd_t* curr_fd = &(curr_pcb->fd_array[fd]);
 	// check buffer validity
 	if (!curr_fd || !buf || nbytes > FILESYSTEM_NAME_MAX)
 		return -1;
@@ -225,9 +225,10 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry) {
  * buf: buffer to copy from file to
  * nbytes: number of bytes to copy
  * SIDE EFFECTS: Fills buffer with nbytes of file starting at last position
- * RETURN VALUE: 0 or -1 iff NULL input
+ * RETURN VALUE: number of bytes read or -1 iff NULL input
  */
 int32_t read_data (uint32_t inode, uint32_t offset, void* buf, uint32_t length) {
+	int32_t bytes_to_read = 0;
 
 	if (!buf) {
 		// printf("Buffer NULL\n");
@@ -239,11 +240,15 @@ int32_t read_data (uint32_t inode, uint32_t offset, void* buf, uint32_t length) 
 	}
 
 	inode_t * inode_cur = inode + inode_start;
-	if (offset + length > inode_cur->length) {
-		// printf("Trying to read past file\n");
-		return -1;
+	if (offset > inode_cur->length) {
+		// printf("Offset is past end of file\n");
+		return 0; // Read 0 bytes
 	}
-
+	else if (offset + length > inode_cur->length) {
+		// printf("Trying to read past file, will read to end of file\n");
+		length -= (offset + length) - inode_cur->length;
+	}
+	bytes_to_read = length;
 
 	/* Start at offset */
 	int cur_block_num = inode_cur->data_block_num[offset >> OFFSET_SHIFT];
@@ -277,7 +282,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, void* buf, uint32_t length) 
 		memcpy(buf + buffer_offset, data_start + (cur_block_num << OFFSET_SHIFT), length);
 	}
 
-	return 0;
+	return bytes_to_read;
 }
 
 /*
