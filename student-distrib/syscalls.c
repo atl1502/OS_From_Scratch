@@ -59,7 +59,12 @@ int32_t sys_halt (uint8_t status) {
 	pcb_t* curr_pcb = &(curr_task_stack->task_pcb);
 
 	if (curr_pcb->vid_flag == 1) {
-		page_table_vid[0xB8] = 0;
+		page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0;
+	}
+
+	if (pid == 0) {
+		sys_execute((uint8_t *) "shell");
+		return 0;
 	}
 
 	if (curr_pcb->pid != pid) {
@@ -82,7 +87,7 @@ int32_t sys_halt (uint8_t status) {
 	// Restore Parent Data (esp0) and return to where execute was called
 	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (pid));
 	uint32_t local_status = status;
-	if(status == EXCEPTION_ERROR)
+	if (status == EXCEPTION_ERROR)
 		local_status = SYS_ERROR_STAT;
 	asm volatile(
 			"movl %0, %%eax;"
@@ -383,6 +388,14 @@ int32_t sys_close (uint32_t fd) {
 	return (curr_pcb->fd_array)[fd].table_pointer.close(fd);
 }
 
+/*
+ * sys_getargs
+ * DESCRIPTION: reads the program’s command line arguments into a user-level buffer
+ * INPUTS: buf buffer to fill, nbytes to read
+ * SIDE EFFECTS:
+ * RETURN VALUE:
+ */
+
 int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
 	// printf("getargs Syscall: buffer: %x nbytes: %d\n", buf, nbytes);
 	// TODO: implement in 3.4
@@ -403,19 +416,40 @@ int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
 	return 0;
 }
 
+/*
+ * sys_vidmap
+ * DESCRIPTION: maps the text-mode video memory into user space at a pre-set virtual address
+ * INPUTS: screen_start
+ * SIDE EFFECTS:
+ * RETURN VALUE:
+ */
 int32_t sys_vidmap (uint8_t** screen_start) {
 	// printf("vidmap Syscall: screen_start %x\n", screen_start);
 	// TODO: implement in 3.4
 	uint32_t* cur_pd;
 
+	// ensure screen_start isn't null
 	if (screen_start == NULL)
 		return -1;
 
+	// ensure screen_start is a userspace address
+	if ((uint32_t) screen_start < BASE_VIRT_ADDR)
+		return -1;
+
+	// set pcb vid_flag to 1
 	pcb_t* curr_pcb = get_pcb(pid);
 	curr_pcb->vid_flag = 1;
 
 	// get the current page directory
 	asm volatile("mov %%cr3, %0": "=r"(cur_pd));
+
+	// check to ensure userspace address
+	if (VID_PAGE_START < BASE_VIRT_ADDR + FOUR_MIB)
+		return -1;
+
+	// check address is 4 KB aligned
+	if (VID_PAGE_START & 0xFFF)
+		return -1;
 
 	/*
 	 * Fill in PDE for new Page table
@@ -425,7 +459,7 @@ int32_t sys_vidmap (uint8_t** screen_start) {
 	 * which is 0x107 for last 12 bits
 	 * First 24 bits is page table address
 	*/
-	cur_pd[40] = ( (uint32_t) page_table_vid) | USER_SPACE | WRITE_ENABLE | PRESENT;
+	cur_pd[VID_PAGE_START >> 22] = ((uint32_t) page_table_vid)  | USER_SPACE | WRITE_ENABLE | PRESENT;
 
 	/*
 	 * Fill in entry for address 0xB8, which ids the page index for video mem
@@ -435,8 +469,9 @@ int32_t sys_vidmap (uint8_t** screen_start) {
 	 * which is 0x107 for the last 12 bits
 	 * B8 for next eight bits to represent VGA 4KB aligned address
 	 */
-	page_table_vid[0xB8] = 0xB8107;
-	*screen_start = (uint8_t *) (page_table_vid + 0xB8 * 4096);
+	page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0xB8107;
+
+	*screen_start = (uint8_t *) VID_PAGE_START;
 
 	return 0;
 }

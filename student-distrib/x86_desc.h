@@ -130,7 +130,6 @@ extern tss_t tss;
 
 /* External page directory and table */
 extern uint32_t page_directory[PD_EN];
-extern uint32_t page_table_vid[PD_EN];
 extern uint32_t pd_p0[PD_EN];
 extern uint32_t pd_p1[PD_EN];
 extern uint32_t pd_p2[PD_EN];
@@ -138,6 +137,7 @@ extern uint32_t pd_p3[PD_EN];
 extern uint32_t pd_p4[PD_EN];
 extern uint32_t pd_p5[PD_EN];
 extern uint32_t page_table[PD_EN];
+extern uint32_t page_table_vid[PD_EN];
 
 /* Sets runtime-settable parameters in the GDT entry for the LDT */
 #define SET_LDT_PARAMS(str, addr, lim)                          \

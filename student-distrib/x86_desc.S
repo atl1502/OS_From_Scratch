@@ -187,6 +187,8 @@ _page_table:
 	.endr
 pd_bottom:
 
+.align 4096
+
 page_table_vid:
 _page_table_vid:
     .rept 1024
