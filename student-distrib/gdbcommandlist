@@ -1,4 +1,4 @@
-target remote localhost:1234
-add-symbol-file ../syscalls/cat.exe 0x08048094
-b main
+target remote 10.0.2.2:1234
+add-symbol-file ../syscalls/syserr.exe 0x08048094
+b sys_vidmap
 c

@@ -43,8 +43,8 @@ static fd_ops_t file_stdout = {
 	.close = terminal_close
 };
 
-uint8_t cmd[FILESYSTEM_NAME_MAX];
-uint8_t arg[128];
+uint8_t cmd[BUF_LEN];
+uint8_t arg[BUF_LEN];
 
 /*
  * sys_halt
@@ -406,40 +406,39 @@ int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
 int32_t sys_vidmap (uint8_t** screen_start) {
 	// printf("vidmap Syscall: screen_start %x\n", screen_start);
 	// TODO: implement in 3.4
-    uint32_t* cur_pd;
+	uint32_t* cur_pd;
 
-	if (screen_start == NULL) {
+	if (screen_start == NULL)
 		return -1;
-	}
 
 	pcb_t* curr_pcb = get_pcb(pid);
 	curr_pcb->vid_flag = 1;
 
-    // get the current page directory
-    asm volatile("mov %%cr3, %0": "=r"(cur_pd));
+	// get the current page directory
+	asm volatile("mov %%cr3, %0": "=r"(cur_pd));
 
-    /*
-     * Fill in PDE for new Page table
-     * For this paging Entry:
-     * 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
-     *     000      1     0            0          0              0          0      1       1    1
-     * which is 0x107 for last 12 bits
-     * First 24 bits is page table address
-    */
+	/*
+	 * Fill in PDE for new Page table
+	 * For this paging Entry:
+	 * 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
+	 *     000      1     0            0          0              0          0      1       1    1
+	 * which is 0x107 for last 12 bits
+	 * First 24 bits is page table address
+	*/
 	cur_pd[40] = ( (uint32_t) page_table_vid) | USER_SPACE | WRITE_ENABLE | PRESENT;
 
 	/*
-     * Fill in entry for address 0xB8, which ids the page index for video mem
-     * For this paging entry
-     * 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
-     *     000      1     0            0          0              0          0      1       1    1
-     * which is 0x107 for the last 12 bits
-     * B8 for next eight bits to represent VGA 4KB aligned address
-     */
+	 * Fill in entry for address 0xB8, which ids the page index for video mem
+	 * For this paging entry
+	 * 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
+	 *     000      1     0            0          0              0          0      1       1    1
+	 * which is 0x107 for the last 12 bits
+	 * B8 for next eight bits to represent VGA 4KB aligned address
+	 */
 	page_table_vid[0xB8] = 0xB8107;
 	*screen_start = (uint8_t *) (page_table_vid + 0xB8 * 4096);
 
-	return -1;
+	return 0;
 }
 
 int32_t sys_set_handler (int32_t signum, void* handler_address) {

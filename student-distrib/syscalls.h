@@ -23,6 +23,10 @@
 #define PROGRAM_SIZE 0x400000-0x48000
 #define SPACE 32
 
+#define FOUR_KB 0x1000
+#define BASE_VIRT_ADDR 0x08000000
+#define BUF_LEN 128
+
 typedef struct __attribute__((packed)) elf_header {
 	uint8_t e_ident[16]; //Extraneous metadata
 	uint32_t e_type : 16; // ELF type
