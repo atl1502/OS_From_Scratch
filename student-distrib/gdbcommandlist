@@ -1,7 +1,4 @@
 target remote 10.0.2.2:1234
-add-symbol-file ../syscalls/shell.exe 0x08048094
-b main
+add-symbol-file ../syscalls/counter.exe 0x08048094
 b sys_execute
-b syscalls.c:175
-b syscalls.c:197
 c

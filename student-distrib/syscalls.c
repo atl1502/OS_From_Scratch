@@ -469,6 +469,12 @@ int32_t sys_vidmap (uint8_t** screen_start) {
 
 	*screen_start = (uint8_t *) VID_PAGE_START;
 
+//	flush TLB?
+//	asm volatile ("\n\
+//			movl %cr3,%eax      \n\
+//			movl %eax,%cr3      \n\
+//	");
+
 	return 0;
 }
 
