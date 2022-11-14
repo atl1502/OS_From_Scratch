@@ -140,7 +140,7 @@ int32_t sys_execute (const uint8_t* command) {
 	i--;
 
 	// Zero args buffer
-	for (k = 0; k < sizeof(tmp_arg) / sizeof(*tmp_arg); k++) {
+	for (k = 0; k < BUF_LEN; k++) {
 		tmp_arg[k] = '\0';
 	}
 
@@ -396,7 +396,6 @@ int32_t sys_close (uint32_t fd) {
 
 int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
 	// printf("getargs Syscall: buffer: %x nbytes: %d\n", buf, nbytes);
-	// TODO: implement in 3.4
 
 	pcb_t* curr_pcb = get_pcb(pid);
 
@@ -423,7 +422,6 @@ int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
  */
 int32_t sys_vidmap (uint8_t** screen_start) {
 	// printf("vidmap Syscall: screen_start %x\n", screen_start);
-	// TODO: implement in 3.4
 	uint32_t* cur_pd;
 
 	// ensure screen_start isn't null
