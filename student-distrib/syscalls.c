@@ -111,9 +111,9 @@ int32_t sys_halt (uint8_t status) {
  * 0 to 255 if the program executes a halt system call, given by the program’s call to halt
  */
 int32_t sys_execute (const uint8_t* command) {
-	// temporary arrays to hold cmd and arg and store into pcb
-	uint8_t tmp_cmd[BUF_LEN];
-	uint8_t tmp_arg[BUF_LEN];
+    // temporary arrays to hold cmd and arg and store into pcb
+    uint8_t tmp_cmd[BUF_LEN];
+    uint8_t tmp_arg[BUF_LEN];
 
 	if (command == NULL) {
 		return -1;
@@ -125,10 +125,10 @@ int32_t sys_execute (const uint8_t* command) {
 	int k = 0;
 
 	while ((command[i] != '\0') && (command[i] != SPACE)) {
-		tmp_cmd[i] = command[i];
+        tmp_cmd[i] = command[i];
 		i++;
 	}
-	tmp_cmd[i] = '\0'; // Terminate command with nullchar
+    tmp_cmd[i] = '\0'; // Terminate command with nullchar
 
 	// Remove additional whitespace
 	for (; command[i] == SPACE; i++)
@@ -137,12 +137,12 @@ int32_t sys_execute (const uint8_t* command) {
 
 	// Zero args buffer
 	for (k = 0; k < sizeof(tmp_arg) / sizeof(*tmp_arg); k++) {
-		tmp_arg[k] = '\0';
+        tmp_arg[k] = '\0';
 	}
 
 	// Get args without command
 	while (((i+j) < strlen((int8_t*)command)) && (command[i+j] != '\0')) {
-		tmp_arg[j-1] = command[i+j];
+        tmp_arg[j-1] = command[i+j];
 		j++;
 	}
 
@@ -198,7 +198,7 @@ int32_t sys_execute (const uint8_t* command) {
 			continue;
 		}
 		read_data(curr_dentry.inode_num, curr_program_header.p_offset,
-				  (void*)curr_program_header.p_vaddr, curr_program_header.p_memsz);
+                  (void*)curr_program_header.p_vaddr, curr_program_header.p_memsz);
 
 		if (i == curr_elf_header.e_phnum - 2) {
 			user_esp = curr_program_header.p_vaddr + curr_program_header.p_memsz;
@@ -219,7 +219,7 @@ int32_t sys_execute (const uint8_t* command) {
 	task_stack->task_pcb.pid = proc_pid;
 	task_stack->task_pcb.vid_flag = 0;
 	strncpy((int8_t*) task_stack->task_pcb.arg, (int8_t*) tmp_arg, BUF_LEN);
-	strncpy((int8_t*) task_stack->task_pcb.cmd, (int8_t*) tmp_cmd, BUF_LEN);
+    strncpy((int8_t*) task_stack->task_pcb.cmd, (int8_t*) tmp_cmd, BUF_LEN);
 
 	pid = proc_pid;
 

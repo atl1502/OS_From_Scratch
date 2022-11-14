@@ -17,8 +17,8 @@ typedef struct pcb {
 	fd_t fd_array[MAX_FILES];
 	uint32_t esp;
 	uint32_t ebp;
-	uint8_t cmd[BUF_LEN];
-	uint8_t arg[BUF_LEN];
+    uint8_t cmd[BUF_LEN];
+    uint8_t arg[BUF_LEN];
 	int active; // 1 if active/started
 	int vid_flag;
 } pcb_t;
