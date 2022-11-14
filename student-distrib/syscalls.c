@@ -111,9 +111,10 @@ int32_t sys_halt (uint8_t status) {
  * 0 to 255 if the program executes a halt system call, given by the program’s call to halt
  */
 int32_t sys_execute (const uint8_t* command) {
-    // temporary arrays to hold cmd and arg and store into pcb
-    uint8_t tmp_cmd[BUF_LEN];
-    uint8_t tmp_arg[BUF_LEN];
+	// temporary arrays to hold cmd and arg and store into pcb
+	uint8_t tmp_cmd[BUF_LEN];
+	uint8_t tmp_arg[BUF_LEN];
+	int offset = 0;
 
 	if (command == NULL) {
 		return -1;
@@ -128,7 +129,7 @@ int32_t sys_execute (const uint8_t* command) {
         tmp_cmd[i] = command[i];
 		i++;
 	}
-    tmp_cmd[i] = '\0'; // Terminate command with nullchar
+	tmp_cmd[i] = '\0'; // Terminate command with nullchar
 
 	// Remove additional whitespace
 	for (; command[i] == SPACE; i++)
@@ -150,8 +151,8 @@ int32_t sys_execute (const uint8_t* command) {
 	char magic_string[4] = { 0x7F, 'E', 'L', 'F' };
 
 	// ELF Headers
-	elf_header_t curr_elf_header = {{ 0 }};
-	program_header_t curr_program_header = { 0 };
+	uint32_t curr_elf_header[10] = { 0 };
+	uint32_t entry = 0;
 
 	// Filesys Dentry
 	dentry_t curr_dentry = {{ 0 }};
@@ -169,15 +170,16 @@ int32_t sys_execute (const uint8_t* command) {
 		// printf("Filetype incorrect!!!!\n");
 		return -1;
 	}
-	read_data (curr_dentry.inode_num, 0, &curr_elf_header, sizeof(elf_header_t));
+
+	// Read program header
+	read_data (curr_dentry.inode_num, 0, curr_elf_header, sizeof(curr_elf_header) / sizeof(char));
 
 	// Verify executable string
-	if (strncmp((const char*) curr_elf_header.e_ident, magic_string, 4)) {
-		// printf("MAGIC STRING WRONG!!!!\n");
+	if (strncmp((const char*) curr_elf_header, magic_string, 4)) {
+		printf("MAGIC STRING WRONG!!!!\n");
 		return -1;
 	}
-	// printf("LOADING EXEC\n");
-	// Continue, the file is correct
+	entry = curr_elf_header[6];
 
 	// Allocate new PID and new page directory
 	int proc_pid = alloc_new_process();
@@ -189,20 +191,11 @@ int32_t sys_execute (const uint8_t* command) {
 	// MAGIC
 	memset((void*) PROGRAM_VIRT_START, 0, PROGRAM_SIZE);
 
-	// Load ELF segments into memory
-	for (i = 0; i < curr_elf_header.e_phnum-1; i++) {
-		read_data(curr_dentry.inode_num, curr_elf_header.e_phoff + (curr_elf_header.e_phentsize * i),
-			&curr_program_header, sizeof(program_header_t));
-		if (curr_program_header.p_type != 1) {
-			// printf("SEGMENT NOT LOADABLE!!!\n");
-			continue;
-		}
-		read_data(curr_dentry.inode_num, curr_program_header.p_offset,
-                  (void*)curr_program_header.p_vaddr, curr_program_header.p_memsz);
-
-		if (i == curr_elf_header.e_phnum - 2) {
-			user_esp = curr_program_header.p_vaddr + curr_program_header.p_memsz;
-		}
+	// Load ELF into memory
+	i = read_data(curr_dentry.inode_num, offset, (void *)(PROGRAM_VIRT_START+offset), 4096);
+	while (0 != i) {
+		offset += i;
+		i = read_data(curr_dentry.inode_num, offset, (void *)(PROGRAM_VIRT_START+offset), 4096);
 	}
 
 	// PCB Address pointer
@@ -219,7 +212,7 @@ int32_t sys_execute (const uint8_t* command) {
 	task_stack->task_pcb.pid = proc_pid;
 	task_stack->task_pcb.vid_flag = 0;
 	strncpy((int8_t*) task_stack->task_pcb.arg, (int8_t*) tmp_arg, BUF_LEN);
-    strncpy((int8_t*) task_stack->task_pcb.cmd, (int8_t*) tmp_cmd, BUF_LEN);
+	strncpy((int8_t*) task_stack->task_pcb.cmd, (int8_t*) tmp_cmd, BUF_LEN);
 
 	pid = proc_pid;
 
@@ -241,7 +234,7 @@ int32_t sys_execute (const uint8_t* command) {
 		"pushl %%cs\n\t"
 		"pushl %[entry]\n\t"
 		:
-		: [entry] "g"(curr_elf_header.e_entry), [user_esp] "g"(user_esp)
+		: [entry] "g"(entry), [user_esp] "g"(user_esp)
 		);
 
 	asm volatile("iret"::);

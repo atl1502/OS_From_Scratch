@@ -23,29 +23,13 @@
 #define PROGRAM_SIZE 0x400000-0x48000
 #define SPACE 32
 
+#define ELF_HEADER 0x28
 #define FOUR_KB 0x1000
 #define FOUR_MIB 0x400000
 #define EIGHT_MIB 0x800000
 #define BASE_VIRT_ADDR 0x08000000
 #define BUF_LEN 128
 #define VID_PAGE_START 0x9000000
-
-typedef struct __attribute__((packed)) elf_header {
-	uint8_t e_ident[16]; //Extraneous metadata
-	uint32_t e_type : 16; // ELF type
-	uint32_t e_machine : 16; // Target ISA
-	uint32_t e_version; // Usually 1
-	uint32_t e_entry; // ELF Entry point
-	uint32_t e_phoff; // Program header table
-	uint32_t e_shoff; // Section header table
-	uint32_t e_flags; // Flags
-	uint32_t e_ehsize : 16; // Elf Header size
-	uint32_t e_phentsize : 16; // Prog header size
-	uint32_t e_phnum : 16; // Number of program headers
-	uint32_t e_shentsize : 16; // Section header size
-	uint32_t e_shnum : 16; // Number of section headers
-	uint32_t e_shstrndx : 16; // Index of section header that has section names
-} elf_header_t;
 
 typedef struct __attribute__((packed)) program_header {
 	uint32_t p_type; // Type of segment

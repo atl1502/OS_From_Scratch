@@ -267,7 +267,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, void* buf, uint32_t length) 
 	/*
 	* Copy bytes until tail end of copying
 	*/
-	for ( ; length > BLOCK_SIZE; length -= BLOCK_SIZE) {
+	for ( ; length >= BLOCK_SIZE; length -= BLOCK_SIZE) {
 		cur_block_num = inode_cur->data_block_num[offset >> OFFSET_SHIFT];
 		memcpy(buf + buffer_offset, data_start + (cur_block_num << OFFSET_SHIFT), BLOCK_SIZE);
 		offset += BLOCK_SIZE;
