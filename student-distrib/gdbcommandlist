@@ -1,3 +1,4 @@
-target remote localhost:1234
-b sys_execute
+target remote 10.0.2.2:1234
+add-symbol-file ../syscalls/counter.exe 0x08048094
+b syscalls.c:193
 c
