@@ -186,3 +186,16 @@ int alloc_new_process(){
      asm volatile("movl %0, %%cr3":: "r"((int*)process_pds[pid]));
      return 0;
  }
+
+ /*
+  * zero_base
+  * DESCRIPTION: Sets process_in_use[0] to 0
+  * CALL IN HALT FOR BASE SHELL
+  * INPUTS: none
+  * SIDE EFFECTS: none
+  * RETURN VALUE: none
+  */
+void zero_base(void) {
+    process_in_use[0] = 0;
+    return;
+}
