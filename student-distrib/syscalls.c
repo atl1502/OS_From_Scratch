@@ -55,10 +55,12 @@ int32_t sys_halt (uint8_t status) {
 	task_stack_t * curr_task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
 	pcb_t* curr_pcb = &(curr_task_stack->task_pcb);
 
+	// disable video enabled flag if enabled
 	if (curr_pcb->vid_flag == 1) {
 		page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0;
 	}
 
+	// if in base shell relaunch
 	if (pid == 0) {
 		zero_base();
 		sys_execute((uint8_t *) "shell");
@@ -127,7 +129,7 @@ int32_t sys_execute (const uint8_t* command) {
 	int k = 0;
 
 	while ((command[i] != '\0') && (command[i] != SPACE)) {
-        tmp_cmd[i] = command[i];
+		tmp_cmd[i] = command[i];
 		i++;
 	}
 	tmp_cmd[i] = '\0'; // Terminate command with nullchar
@@ -139,12 +141,12 @@ int32_t sys_execute (const uint8_t* command) {
 
 	// Zero args buffer
 	for (k = 0; k < sizeof(tmp_arg) / sizeof(*tmp_arg); k++) {
-        tmp_arg[k] = '\0';
+		tmp_arg[k] = '\0';
 	}
 
 	// Get args without command
 	while (((i+j) < strlen((int8_t*)command)) && (command[i+j] != '\0')) {
-        tmp_arg[j-1] = command[i+j];
+		tmp_arg[j-1] = command[i+j];
 		j++;
 	}
 
@@ -388,8 +390,8 @@ int32_t sys_close (uint32_t fd) {
  * sys_getargs
  * DESCRIPTION: reads the program’s command line arguments into a user-level buffer
  * INPUTS: buf buffer to fill, nbytes to read
- * SIDE EFFECTS:
- * RETURN VALUE:
+ * SIDE EFFECTS: gets pcb's arguments and fills buf
+ * RETURN VALUE: 0 on success, -1 on fail
  */
 
 int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
@@ -403,11 +405,11 @@ int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
 		return -1;
 
 	// no args
-	if (curr_pcb->arg[0] == '\0') {
+	if (curr_pcb->arg[0] == '\0')
 		return -1;
-	}
 
-	strncpy((int8_t*)buf, (int8_t*) curr_pcb->arg, nbytes);
+	// copy pcb's arg into given buffer
+	strncpy((int8_t*) buf, (int8_t*) curr_pcb->arg, nbytes);
 
 	return 0;
 }
@@ -416,8 +418,8 @@ int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
  * sys_vidmap
  * DESCRIPTION: maps the text-mode video memory into user space at a pre-set virtual address
  * INPUTS: screen_start
- * SIDE EFFECTS:
- * RETURN VALUE:
+ * SIDE EFFECTS: creates another 4kb page of memory
+ * RETURN VALUE: 0 if mapped, -1 if fails
  */
 int32_t sys_vidmap (uint8_t** screen_start) {
 	// printf("vidmap Syscall: screen_start %x\n", screen_start);
@@ -439,16 +441,16 @@ int32_t sys_vidmap (uint8_t** screen_start) {
 	// get the current page directory
 	asm volatile("mov %%cr3, %0": "=r"(cur_pd));
 
-	// check to ensure userspace address
+	// check to ensure video address is a valid userspace address
 	if (VID_PAGE_START < BASE_VIRT_ADDR + FOUR_MIB)
 		return -1;
 
-	// check address is 4 KB aligned
+	// check address is 4 KB aligned using bitmask
 	if (VID_PAGE_START & 0xFFF)
 		return -1;
 
 	/*
-	* Fill in PDE for new Page table
+	* Fill in PDE for new Page table using most significant 10 bits
 	* For this paging Entry:
 	* 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
 	*     000      1     0            0          0              0          0      1       1    1
@@ -458,7 +460,7 @@ int32_t sys_vidmap (uint8_t** screen_start) {
 	cur_pd[VID_PAGE_START >> 22] = ((uint32_t) page_table_vid)  | USER_SPACE | WRITE_ENABLE | PRESENT;
 
 	/*
-	* Fill in entry for address 0xB8, which ids the page index for video mem
+	* Fill in entry for address middle 10 bits, which ids the page index for video mem
 	* For this paging entry
 	* 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
 	*     000      1     0            0          0              0          0      1       1    1
@@ -467,6 +469,7 @@ int32_t sys_vidmap (uint8_t** screen_start) {
 	*/
 	page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0xB8107;
 
+	// store video page address into given pointer
 	*screen_start = (uint8_t *) VID_PAGE_START;
 
 //	flush TLB?

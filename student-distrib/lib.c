@@ -257,12 +257,12 @@ void putc(uint8_t c) {
     // if at the end of the screen have the screen move down
     if(screen_y >= NUM_ROWS){
         // copy all but the top line into buffer
-        memcpy(screen_buff, video_mem+ROW_SIZE, SCREEN_SIZE-ROW_SIZE);
-        memcpy(video_mem, screen_buff, SCREEN_SIZE-ROW_SIZE);
+        memcpy(screen_buff, video_mem+ROW_SIZE, SCREEN_SIZE - ROW_SIZE);
+        memcpy(video_mem, screen_buff, SCREEN_SIZE - ROW_SIZE);
         int32_t i;
         for (i = 0; i < NUM_COLS; i++) {
-            *(uint8_t *)(video_mem+(NUM_COLS*(NUM_ROWS-1)*2) + (i << 1)) = ' ';
-            *(uint8_t *)(video_mem+(NUM_COLS*(NUM_ROWS-1)*2) + (i << 1) + 1) = ATTRIB;
+            *(uint8_t *) (video_mem + (NUM_COLS * (NUM_ROWS - 1) * 2) + (i << 1)) = ' ';
+            *(uint8_t *) (video_mem + (NUM_COLS * (NUM_ROWS - 1) * 2) + (i << 1) + 1) = ATTRIB;
         }
         screen_y--;
     }
