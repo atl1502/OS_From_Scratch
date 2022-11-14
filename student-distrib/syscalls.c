@@ -470,11 +470,12 @@ int32_t sys_vidmap (uint8_t** screen_start) {
 	// store video page address into given pointer
 	*screen_start = (uint8_t *) VID_PAGE_START;
 
-//	flush TLB?
-//	asm volatile ("\n\
-//			movl %cr3,%eax      \n\
-//			movl %eax,%cr3      \n\
-//	");
+/*	flush TLB?
+ *	asm volatile ("\n\
+ *			movl %cr3,%eax      \n\
+ *			movl %eax,%cr3      \n\
+ *	"); 
+ */
 
 	return 0;
 }
