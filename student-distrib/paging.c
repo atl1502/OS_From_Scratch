@@ -1,5 +1,6 @@
 #include "x86_desc.h"
 #include "paging.h"
+#include "lib.h"
 
 // keep track of next process page directory to be allocated
 static int process_in_use[MAX_PROCESSES] = {0};
