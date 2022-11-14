@@ -9,7 +9,7 @@
 #define MAX_FILES 8
 #define K_PAGE_ADDR 0x800000
 #define EIGHT_KB 0x2000
-
+#define BUF_LEN 128
 
 typedef struct pcb {
 	int pid;
@@ -17,7 +17,8 @@ typedef struct pcb {
 	fd_t fd_array[MAX_FILES];
 	uint32_t esp;
 	uint32_t ebp;
-	int8_t arg[FILESYSTEM_NAME_MAX];
+    uint8_t cmd[BUF_LEN];
+    uint8_t arg[BUF_LEN];
 	int active; // 1 if active/started
 	int vid_flag;
 } pcb_t;

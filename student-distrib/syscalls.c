@@ -43,9 +43,6 @@ static fd_ops_t file_stdout = {
 	.close = terminal_close
 };
 
-uint8_t cmd[BUF_LEN];
-uint8_t arg[BUF_LEN];
-
 /*
  * sys_halt
  * DESCRIPTION: terminates a process, returning the specified value to its parent process
@@ -114,6 +111,9 @@ int32_t sys_halt (uint8_t status) {
  * 0 to 255 if the program executes a halt system call, given by the program’s call to halt
  */
 int32_t sys_execute (const uint8_t* command) {
+    // temporary arrays to hold cmd and arg and store into pcb
+    uint8_t tmp_cmd[BUF_LEN];
+    uint8_t tmp_arg[BUF_LEN];
 
 	if (command == NULL) {
 		return -1;
@@ -125,10 +125,10 @@ int32_t sys_execute (const uint8_t* command) {
 	int k = 0;
 
 	while ((command[i] != '\0') && (command[i] != SPACE)) {
-		cmd[i] = command[i];
+        tmp_cmd[i] = command[i];
 		i++;
 	}
-	cmd[i] = '\0'; // Terminate command with nullchar
+    tmp_cmd[i] = '\0'; // Terminate command with nullchar
 
 	// Remove additional whitespace
 	for (; command[i] == SPACE; i++)
@@ -136,13 +136,13 @@ int32_t sys_execute (const uint8_t* command) {
 	i--;
 
 	// Zero args buffer
-	for (k = 0; k < sizeof(arg) / sizeof(*arg); k++) {
-		arg[k] = '\0';
+	for (k = 0; k < sizeof(tmp_arg) / sizeof(*tmp_arg); k++) {
+        tmp_arg[k] = '\0';
 	}
 
 	// Get args without command
 	while (((i+j) < strlen((int8_t*)command)) && (command[i+j] != '\0')) {
-		arg[j-1] = command[i+j];
+        tmp_arg[j-1] = command[i+j];
 		j++;
 	}
 
@@ -164,7 +164,7 @@ int32_t sys_execute (const uint8_t* command) {
 
 
 	// Get executable file header from filesys
-	read_dentry_by_name (cmd, &curr_dentry);
+	read_dentry_by_name (tmp_cmd, &curr_dentry);
 	if (curr_dentry.filetype != 2) {
 		// printf("Filetype incorrect!!!!\n");
 		return -1;
@@ -197,7 +197,8 @@ int32_t sys_execute (const uint8_t* command) {
 			// printf("SEGMENT NOT LOADABLE!!!\n");
 			continue;
 		}
-		read_data(curr_dentry.inode_num, curr_program_header.p_offset, (void*)curr_program_header.p_vaddr, curr_program_header.p_memsz);
+		read_data(curr_dentry.inode_num, curr_program_header.p_offset,
+                  (void*)curr_program_header.p_vaddr, curr_program_header.p_memsz);
 
 		if (i == curr_elf_header.e_phnum - 2) {
 			user_esp = curr_program_header.p_vaddr + curr_program_header.p_memsz;
@@ -217,7 +218,8 @@ int32_t sys_execute (const uint8_t* command) {
 	task_stack->task_pcb.parent_id = pid;
 	task_stack->task_pcb.pid = proc_pid;
 	task_stack->task_pcb.vid_flag = 0;
-	strncpy(task_stack->task_pcb.arg, (int8_t*)arg, FILESYSTEM_NAME_MAX);
+	strncpy((int8_t*) task_stack->task_pcb.arg, (int8_t*) tmp_arg, BUF_LEN);
+    strncpy((int8_t*) task_stack->task_pcb.cmd, (int8_t*) tmp_cmd, BUF_LEN);
 
 	pid = proc_pid;
 
@@ -411,7 +413,7 @@ int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
 		return -1;
 	}
 
-	strncpy((int8_t*)buf, curr_pcb->arg, nbytes);
+	strncpy((int8_t*)buf, (int8_t*) curr_pcb->arg, nbytes);
 
 	return 0;
 }
