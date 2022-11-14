@@ -214,8 +214,8 @@ int32_t sys_execute (const uint8_t* command) {
 	task_stack->task_pcb.parent_id = pid;
 	task_stack->task_pcb.pid = proc_pid;
 	task_stack->task_pcb.vid_flag = 0;
-	strncpy((int8_t*) task_stack->task_pcb.arg, (int8_t*) tmp_arg, BUF_LEN);
-	strncpy((int8_t*) task_stack->task_pcb.cmd, (int8_t*) tmp_cmd, BUF_LEN);
+	strcpy((int8_t*) task_stack->task_pcb.arg, (int8_t*) tmp_arg);
+	strcpy((int8_t*) task_stack->task_pcb.cmd, (int8_t*) tmp_cmd);
 
 	pid = proc_pid;
 
