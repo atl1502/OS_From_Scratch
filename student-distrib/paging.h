@@ -32,4 +32,7 @@ int dealloc_process(int pid);
 // switch between processes
 int context_switch_paging(int pid);
 
+// zeros out process_in_use[0] for base case
+void zero_base(void);
+
 #endif // PAGING_H
