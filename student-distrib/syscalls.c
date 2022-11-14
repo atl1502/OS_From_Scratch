@@ -305,7 +305,7 @@ int32_t sys_open (const uint8_t* filename) {
 	pcb_t* curr_pcb = get_pcb(pid);
 
 	// filename null check
-	if (filename == NULL || *filename == NULL)
+	if (filename == NULL || *filename == NULL || strlen(filename) > FILESYSTEM_NAME_MAX)
 		return -1;
 
 	// read dentry, if null return -1
@@ -406,6 +406,11 @@ int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
 	// no args
 	if (curr_pcb->arg[0] == '\0')
 		return -1;
+
+	// arg no fit buffer
+	if (nbytes < sizeof(curr_pcb->arg)/sizeof(curr_pcb->arg[0])) {
+		return -1;
+	}
 
 	// copy pcb's arg into given buffer
 	strncpy((int8_t*) buf, (int8_t*) curr_pcb->arg, nbytes);
