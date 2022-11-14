@@ -452,23 +452,23 @@ int32_t sys_vidmap (uint8_t** screen_start) {
 		return -1;
 
 	/*
-	 * Fill in PDE for new Page table
-	 * For this paging Entry:
-	 * 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
-	 *     000      1     0            0          0              0          0      1       1    1
-	 * which is 0x107 for last 12 bits
-	 * First 24 bits is page table address
+	* Fill in PDE for new Page table
+	* For this paging Entry:
+	* 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
+	*     000      1     0            0          0              0          0      1       1    1
+	* which is 0x107 for last 12 bits
+	* First 24 bits is page table address
 	*/
 	cur_pd[VID_PAGE_START >> 22] = ((uint32_t) page_table_vid)  | USER_SPACE | WRITE_ENABLE | PRESENT;
 
 	/*
-	 * Fill in entry for address 0xB8, which ids the page index for video mem
-	 * For this paging entry
-	 * 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
-	 *     000      1     0            0          0              0          0      1       1    1
-	 * which is 0x107 for the last 12 bits
-	 * B8 for next eight bits to represent VGA 4KB aligned address
-	 */
+	* Fill in entry for address 0xB8, which ids the page index for video mem
+	* For this paging entry
+	* 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
+	*     000      1     0            0          0              0          0      1       1    1
+	* which is 0x107 for the last 12 bits
+	* B8 for next eight bits to represent VGA 4KB aligned address
+	*/
 	page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0xB8107;
 
 	*screen_start = (uint8_t *) VID_PAGE_START;
