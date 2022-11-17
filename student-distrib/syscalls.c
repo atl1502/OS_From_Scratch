@@ -200,7 +200,7 @@ int32_t sys_execute (const uint8_t* command) {
 		offset += i;
 		i = read_data(curr_dentry.inode_num, offset, (void *)(PROGRAM_VIRT_START+offset), 4096);
 	}
-	user_esp = PROGRAM_VIRT_START + offset + 1;
+	user_esp = BASE_VIRT_ADDR + FOUR_MIB - 4;
 
 	// PCB Address pointer
 	task_stack_t * const task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (proc_pid+1)));
@@ -223,12 +223,12 @@ int32_t sys_execute (const uint8_t* command) {
 	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (proc_pid));
 	// TSS Setup for context switch with PCB init
 	asm volatile ("\n\
-			movl %%ebp, %0      \n\
-			movl %%esp, %1      \n\
-			"
-			: "=r"(task_stack->task_pcb.ebp), "=r"(task_stack->task_pcb.esp)
-			:
-			: "memory", "cc"
+		movl %%ebp, %0      \n\
+		movl %%esp, %1      \n\
+		"
+		: "=r"(task_stack->task_pcb.ebp), "=r"(task_stack->task_pcb.esp)
+		:
+		: "memory", "cc"
 	);
 
 	asm volatile (
