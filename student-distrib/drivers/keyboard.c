@@ -145,6 +145,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
         for (i = 0; i < keyboard_buffer_len; i++){
             putc(keyboard_buffer[i]);
         }
+        printf("391OS> ");
     } else if (scan_code == 0x0E && keyboard_buffer_len > 0){ // backspace
         //deal with tab case
         if (keyboard_buffer[keyboard_buffer_len-1] == '\t') {
