@@ -200,6 +200,7 @@ int32_t sys_execute (const uint8_t* command) {
 		offset += i;
 		i = read_data(curr_dentry.inode_num, offset, (void *)(PROGRAM_VIRT_START+offset), 4096);
 	}
+	user_esp = PROGRAM_VIRT_START + offset + 1;
 
 	// PCB Address pointer
 	task_stack_t * const task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (proc_pid+1)));
@@ -230,17 +231,25 @@ int32_t sys_execute (const uint8_t* command) {
 			: "memory", "cc"
 	);
 
-	__asm__(
-		"pushl %%ss\n\t"
+	asm volatile (
+		"cli\n\t"
+		"mov $0x2B, %%ax\n\t"
+		"mov %%ax, %%ds\n\t"
+		"mov %%ax, %%es\n\t"
+		"mov %%ax, %%fs\n\t"
+		"mov %%ax, %%gs\n\t"
+		"pushl $0x2B\n\t"
 		"pushl %[user_esp]\n\t"
 		"pushfl\n\t"
-		"pushl %%cs\n\t"
+		"popl %%eax\n\t"
+		"orl $0x200, %%eax\n\t"
+		"pushl %%eax\n\t"
+		"pushl $0x23\n\t"
 		"pushl %[entry]\n\t"
+		"iret\n\t"
 		:
 		: [entry] "g"(entry), [user_esp] "g"(user_esp)
 		);
-
-	asm volatile("iret"::);
 
 	return 0;
 }
@@ -305,7 +314,7 @@ int32_t sys_open (const uint8_t* filename) {
 	pcb_t* curr_pcb = get_pcb(pid);
 
 	// filename null check
-	if (filename == NULL || *filename == NULL || strlen(filename) > FILESYSTEM_NAME_MAX)
+	if (filename == NULL || *filename == NULL || strlen((char *) filename) > FILESYSTEM_NAME_MAX)
 		return -1;
 
 	// read dentry, if null return -1

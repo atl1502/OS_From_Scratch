@@ -115,7 +115,6 @@ uint32_t virtual_to_physical(uint32_t virtual_addr){
 int alloc_new_process(){
     int open_process, i;
     int* cur_pd;
-    int mask = WRITE_ENABLE;
     // find an open PD to use
     for (open_process = 0; open_process < MAX_PROCESSES; open_process++){
         if (process_in_use[open_process] == 0){
@@ -132,8 +131,7 @@ int alloc_new_process(){
     // the page directory is set up as specified in Appendix C
     // Copy kernel page into current directory
     for(i = 0; i < TABLE_SIZE; i++){
-      // disable write for user space
-      cur_pd[i] = page_directory[i] & (~mask);
+      cur_pd[i] = page_directory[i];
     }
     // 128 MB location program, set up big page (kernal page + PID)
     cur_pd[USER_ADDR] = (((KERNAL_PAGE_ADDR_END)+open_process) << PD_ADDR_OFFSET) | BIG_PAGE | USER_SPACE | WRITE_ENABLE | PRESENT;

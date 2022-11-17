@@ -1,10 +1,10 @@
 #include "ece391sysnum.h"
 
-/* 
- * Rather than create a case for each number of arguments, we simplify
- * and use one macro for up to three arguments; the system calls should
- * ignore the other registers, and they're caller-saved anyway.
- */
+/*
+* Rather than create a case for each number of arguments, we simplify
+* and use one macro for up to three arguments; the system calls should
+* ignore the other registers, and they're caller-saved anyway.
+*/
 #define DO_CALL(name,number)   \
 .GLOBL name                   ;\
 name:   PUSHL	%EBX          ;\
@@ -34,8 +34,8 @@ DO_CALL(ece391_sigreturn,SYS_SIGRETURN)
 .GLOBAL _start
 _start:
 	CALL	main
-    PUSHL   $0
-    PUSHL   $0
+	PUSHL   $0
+	PUSHL   $0
 	PUSHL	%EAX
 	CALL	ece391_halt
 
