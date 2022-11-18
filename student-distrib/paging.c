@@ -31,7 +31,7 @@ void paging_init(){
      * Which is 0x183 for the last 12 bits
      * First 10 bits is page address, which is 1, since it is the second 4MB block (0 indexed)
     */
-    page_directory[KERNAL_PAGE_ADDR] = (KERNAL_PAGE_ADDR << PD_ADDR_OFFSET) | BIG_PAGE | WRITE_ENABLE | PRESENT;
+    page_directory[KERNAL_PAGE_ADDR] = (KERNAL_PAGE_ADDR << PD_ADDR_OFFSET) | GLOBAL | BIG_PAGE | WRITE_ENABLE | PRESENT;
 
     /*
      * Fill in entry for address 0xB8, which is the page index for video mem
@@ -41,7 +41,12 @@ void paging_init(){
      * which is 0x103 for the last 12 bits
      * B8 for next eight bits to represent VGA 4KB aligned address
      */
-    page_table[0xB8] = 0xB8103;
+    page_table[VIDMEM_ADDR] = (VIDMEM_ADDR << 12) | GLOBAL | WRITE_ENABLE | PRESENT;
+
+    // setup terminal buff pages as well
+    page_table[TERMINAL_1_BUFF] = (TERMINAL_1_BUFF << 12) | GLOBAL | WRITE_ENABLE | PRESENT;
+    page_table[TERMINAL_2_BUFF] = (TERMINAL_2_BUFF << 12) | GLOBAL | WRITE_ENABLE | PRESENT;
+    page_table[TERMINAL_3_BUFF] = (TERMINAL_3_BUFF << 12) | GLOBAL | WRITE_ENABLE | PRESENT;
 
     /* Writing to registers to enable paging */
     uint32_t cr0, cr4;

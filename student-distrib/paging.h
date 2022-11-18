@@ -16,6 +16,12 @@
 #define KERNAL_PAGE_ADDR_END 0x02
 #define USER_ADDR 32
 #define INVALID_ADDR 0xFFFFFFFF
+#define GLOBAL 0x80
+#define VIDMEM_ADDR 0xB8
+#define TERMINAL_1_BUFF 0xB9
+#define TERMINAL_2_BUFF 0xBA
+#define TERMINAL_3_BUFF 0xBB
+
 
 // Initialize paging
 void paging_init();
