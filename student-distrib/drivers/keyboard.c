@@ -25,7 +25,7 @@ static char keyboard_buffer[BUF_LEN] = {0x00};
 static char keyboard_buffer1[BUF_LEN] = {0x00};
 static char keyboard_buffer2[BUF_LEN] = {0x00};
 static char keyboard_buffer3[BUF_LEN] = {0x00};
-static char** kbuffers[NUM_TERM] = {keyboard_buffer1, keyboard_buffer2, keyboard_buffer3};
+static char* kbuffers[NUM_TERM] = {keyboard_buffer1, keyboard_buffer2, keyboard_buffer3};
 // current len of buffer (current idx is keyboard_buffer_len-1)
 static uint8_t keyboard_buffer_len = 0;
 
