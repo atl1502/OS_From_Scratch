@@ -138,9 +138,9 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 
     if (alt_flag == 1) { //alt-fn key switch terminals
         switch (scan_code) {
-            case 0x3B: kbuffers[terminal_num] = keyboard_buffer; terminal_num = 1; return; //F1 case
-            case 0x3C: kbuffers[terminal_num] = keyboard_buffer; terminal_num = 2; return; //F2 case
-            case 0x3D: kbuffers[terminal_num] = keyboard_buffer; terminal_num = 3; return; //F3 case
+            case 0x3B: kbuffers[terminal_num] = keyboard_buffer; reset_keyboard_buffer(); terminal_num = 1; return; //F1 case
+            case 0x3C: kbuffers[terminal_num] = keyboard_buffer; reset_keyboard_buffer(); terminal_num = 2; return; //F2 case
+            case 0x3D: kbuffers[terminal_num] = keyboard_buffer; reset_keyboard_buffer(); terminal_num = 3; return; //F3 case
         }
     }
 
