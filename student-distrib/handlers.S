@@ -2,7 +2,7 @@
 .data
 
 # Handler functions
-.globl handler_keyboard, handler_rtc, handler_interrupt
+.globl handler_pit, handler_keyboard, handler_rtc, handler_interrupt
 
 # Syscall functions
 .globl system_call
@@ -15,6 +15,11 @@ jump_table:
 .long sys_halt, sys_execute, sys_read, sys_write, sys_open, sys_close, sys_getargs, sys_vidmap, sys_set_handler, sys_sigreturn
 
 .text
+
+# pit interupt vector is called
+handler_pit:
+pushl $0xFFFFFFFF
+jmp handler_interrupt
 
 # keyboard interupt vector is called
 handler_keyboard:

@@ -4,6 +4,7 @@
 #include "i8259.h"
 #include "idt.h"
 #include "syscalls.h"
+#include "drivers/pit.h"
 #include "drivers/keyboard.h"
 #include "drivers/rtc.h"
 
@@ -310,6 +311,7 @@ unsigned int do_IRQ(prev_reg_t regs) {
 	// function ptr array
 	void (*irq_desc[IRQT_S])(void) = {0};
 	// set irqs in the array
+	irq_desc[PIT_IRQ] = pit_handle_interrupt;
 	irq_desc[KB_IRQ] = keyboard_handle_interrupt;
 	irq_desc[RTC_IRQ] = rtc_handle_interrupt;
 	// call given handler based on irq
@@ -335,6 +337,7 @@ void idt_init() {
 	// diagram 5-2 pg 156
 
 	// init drivers for rtc/keyboard
+	pit_init(1000);
 	keyboard_init();
 	rtc_init();
 
@@ -375,6 +378,7 @@ void idt_init() {
 	SET_IDT_ENTRY(idt[19], handler_simd_fp); // SIMD floating point exception
 
 	//irq
+	SET_IDT_ENTRY(idt[0x20], handler_pit);
 	SET_IDT_ENTRY(idt[0x21], handler_keyboard);
 	SET_IDT_ENTRY(idt[0x28], handler_rtc);
 

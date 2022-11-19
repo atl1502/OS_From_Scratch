@@ -32,6 +32,7 @@ void handler_fpu_error();
 void handler_align_chk();
 void handler_machine_chk();
 void handler_simd_fp();
+void handler_pit();
 void handler_keyboard();
 void handler_rtc();
 void handler_interrupt();

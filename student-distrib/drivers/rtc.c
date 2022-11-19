@@ -22,7 +22,8 @@ volatile int flag;
 /* Initialize the RTC */
 void rtc_init(void) {
     //disable interrupts
-    spin_lock_irq(&rtc_lock);
+    // spin_lock_irq(&rtc_lock);
+    cli();
     // select register B, and disable NMI
     outb(REGB, PORT1);
     // read the current value of register B
@@ -43,7 +44,7 @@ void rtc_init(void) {
     flag = 0;
     print_flag = 0;
     // reenable interrupts
-    spin_unlock_irq(&rtc_lock);
+    // spin_unlock_irq(&rtc_lock);
 }
 
 /*
