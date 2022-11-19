@@ -13,7 +13,7 @@
 #define CAPS_OFFSET 0x20
 #define BUF_LEN 128
 #define TAB_SIZE 4
-
+#define NUM_TERM 3
 
 /* Externally-visible functions */
 
@@ -34,5 +34,8 @@ uint8_t get_keyboard_buffer_length();
 
 /* Resets the keyboard buffer (usually after a new line) */
 void reset_keyboard_buffer();
+
+/* Returns which terminal we are using*/
+uint8_t get_terminal_num();
 
 #endif // KEYBOARD_H

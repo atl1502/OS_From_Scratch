@@ -20,7 +20,12 @@ static uint8_t caps_lock_flag = 0;
 static uint8_t alt_flag = 0;
 static uint8_t control_flag = 0;
 static uint8_t terminal_mode = 0;
+static uint8_t terminal_num = 1;
 static char keyboard_buffer[BUF_LEN] = {0x00};
+static char keyboard_buffer1[BUF_LEN] = {0x00};
+static char keyboard_buffer2[BUF_LEN] = {0x00};
+static char keyboard_buffer3[BUF_LEN] = {0x00};
+static char** kbuffers[NUM_TERM] = {keyboard_buffer1, keyboard_buffer2, keyboard_buffer3};
 // current len of buffer (current idx is keyboard_buffer_len-1)
 static uint8_t keyboard_buffer_len = 0;
 
@@ -130,6 +135,15 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
     char ascii = 0;
     int i;
     current = scan_code_array[scan_code];
+
+    if (alt_flag == 1) { //alt-fn key switch terminals
+        switch (scan_code) {
+            case 0x3B: kbuffers[terminal_num] = keyboard_buffer; terminal_num = 1; return; //F1 case
+            case 0x3C: kbuffers[terminal_num] = keyboard_buffer; terminal_num = 2; return; //F2 case
+            case 0x3D: kbuffers[terminal_num] = keyboard_buffer; terminal_num = 3; return; //F3 case
+        }
+    }
+
     // check prev to make sure it wasn't new line skip if it is
     if(keyboard_buffer_len != 0 && keyboard_buffer[keyboard_buffer_len-1] == '\n'){
         return;
@@ -254,4 +268,15 @@ void reset_keyboard_buffer(){
         keyboard_buffer[i] = 0x00;
     }
     keyboard_buffer_len = 0;
+}
+
+/*
+ * get_terminal_num
+ * DESCRIPTION: gets the terminal we are currently using
+ * INPUTS: None
+ * SIDE EFFECTS: none
+ * RETURN VALUE: terminal number
+ */
+uint8_t get_terminal_num(){
+    return terminal_num;
 }
