@@ -6,6 +6,7 @@
 #include "../lib.h"
 #include "../spinlock.h"
 #include "../i8259.h"
+#include "../paging.h"
 
 /* Handles keyboard buffer in interrupt context */
 static void keyboard_handle_interrupt_buffer(uint8_t scan_code);

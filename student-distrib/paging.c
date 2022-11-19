@@ -202,3 +202,14 @@ void zero_base(void) {
     process_in_use[0] = 0;
     return;
 }
+
+ /*
+  * remap
+  * DESCRIPTION: remaps paging so video mem not overwritten
+  * INPUTS: terminal number
+  * SIDE EFFECTS: none
+  * RETURN VALUE: none
+  */
+void remap(int term) {
+    return;
+}

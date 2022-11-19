@@ -41,4 +41,7 @@ int context_switch_paging(int pid);
 // zeros out process_in_use[0] for base case
 void zero_base(void);
 
+// switch mapping of vid mem for multiple terminals
+void remap(int term);
+
 #endif // PAGING_H
