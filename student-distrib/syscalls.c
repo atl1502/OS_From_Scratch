@@ -54,7 +54,6 @@ int32_t sys_halt (uint8_t status) {
 	// printf("HALTING WITH STATUS %d\n", status);
 	task_stack_t * curr_task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
 	pcb_t* curr_pcb = &(curr_task_stack->task_pcb);
-
 	// disable video enabled flag if enabled
 	if (curr_pcb->vid_flag == 1) {
 		page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0;
@@ -70,6 +69,14 @@ int32_t sys_halt (uint8_t status) {
 	if (curr_pcb->pid != pid) {
 		printf("YOU SHOULD NOT BE HERE !!! PID of HALT != PID GLOBAL\n");
 		return -1;
+	}
+
+	// call close on all the files
+	int fd;
+	for(fd = 0; fd < MAX_FD; fd++){
+		if((curr_pcb->fd_array[fd]).flags & FD_USED){
+			(curr_pcb->fd_array)[fd].table_pointer.close(fd);
+		}
 	}
 
 	// Restore Parent Paging
@@ -488,7 +495,7 @@ int32_t sys_vidmap (uint8_t** screen_start) {
  *	asm volatile ("\n\
  *			movl %cr3,%eax      \n\
  *			movl %eax,%cr3      \n\
- *	"); 
+ *	");
  */
 
 	return 0;
