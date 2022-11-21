@@ -26,7 +26,9 @@
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
-static char bterm[NUM_TERM] = {TERM1, TERM2, TERM3};
+static char* term1_mem = (char *)TERM1;
+static char* term2_mem = (char *)TERM2;
+static char* term3_mem = (char *)TERM3;
 static int bscreen_x[3];
 static int bscreen_y[3];
 // buffer used for saving screen after a clear screen
@@ -599,8 +601,9 @@ void test_interrupts(void) {
  * Return Value: void
  * Function: switches videeo memory */
 void switch_term(int dest, int src) {
-    memcpy((char*)(bterm[src]), video_mem, SCREEN_SIZE);
-    memcpy(video_mem, (char*)(bterm[dest]), SCREEN_SIZE);
+    char* bterm[NUM_TERM] = {term1_mem, term2_mem, term3_mem};
+    memcpy((bterm[src]), video_mem, SCREEN_SIZE);
+    memcpy(video_mem, (bterm[dest]), SCREEN_SIZE);
     bscreen_x[src] = screen_x;
     bscreen_y[src] = screen_y;
     screen_x = bscreen_x[dest];
