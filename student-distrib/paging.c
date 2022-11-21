@@ -44,9 +44,9 @@ void paging_init(){
     page_table[VIDMEM_ADDR] = (VIDMEM_ADDR << 12) | GLOBAL | WRITE_ENABLE | PRESENT;
 
     // setup terminal buff pages as well
-    page_table[TERMINAL_1_BUFF] = (TERMINAL_1_BUFF << 12) | GLOBAL | WRITE_ENABLE | PRESENT;
-    page_table[TERMINAL_2_BUFF] = (TERMINAL_2_BUFF << 12) | GLOBAL | WRITE_ENABLE | PRESENT;
-    page_table[TERMINAL_3_BUFF] = (TERMINAL_3_BUFF << 12) | GLOBAL | WRITE_ENABLE | PRESENT;
+    page_table[TERMINAL_0_VIDPAGE] = (TERMINAL_0_VIDPAGE << 12) | GLOBAL | WRITE_ENABLE | PRESENT;
+    page_table[TERMINAL_1_VIDPAGE] = (TERMINAL_1_VIDPAGE << 12) | GLOBAL | WRITE_ENABLE | PRESENT;
+    page_table[TERMINAL_2_VIDPAGE] = (TERMINAL_2_VIDPAGE << 12) | GLOBAL | WRITE_ENABLE | PRESENT;
 
     /* Writing to registers to enable paging */
     uint32_t cr0, cr4;
@@ -211,5 +211,14 @@ void zero_base(void) {
   * RETURN VALUE: none
   */
 void remap(int term) {
-    return;
+    switch (term) {
+        case 0:
+            page_table[VIDMEM_ADDR] = page_table[TERMINAL_0_VIDPAGE];
+        case 1:
+            page_table[VIDMEM_ADDR] = page_table[TERMINAL_1_VIDPAGE];
+        case 2:
+            page_table[VIDMEM_ADDR] = page_table[TERMINAL_2_VIDPAGE];
+        default:
+            return;
+    }
 }

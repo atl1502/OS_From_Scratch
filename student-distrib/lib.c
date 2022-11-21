@@ -5,9 +5,9 @@
 #include "lib.h"
 
 #define VIDEO       0xB8000
-#define TERM1       0xB9000
-#define TERM2       0xBA000
-#define TERM3       0xBB000
+#define TERM0       0xB9000
+#define TERM1       0xBA000
+#define TERM2       0xBB000
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
@@ -27,9 +27,9 @@
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
+static char* term0_mem = (char *)TERM0;
 static char* term1_mem = (char *)TERM1;
 static char* term2_mem = (char *)TERM2;
-static char* term3_mem = (char *)TERM3;
 static int bscreen_x[3];
 static int bscreen_y[3];
 // buffer used for saving screen after a clear screen
@@ -602,7 +602,7 @@ void test_interrupts(void) {
  * Return Value: void
  * Function: switches videeo memory */
 void switch_term(int dest, int src) {
-    char* bterm[NUM_TERM] = {term1_mem, term2_mem, term3_mem};
+    char* bterm[NUM_TERM] = {term0_mem, term1_mem, term2_mem};
     memcpy((bterm[src]), video_mem, FOURKB);
     memcpy(video_mem, (bterm[dest]), FOURKB);
     bscreen_x[src] = screen_x;

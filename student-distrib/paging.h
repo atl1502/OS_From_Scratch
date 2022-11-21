@@ -18,9 +18,9 @@
 #define INVALID_ADDR 0xFFFFFFFF
 #define GLOBAL 0x80
 #define VIDMEM_ADDR 0xB8
-#define TERMINAL_1_BUFF 0xB9
-#define TERMINAL_2_BUFF 0xBA
-#define TERMINAL_3_BUFF 0xBB
+#define TERMINAL_0_VIDPAGE 0xB9
+#define TERMINAL_1_VIDPAGE 0xBA
+#define TERMINAL_2_VIDPAGE 0xBB
 
 
 // Initialize paging

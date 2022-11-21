@@ -21,12 +21,12 @@ static uint8_t caps_lock_flag = 0;
 static uint8_t alt_flag = 0;
 static uint8_t control_flag = 0;
 static uint8_t terminal_mode = 0;
-static uint8_t terminal_num = 1;
+static uint8_t terminal_num = 0;
 static char keyboard_buffer[BUF_LEN] = {0x00};
+static char keyboard_buffer0[BUF_LEN] = {0x00};
 static char keyboard_buffer1[BUF_LEN] = {0x00};
 static char keyboard_buffer2[BUF_LEN] = {0x00};
-static char keyboard_buffer3[BUF_LEN] = {0x00};
-static char* kbuffers[NUM_TERM] = {keyboard_buffer1, keyboard_buffer2, keyboard_buffer3};
+static char* kbuffers[NUM_TERM] = {keyboard_buffer0, keyboard_buffer1, keyboard_buffer2};
 // current len of buffer (current idx is keyboard_buffer_len-1)
 static uint8_t keyboard_buffer_len = 0;
 
@@ -140,6 +140,16 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
     if (alt_flag == 1) { //alt-fn key switch terminals
         switch (scan_code) {
             case 0x3B: //F1 case
+                if (terminal_num == 0) {
+                    return;
+                } else {
+                    copy_buffer(kbuffers[terminal_num], keyboard_buffer, BUF_LEN);
+                    reset_keyboard_buffer();
+                    switch_term(0, terminal_num);
+                    terminal_num = 0;
+                return;
+                }
+            case 0x3C: //F2 case
                 if (terminal_num == 1) {
                     return;
                 } else {
@@ -149,7 +159,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
                     terminal_num = 1;
                 return;
                 }
-            case 0x3C: //F2 case
+            case 0x3D: //F3 case
                 if (terminal_num == 2) {
                     return;
                 } else {
@@ -157,16 +167,6 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
                     reset_keyboard_buffer();
                     switch_term(2, terminal_num);
                     terminal_num = 2;
-                return;
-                }
-            case 0x3D: //F3 case
-                if (terminal_num == 3) {
-                    return;
-                } else {
-                    copy_buffer(kbuffers[terminal_num], keyboard_buffer, BUF_LEN);
-                    reset_keyboard_buffer();
-                    switch_term(3, terminal_num);
-                    terminal_num = 3;
                 return;
                 }
         }
