@@ -11,6 +11,7 @@
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
+#define FOURKB      0x1000
 
 // 2 bytes per ascii char (char and color)
 #define SCREEN_SIZE NUM_COLS*NUM_ROWS*2
@@ -602,8 +603,8 @@ void test_interrupts(void) {
  * Function: switches videeo memory */
 void switch_term(int dest, int src) {
     char* bterm[NUM_TERM] = {term1_mem, term2_mem, term3_mem};
-    memcpy((bterm[src]), video_mem, SCREEN_SIZE);
-    memcpy(video_mem, (bterm[dest]), SCREEN_SIZE);
+    memcpy((bterm[src]), video_mem, FOURKB);
+    memcpy(video_mem, (bterm[dest]), FOURKB);
     bscreen_x[src] = screen_x;
     bscreen_y[src] = screen_y;
     screen_x = bscreen_x[dest];
