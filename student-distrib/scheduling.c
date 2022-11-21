@@ -1,10 +1,12 @@
+#include "x86_desc.h"
 #include "paging.h"
+#include "pcb.h"
 
 int context_switch() {
 
 	// Current Task stack
 	task_stack_t * task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
-	pcb_t * pcb = &(curr_task_stack->task_pcb);
+	pcb_t * pcb = &(task_stack->task_pcb);
 
 	// Save previous process' stack pointer into PCB
 	asm volatile (
@@ -20,8 +22,8 @@ int context_switch() {
 	context_switch_paging(pid);
 
 	// Gets task stack for new proc
-	task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)))
-	pcb = &(curr_task_stack->task_pcb);
+	task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
+	pcb = &(task_stack->task_pcb);
 	
 	// Switch Stacks and set TSS
 	asm volatile (
