@@ -145,6 +145,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
                 } else {
                     copy_buffer(kbuffers[terminal_num], keyboard_buffer, BUF_LEN);
                     reset_keyboard_buffer();
+                    switch_term(1, terminal_num);
                     terminal_num = 1;
                 return;
                 }
@@ -154,6 +155,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
                 } else {
                     copy_buffer(kbuffers[terminal_num], keyboard_buffer, BUF_LEN);
                     reset_keyboard_buffer();
+                    switch_term(2, terminal_num);
                     terminal_num = 2;
                 return;
                 }
@@ -163,6 +165,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
                 } else {
                     copy_buffer(kbuffers[terminal_num], keyboard_buffer, BUF_LEN);
                     reset_keyboard_buffer();
+                    switch_term(3, terminal_num);
                     terminal_num = 3;
                 return;
                 }

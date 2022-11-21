@@ -13,7 +13,6 @@
 #define CAPS_OFFSET 0x20
 #define BUF_LEN 128
 #define TAB_SIZE 4
-#define NUM_TERM 3
 
 /* Externally-visible functions */
 

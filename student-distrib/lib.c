@@ -5,9 +5,13 @@
 #include "lib.h"
 
 #define VIDEO       0xB8000
+#define TERM1       0xB9000
+#define TERM2       0xBA000
+#define TERM3       0xBB000
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
+
 // 2 bytes per ascii char (char and color)
 #define SCREEN_SIZE NUM_COLS*NUM_ROWS*2
 #define ROW_SIZE    2*NUM_COLS
@@ -22,6 +26,9 @@
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
+static char bterm[NUM_TERM] = {TERM1, TERM2, TERM3};
+static int bscreen_x[3];
+static int bscreen_y[3];
 // buffer used for saving screen after a clear screen
 static char prev_screen_buff[SCREEN_SIZE] = {0x20};
 static int prev_screen_x;
@@ -585,4 +592,18 @@ void test_interrupts(void) {
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         video_mem[i << 1]++;
     }
+}
+
+/* void switch_term(int dest, int src)
+ * Inputs: destination and source terminals
+ * Return Value: void
+ * Function: switches videeo memory */
+void switch_term(int dest, int src) {
+    memcpy((char*)bterm[src], video_mem, SCREEN_SIZE);
+    memcpy(video_mem, (char*)bterm[dest], SCREEN_SIZE);
+    bscreen_x[src] = screen_x;
+    bscreen_y[src] = screen_y;
+    screen_x = bscreen_x[dest];
+    screen_y = bscreen_y[dest];
+    update_cursor(screen_x, screen_y);
 }
