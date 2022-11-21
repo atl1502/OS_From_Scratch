@@ -15,8 +15,10 @@ typedef struct pcb {
 	int pid;
 	int parent_id;
 	fd_t fd_array[MAX_FILES];
-	uint32_t esp;
-	uint32_t ebp;
+	uint32_t par_esp;
+	uint32_t par_ebp;
+	uint32_t curr_esp;
+	uint32_t curr_ebp;
 	uint8_t cmd[BUF_LEN];
 	uint8_t arg[BUF_LEN];
 	int active; // 1 if active/started

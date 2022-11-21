@@ -51,27 +51,43 @@ static fd_ops_t file_stdout = {
  * RETURN VALUE: -1 on failure, otherwise termination status
  */
 int32_t sys_halt (uint8_t status) {
-	// printf("HALTING WITH STATUS %d\n", status);
+
+	uint32_t local_status = status;
+
+	// Get current task stack and PCB
 	task_stack_t * curr_task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
 	pcb_t* curr_pcb = &(curr_task_stack->task_pcb);
-	// disable video enabled flag if enabled
+
+	// Check status
+	if (status == EXCEPTION_ERROR)
+		local_status = SYS_ERROR_STAT;
+
+	// Disable video enabled flag if enabled
 	if (curr_pcb->vid_flag == 1) {
 		page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0;
 	}
 
-	// if in base shell relaunch
+	// If in base shell relaunch
 	if (pid == 0) {
 		zero_base();
 		sys_execute((uint8_t *) "shell");
 		return 0;
 	}
 
+	// Check that the current PID matches global PID
 	if (curr_pcb->pid != pid) {
 		printf("YOU SHOULD NOT BE HERE !!! PID of HALT != PID GLOBAL\n");
 		return -1;
 	}
 
-	// call close on all the files
+	// Restore Parent Paging
+	context_switch_paging(curr_pcb->parent_id);
+	dealloc_process(curr_pcb->pid);
+
+	// Restore parent pid
+	pid = curr_pcb->parent_id;
+
+	// Call close on all the files
 	int fd;
 	for(fd = 0; fd < MAX_FD; fd++){
 		if((curr_pcb->fd_array[fd]).flags & FD_USED){
@@ -79,31 +95,20 @@ int32_t sys_halt (uint8_t status) {
 		}
 	}
 
-	// Restore Parent Paging
-	context_switch_paging(curr_pcb->parent_id);
-	dealloc_process(curr_pcb->pid);
-
-	// Restore pid
-	pid = curr_pcb->parent_id;
-
-	// Close all files (Nothing happens yay!)
-
 	// Purge PCB's FD
 	memset(curr_pcb->fd_array, 0, sizeof(curr_pcb->fd_array));
 
 	// Restore Parent Data (esp0) and return to where execute was called
-	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (pid));
-	uint32_t local_status = status;
-	if (status == EXCEPTION_ERROR)
-		local_status = SYS_ERROR_STAT;
+	tss.esp0 = curr_pcb->par_esp;
+
+	// Go back to execute that started child program with return status
 	asm volatile(
 			"movl %0, %%eax;"
-			"movl %1, %%esp;"
-			"movl %2, %%ebp;"
+			"movl %1, %%ebp;"
 			"leave;"
 			"ret;"
 			:
-			: "r" (local_status), "r" ((curr_pcb->esp)), "r" ((curr_pcb->ebp))
+			: "r" (local_status), "r" ((curr_pcb->par_ebp))
 			: "memory", "cc"
 	);
 
@@ -121,27 +126,42 @@ int32_t sys_halt (uint8_t status) {
  * 0 to 255 if the program executes a halt system call, given by the program’s call to halt
  */
 int32_t sys_execute (const uint8_t* command) {
-	// temporary arrays to hold cmd and arg and store into pcb
+
+	// Counter vars
+	int i = 0;
+	int j = 1;
+	int k = 0;
+
+	// Temporary arrays to hold cmd and arg and store into pcb
 	uint8_t tmp_cmd[BUF_LEN];
 	uint8_t tmp_arg[BUF_LEN];
 	int offset = 0;
 
+	// Filesys Dentry
+	dentry_t curr_dentry = {{ 0 }};
+
+	// Magic string at start of ELF file
+	char magic_string[4] = { 0x7F, 'E', 'L', 'F' };
+
+	// ELF Headers
+	uint32_t curr_elf_header[10] = { 0 };
+	uint32_t user_entry = 0;
+
+	// User address stack and base pointer
+	uint32_t user_esp = 0;
+	
 	if (command == NULL) {
 		return -1;
 	}
 
 	// Get command without args
-	int i = 0;
-	int j = 1;
-	int k = 0;
-
 	while ((command[i] != '\0') && (command[i] != SPACE)) {
 		tmp_cmd[i] = command[i];
 		i++;
 	}
-	tmp_cmd[i] = '\0'; // Terminate command with nullchar
+	tmp_cmd[i] = '\0'; // Terminate command string
 
-	// Remove additional whitespace
+	// Remove additional whitespace between command and args
 	for (; command[i] == SPACE; i++)
 		;
 	i--;
@@ -156,23 +176,6 @@ int32_t sys_execute (const uint8_t* command) {
 		tmp_arg[j-1] = command[i+j];
 		j++;
 	}
-
-	// Magic string at start of ELF file
-	char magic_string[4] = { 0x7F, 'E', 'L', 'F' };
-
-	// ELF Headers
-	uint32_t curr_elf_header[10] = { 0 };
-	uint32_t entry = 0;
-
-	// Filesys Dentry
-	dentry_t curr_dentry = {{ 0 }};
-
-	// Loop counter
-	i = 0;
-
-	// User address stack and base pointer
-	uint32_t user_esp = 0;
-
 
 	// Get executable file header from filesys
 	read_dentry_by_name (tmp_cmd, &curr_dentry);
@@ -189,16 +192,21 @@ int32_t sys_execute (const uint8_t* command) {
 		printf("MAGIC STRING WRONG!!!!\n");
 		return -1;
 	}
-	entry = curr_elf_header[6];
 
-	// Allocate new PID and new page directory
+	// Entry to program is right after header
+	user_entry = curr_elf_header[6];
+
+	// Allocate new PID
 	int proc_pid = alloc_new_process();
 	if (proc_pid == -1) {
 		// printf("PID COULD NOT BE ALLOCATED");
 		return -1;
 	}
+
+	// Setup child proc paging structs
 	context_switch_paging(proc_pid);
-	// MAGIC
+
+	// Zero program memory location (prevents nonsense)
 	memset((void*) PROGRAM_VIRT_START, 0, PROGRAM_SIZE);
 
 	// Load ELF into memory
@@ -207,6 +215,8 @@ int32_t sys_execute (const uint8_t* command) {
 		offset += i;
 		i = read_data(curr_dentry.inode_num, offset, (void *)(PROGRAM_VIRT_START+offset), 4096);
 	}
+
+	// Setup user stack address
 	user_esp = BASE_VIRT_ADDR + FOUR_MIB - 4;
 
 	// PCB Address pointer
@@ -219,25 +229,30 @@ int32_t sys_execute (const uint8_t* command) {
 	(file_array+1)->table_pointer = file_stdout;
 	(file_array+1)->flags |= FD_USED;
 
+	// Setting PCB parameters for child process
 	task_stack->task_pcb.parent_id = pid;
 	task_stack->task_pcb.pid = proc_pid;
 	task_stack->task_pcb.vid_flag = 0;
 	strcpy((int8_t*) task_stack->task_pcb.arg, (int8_t*) tmp_arg);
 	strcpy((int8_t*) task_stack->task_pcb.cmd, (int8_t*) tmp_cmd);
 
+	// Setting global PID to process PID
 	pid = proc_pid;
 
-	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (proc_pid));
 	// TSS Setup for context switch with PCB init
+	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (proc_pid));
+
+	// Saving parent stack pointers into child PCB
 	asm volatile ("\n\
 		movl %%ebp, %0      \n\
 		movl %%esp, %1      \n\
 		"
-		: "=r"(task_stack->task_pcb.ebp), "=r"(task_stack->task_pcb.esp)
+		: "=r"(task_stack->task_pcb.par_ebp), "=r"(task_stack->task_pcb.par_esp)
 		:
 		: "memory", "cc"
 	);
 
+	// IRET Context to user setup
 	asm volatile (
 		"cli\n\t"
 		"mov $0x2B, %%ax\n\t"
@@ -255,7 +270,7 @@ int32_t sys_execute (const uint8_t* command) {
 		"pushl %[entry]\n\t"
 		"iret\n\t"
 		:
-		: [entry] "g"(entry), [user_esp] "g"(user_esp)
+		: [entry] "g"(user_entry), [user_esp] "g"(user_esp)
 		);
 
 	return 0;

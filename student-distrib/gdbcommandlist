@@ -1,4 +1,5 @@
-target remote 10.0.2.2:1234
-add-symbol-file ../fish/fish.exe 0x08048094
-b syscalls.c:234
+target remote localhost:1234
+# add-symbol-file ../fish/fish.exe 0x08048094
+b sys_halt
+b sys_execute
 c
