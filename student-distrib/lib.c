@@ -599,8 +599,8 @@ void test_interrupts(void) {
  * Return Value: void
  * Function: switches videeo memory */
 void switch_term(int dest, int src) {
-    memcpy((char*)bterm[src], video_mem, SCREEN_SIZE);
-    memcpy(video_mem, (char*)bterm[dest], SCREEN_SIZE);
+    memcpy((char*)(bterm[src]), video_mem, SCREEN_SIZE);
+    memcpy(video_mem, (char*)(bterm[dest]), SCREEN_SIZE);
     bscreen_x[src] = screen_x;
     bscreen_y[src] = screen_y;
     screen_x = bscreen_x[dest];
