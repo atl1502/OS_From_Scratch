@@ -143,7 +143,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
                 if (terminal_num == 1) {
                     return;
                 } else {
-                    kbuffers[terminal_num] = keyboard_buffer;
+                    copy_buffer(kbuffers[terminal_num], keyboard_buffer, BUF_LEN);
                     reset_keyboard_buffer();
                     terminal_num = 1;
                 return;
@@ -152,7 +152,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
                 if (terminal_num == 2) {
                     return;
                 } else {
-                    kbuffers[terminal_num] = keyboard_buffer;
+                    copy_buffer(kbuffers[terminal_num], keyboard_buffer, BUF_LEN);
                     reset_keyboard_buffer();
                     terminal_num = 2;
                 return;
@@ -161,7 +161,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
                 if (terminal_num == 3) {
                     return;
                 } else {
-                    kbuffers[terminal_num] = keyboard_buffer;
+                    copy_buffer(kbuffers[terminal_num], keyboard_buffer, BUF_LEN);
                     reset_keyboard_buffer();
                     terminal_num = 3;
                 return;
@@ -304,4 +304,19 @@ void reset_keyboard_buffer(){
  */
 uint8_t get_terminal_num(){
     return terminal_num;
+}
+
+/*
+ * copy_buffer
+ * DESCRIPTION: copys a buffer
+ * INPUTS: destination and source buffers, size
+ * SIDE EFFECTS: none
+ * RETURN VALUE: none
+ */
+void copy_buffer(char* dest, char* src, int size) {
+    int i;
+    for (i = 0; i < size; i++) {
+        dest[i] = src[i];
+    }
+    return;
 }

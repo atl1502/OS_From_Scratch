@@ -38,4 +38,7 @@ void reset_keyboard_buffer();
 /* Returns which terminal we are using*/
 uint8_t get_terminal_num();
 
+/* Copies a buffer */
+void copy_buffer(char* dest, char* src, int size);
+
 #endif // KEYBOARD_H
