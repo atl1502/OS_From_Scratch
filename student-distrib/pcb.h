@@ -19,6 +19,7 @@ typedef struct pcb {
 	uint32_t par_ebp;
 	uint32_t curr_esp;
 	uint32_t curr_ebp;
+	uint8_t proc_term_num;
 	uint8_t cmd[BUF_LEN];
 	uint8_t arg[BUF_LEN];
 	int active; // 1 if active/started

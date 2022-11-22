@@ -7,6 +7,7 @@
 #include "drivers/rtc.h"
 #include "drivers/terminal.h"
 #include "paging.h"
+#include "scheduling.h"
 
 // jump table ptrs for file fd's
 static fd_ops_t file_syscalls = {
@@ -101,11 +102,15 @@ int32_t sys_halt (uint8_t status) {
 	// Restore Parent Data (esp0) and return to where execute was called
 	tss.esp0 = curr_pcb->par_esp;
 
+	// Go back to parent pid in schedule
+	cli();
+	schedule[curr_pcb->proc_term_num] = curr_pcb->parent_id;
 	// Go back to execute that started child program with return status
 	asm volatile(
 			"movl %0, %%eax;"
 			"movl %1, %%ebp;"
 			"leave;"
+			"sti;"
 			"ret;"
 			:
 			: "r" (local_status), "r" ((curr_pcb->par_ebp))
@@ -219,8 +224,10 @@ int32_t sys_execute (const uint8_t* command) {
 	// Setup user stack address
 	user_esp = BASE_VIRT_ADDR + FOUR_MIB - 4;
 
-	// PCB Address pointer
+	// PCB Address pointers parent and child
 	task_stack_t * const task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (proc_pid+1)));
+	task_stack_t * const parent_task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
+	pcb_t * const parent_pcb = &(parent_task_stack->task_pcb);
 
 	// file descriptor set up for 0 and 1
 	fd_t * file_array = task_stack->task_pcb.fd_array;
@@ -256,6 +263,20 @@ int32_t sys_execute (const uint8_t* command) {
 		: "memory", "cc"
 	);
 
+	// Replace currently scheduled program on that terminal with new executed program
+	cli();
+	// ASSUMPTION: shells are always PID 0 - 2, representing their respective shells
+
+	// If not shell pid, get parent term num to schedule, and set child proc term to parent
+	if (proc_pid > 2) {
+		schedule[parent_pcb->proc_term_num] = task_stack->task_pcb.pid;
+		task_stack->task_pcb.proc_term_num = parent_pcb->proc_term_num;
+	}
+	else { // Base shell case
+		task_stack->task_pcb.proc_term_num = proc_pid;
+		schedule[parent_pcb->proc_term_num] = proc_pid;
+	}
+
 	// IRET Context to user setup
 	asm volatile (
 		"cli\n\t"
@@ -275,6 +296,7 @@ int32_t sys_execute (const uint8_t* command) {
 		"iret\n\t"
 		:
 		: [entry] "g"(user_entry), [user_esp] "g"(user_esp)
+		: "eax"
 		);
 
 	return 0;

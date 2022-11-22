@@ -123,6 +123,7 @@ extern seg_desc_t ldt_desc_ptr;
 extern seg_desc_t gdt_ptr;
 extern uint32_t ldt;
 extern uint32_t pid;
+extern uint32_t term_num;
 
 extern uint32_t tss_size;
 extern seg_desc_t tss_desc_ptr;

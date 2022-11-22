@@ -41,7 +41,7 @@ void paging_init(){
      * which is 0x103 for the last 12 bits
      * B8 for next eight bits to represent VGA 4KB aligned address
      */
-    page_table[VIDMEM_ADDR] = (VIDMEM_ADDR << 12) | GLOBAL | WRITE_ENABLE | PRESENT;
+    page_table[VIDMEM_ADDR] = (VIDMEM_ADDR << 12) | WRITE_ENABLE | PRESENT;
 
     // setup terminal buff pages as well
     page_table[TERMINAL_0_VIDPAGE] = (TERMINAL_0_VIDPAGE << 12) | GLOBAL | WRITE_ENABLE | PRESENT;
@@ -207,7 +207,7 @@ void zero_base(void) {
   * remap
   * DESCRIPTION: remaps paging so video mem not overwritten
   * INPUTS: terminal number
-  * SIDE EFFECTS: none
+  * SIDE EFFECTS: flushes TLB
   * RETURN VALUE: none
   */
 void remap(int term) {
@@ -221,4 +221,34 @@ void remap(int term) {
         default:
             return;
     }
+
+    // Flush TLBs
+    asm volatile (
+        "movl %%cr3, %%eax\n\t"
+        "movl %%eax, %%cr3\n\t"
+        :
+        :
+        : "eax"
+        );
+}
+
+ /*
+  * unmap
+  * DESCRIPTION: unmaps proc video mem to write to screen buffer again
+  * INPUTS: terminal number
+  * SIDE EFFECTS: flushes TLB
+  * RETURN VALUE: none
+  */
+void unmap(int term) {
+    page_table[VIDMEM_ADDR] = (VIDMEM_ADDR << 12) | WRITE_ENABLE | PRESENT;
+
+    // Flush TLBs
+    asm volatile (
+        "movl %%cr3, %%eax\n\t"
+        "movl %%eax, %%cr3\n\t"
+        :
+        :
+        : "eax"
+        );
+
 }

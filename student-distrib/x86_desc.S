@@ -6,7 +6,7 @@
 
 .text
 
-.globl ldt_size, tss_size, pid
+.globl ldt_size, tss_size, pid, term_num
 .globl gdt_desc, ldt_desc, tss_desc
 .globl tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl gdt_ptr
@@ -19,6 +19,10 @@
 
 pid:
     .long 0
+
+term_num:
+    .long 0
+
 tss_size:
     .long tss_bottom - tss - 1
 

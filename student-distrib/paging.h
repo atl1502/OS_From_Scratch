@@ -44,4 +44,7 @@ void zero_base(void);
 // switch mapping of vid mem for multiple terminals
 void remap(int term);
 
+// switch mapping of vid mem back to actual vid mem
+void unmap();
+
 #endif // PAGING_H

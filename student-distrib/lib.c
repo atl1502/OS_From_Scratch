@@ -3,6 +3,9 @@
  */
 
 #include "lib.h"
+#include "x86_desc.h"
+#include "paging.h"
+#include "pcb.h"
 
 #define VIDEO       0xB8000
 #define TERM0       0xB9000
@@ -86,12 +89,12 @@ void program_reload(void) {
  * Return Value: none
  * Function: Updates cursor to specified location */
 void update_cursor(int x, int y) {
-	uint16_t pos = y * NUM_COLS + x;
+    uint16_t pos = y * NUM_COLS + x;
 
-	outb(MASK1F, PORT4);
-	outb((uint8_t) (pos & MASK2F), PORT5);
-	outb(MASK1E, PORT4);
-	outb((uint8_t) ((pos >> RSHIFT1) & MASK2F), PORT5);
+    outb(MASK1F, PORT4);
+    outb((uint8_t) (pos & MASK2F), PORT5);
+    outb(MASK1E, PORT4);
+    outb((uint8_t) ((pos >> RSHIFT1) & MASK2F), PORT5);
 
 }
 
@@ -249,7 +252,7 @@ void putc(uint8_t c) {
         // print 4 spaces for the tab
         for (i = 0; i <4 ; i++){
             if(screen_x >= NUM_COLS)
-		    break;
+                break;
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
             screen_x++;
@@ -598,16 +601,48 @@ void test_interrupts(void) {
 }
 
 /* void switch_term(int dest, int src)
- * Inputs: destination and source terminals
+ * Replaces new terminal with old terminal on screen
+ * Inputs: new and old terminals
  * Return Value: void
- * Function: switches videeo memory */
-void switch_term(int dest, int src) {
+ * Function: switches video memory */
+void switch_term(int new, int old) {
+
+    // Terminal number associated with current process
+    uint8_t proc_term_num = (((task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1))))->task_pcb).proc_term_num;
+
+    // Array of three screen buffers
     char* bterm[NUM_TERM] = {term0_mem, term1_mem, term2_mem};
-    memcpy((bterm[src]), video_mem, FOURKB);
-    memcpy(video_mem, (bterm[dest]), FOURKB);
-    bscreen_x[src] = screen_x;
-    bscreen_y[src] = screen_y;
-    screen_x = bscreen_x[dest];
-    screen_y = bscreen_y[dest];
+
+    // Don't do anything if no changes
+    if (new == old) {
+        return;
+    }
+
+    // Copy current video_mem into src terminal
+    memcpy((bterm[old]), video_mem, FOURKB);
+
+    // Copy destination terminal into video_mem
+    memcpy(video_mem, (bterm[new]), FOURKB);
+
+    // Save old terminal cursor
+    bscreen_x[old] = screen_x;
+    bscreen_y[old] = screen_y;
+
+    // Restore new terminal cursor
+    screen_x = bscreen_x[new];
+    screen_y = bscreen_y[new];
     update_cursor(screen_x, screen_y);
+
+    // Set currently viewing terminal to global term_num
+    term_num = new;
+
+    // Make sure that currently scheduled proc is new terminal view
+    if (proc_term_num == new) {
+        unmap();
+    }
+    else { // Remap current process' video mem to saved bank
+        remap(proc_term_num);
+    }
+
+    return;
 }
