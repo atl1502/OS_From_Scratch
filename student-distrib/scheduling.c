@@ -9,9 +9,10 @@ static uint8_t running_proc = 0;
 uint8_t schedule[BASE_PROC] = { 0 };
 
 int context_switch() {
+
 	// Current Task stack
-	task_stack_t * task_stack = NULL;
-	pcb_t * pcb = NULL;
+	task_stack_t * task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
+	pcb_t * pcb = &(task_stack->task_pcb);
 
 	// Save previous process' stack pointer into PCB
 	asm volatile (

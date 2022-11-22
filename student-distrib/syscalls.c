@@ -269,12 +269,19 @@ int32_t sys_execute (const uint8_t* command) {
 
 	// If not shell pid, get parent term num to schedule, and set child proc term to parent
 	if (proc_pid > 2) {
-		schedule[parent_pcb->proc_term_num] = task_stack->task_pcb.pid;
 		task_stack->task_pcb.proc_term_num = parent_pcb->proc_term_num;
+		schedule[parent_pcb->proc_term_num] = task_stack->task_pcb.pid;
 	}
 	else { // Base shell case
 		task_stack->task_pcb.proc_term_num = proc_pid;
-		schedule[parent_pcb->proc_term_num] = proc_pid;
+		schedule[proc_pid] = proc_pid;
+	}
+
+	if (task_stack->task_pcb.proc_term_num == term_num) {
+		unmap();
+	}
+	else {
+		remap(task_stack->task_pcb.proc_term_num);
 	}
 
 	// IRET Context to user setup
