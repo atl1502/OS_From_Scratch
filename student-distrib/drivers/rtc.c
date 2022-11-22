@@ -8,7 +8,7 @@
 #include "../i8259.h"
 #include "../fd.h"
 
-static spinlock_t rtc_lock = SPIN_LOCK_UNLOCKED;
+/* static spinlock_t rtc_lock = SPIN_LOCK_UNLOCKED; */
 
 volatile int flag;
 

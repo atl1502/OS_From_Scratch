@@ -42,9 +42,6 @@ jmp ret_from_intr
 ret_from_intr:
 popal
 
-# context switching would happen here
-# unsure josh help
-
 addl $4, %ESP
 iret
 

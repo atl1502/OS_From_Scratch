@@ -68,7 +68,7 @@ int32_t sys_halt (uint8_t status) {
 	}
 
 	// If in base shell relaunch
-	if (pid == 0) {
+	if (pid < 3) {
 		zero_base();
 		sys_execute((uint8_t *) "shell");
 		return 0;

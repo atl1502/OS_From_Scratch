@@ -152,7 +152,6 @@ void entry(unsigned long magic, unsigned long addr) {
 		ltr(KERNEL_TSS);
 	}
 
-
 	/* Init the PIC */
 	i8259_init();
 
@@ -178,7 +177,7 @@ void entry(unsigned long magic, unsigned long addr) {
 	printf("Enabling Interrupts\n");
 	sti();
 
-	execute((unsigned char*)"shell");
+	/* execute((unsigned char*)"shell"); */
 
 
 #ifdef RUN_TESTS
