@@ -6,9 +6,6 @@
 #include "../i8259.h"
 #include "../fd.h"
 #include "../scheduling.h"
-#include "../syscall_wrapper.h"
-
-static uint8_t pit_counter = 0;
 
 /*
  * pit_init
@@ -20,7 +17,7 @@ static uint8_t pit_counter = 0;
 /* Initialize the PIT */
 void pit_init(uint32_t freq) {
 
-	//divide max pit frequency by our frequency to get reload value
+	// divide max pit frequency by our frequency to get reload value
 	uint32_t reload_value = MAX_PIT_FREQ / freq;
 
 	//send command (Channel 0, lobyte/hybyte, square wave generator)
@@ -46,15 +43,6 @@ void pit_init(uint32_t freq) {
  * RETURN VALUE: none
  */
 void pit_handle_interrupt(void) {
-
-	// First three pit counters should spawn root shell procs
-	// Hopefully people cannot type any other program in shell faster than pit
-	if (pit_counter < 3) {
-		pit_counter++;
-		execute((unsigned char*)"shell");
-	}
-	else {
-		context_switch();
-	}
 	send_eoi(PIT_IRQ);
+	context_switch();
 }

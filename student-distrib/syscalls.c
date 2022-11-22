@@ -149,7 +149,7 @@ int32_t sys_execute (const uint8_t* command) {
 
 	// User address stack and base pointer
 	uint32_t user_esp = 0;
-	
+
 	if (command == NULL) {
 		return -1;
 	}
@@ -241,6 +241,10 @@ int32_t sys_execute (const uint8_t* command) {
 
 	// TSS Setup for context switch with PCB init
 	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (proc_pid));
+
+	// Initialize proc stack pointer to top of stack
+	task_stack->task_pcb.curr_esp = tss.esp0 + EIGHT_KB;
+	task_stack->task_pcb.curr_ebp = task_stack->task_pcb.curr_esp;
 
 	// Saving parent stack pointers into child PCB
 	asm volatile ("\n\

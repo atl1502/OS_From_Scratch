@@ -337,7 +337,7 @@ void idt_init() {
 	// diagram 5-2 pg 156
 
 	// init drivers for rtc/keyboard
-	pit_init(1000);
+	pit_init(35);
 	keyboard_init();
 	rtc_init();
 
