@@ -3,5 +3,6 @@ set output-radix 16
 # add-symbol-file ../fish/fish.exe 0x08048094
 # b pit_handle_interrupt
 # b syscalls.c:203
-b context_switch
+# b context_switch
+b switch_term
 c

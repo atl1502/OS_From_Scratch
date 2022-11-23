@@ -602,6 +602,7 @@ void test_interrupts(void) {
 
 /* void switch_term(int dest, int src)
  * Replaces new terminal with old terminal on screen
+ * No scheduling can occur therefore no interrupts :3
  * Inputs: new and old terminals
  * Return Value: void
  * Function: switches video memory */
@@ -618,6 +619,10 @@ void switch_term(int new, int old) {
         return;
     }
 
+
+    // Point video_mem to physical video_mem
+    unmap();
+
     // Copy current video_mem into src terminal
     memcpy((bterm[old]), video_mem, FOURKB);
 
@@ -633,16 +638,17 @@ void switch_term(int new, int old) {
     screen_y = bscreen_y[new];
     update_cursor(screen_x, screen_y);
 
+    cli();
+
     // Set currently viewing terminal to global term_num
     term_num = new;
 
-    // Make sure that currently scheduled proc is new terminal view
-    if (proc_term_num == new) {
-        unmap();
-    }
-    else { // Remap current process' video mem to saved bank
+    // If not the process' terminal, make sure video_mem page remaps to saved buffer
+    if (proc_term_num != term_num) {
         remap(proc_term_num);
     }
+
+    sti();
 
     return;
 }

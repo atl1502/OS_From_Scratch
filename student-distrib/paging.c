@@ -230,6 +230,7 @@ void remap(int term) {
         :
         : "eax"
         );
+    return;
 }
 
  /*
@@ -240,6 +241,7 @@ void remap(int term) {
   * RETURN VALUE: none
   */
 void unmap(int term) {
+
     page_table[VIDMEM_ADDR] = (VIDMEM_ADDR << 12) | WRITE_ENABLE | PRESENT;
 
     // Flush TLBs
@@ -250,5 +252,5 @@ void unmap(int term) {
         :
         : "eax"
         );
-
+    return;
 }
