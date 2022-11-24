@@ -64,12 +64,7 @@ void keyboard_handle_interrupt(void) {
 
 	cli();
 
-	// Save screen location of currently scheduled proc
-	save_screen(running_proc);
-
-	// Restore terminal screen location
-	restore_screen(term_num);
-
+	
 	// Modifier Key Flags
 	switch (scan_code) {
 		case 0x3A: // Capslock toggle
@@ -161,12 +156,6 @@ void keyboard_handle_interrupt(void) {
 	// Return video mem map to original
 	remap(running_proc);
 
-	// Save terminal screen
-	save_screen(term_num);
-
-	// Restore proc screen
-	restore_screen(running_proc);
-
 	sti();
 
 	send_eoi(KB_IRQ);
@@ -218,6 +207,12 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 				}
 		}
 	}
+
+	// Save screen location of currently scheduled proc
+	save_screen(running_proc);
+
+	// Restore terminal screen location
+	restore_screen(term_num);
 
 	// Make sure previous key pressed in buffer is not newline
 	if(keyboard_buffer_len != 0 && keyboard_buffer[keyboard_buffer_len-1] == '\n') {
@@ -313,6 +308,12 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 			}
 		}
 	}
+
+	// Save terminal screen
+	save_screen(term_num);
+
+	// Restore proc screen
+	restore_screen(running_proc);
 }
 
 /*

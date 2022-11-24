@@ -6,6 +6,7 @@
 #include "x86_desc.h"
 #include "paging.h"
 #include "pcb.h"
+#include "scheduling.h"
 
 #define VIDEO       0xB8000
 #define TERM0       0xB9000
@@ -642,8 +643,8 @@ void switch_term(int new, int old) {
     // Copy destination terminal into video_mem
     memcpy(video_mem, (bterm[new]), FOURKB);
 
-    // Save old terminal cursor
-    save_screen(old);
+    // Save terminal cursor of currently running proc
+    save_screen(running_proc);
 
     // Restore new terminal cursor
     update_cursor(bscreen_x[new], bscreen_y[new]);
