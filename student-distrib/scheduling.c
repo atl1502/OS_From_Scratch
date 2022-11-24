@@ -12,9 +12,6 @@ int context_switch() {
 
 	cli();
 
-	// Reset Mapping back to default
-	unmap();
-
 	// Current Task stack
 	task_stack_t * task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
 	pcb_t * pcb = &(task_stack->task_pcb);
@@ -37,6 +34,8 @@ int context_switch() {
 		printf("EXTREMLEY SUSS, you managed to return from SHELL");
 	}
 
+	save_screen(pcb->proc_term_num);
+
 	// Switch to new process & PID
 	running_proc = (running_proc + 1) % 3;
 	pid = schedule[running_proc];
@@ -47,6 +46,12 @@ int context_switch() {
 	// Gets task stack for new proc
 	task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
 	pcb = &(task_stack->task_pcb);
+
+	// Reset Mapping back to default
+	unmap();
+
+	// Set screen to process' saved screen
+	restore_screen(pcb->proc_term_num);
 
 	// Check current terminal vs proc terminal
 	if (pcb->proc_term_num != term_num) {

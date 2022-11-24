@@ -20,6 +20,8 @@ void clear(void);
 void program_clear(void);
 void program_reload(void);
 void update_cursor(int x, int y);
+void restore_screen(int term);
+void save_screen(int term);
 
 void* memset(void* s, int32_t c, uint32_t n);
 void* memset_word(void* s, int32_t c, uint32_t n);

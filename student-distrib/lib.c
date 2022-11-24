@@ -600,6 +600,17 @@ void test_interrupts(void) {
     }
 }
 
+void restore_screen(int term) {
+    screen_x = bscreen_x[term];
+    screen_y = bscreen_y[term];
+}
+
+void save_screen(int term) {
+    bscreen_x[term] = screen_x;
+    bscreen_y[term] = screen_y;
+}
+
+
 /* void switch_term(int dest, int src)
  * Replaces new terminal with old terminal on screen
  * No scheduling can occur therefore no interrupts :3
@@ -608,6 +619,8 @@ void test_interrupts(void) {
  * Side Effects: Modifies global term_num variable
  * Function: switches video memory */
 void switch_term(int new, int old) {
+
+    cli();
 
     // Terminal number associated with current process
     uint8_t proc_term_num = (((task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1))))->task_pcb).proc_term_num;
@@ -630,15 +643,10 @@ void switch_term(int new, int old) {
     memcpy(video_mem, (bterm[new]), FOURKB);
 
     // Save old terminal cursor
-    bscreen_x[old] = screen_x;
-    bscreen_y[old] = screen_y;
+    save_screen(old);
 
     // Restore new terminal cursor
-    screen_x = bscreen_x[new];
-    screen_y = bscreen_y[new];
-    update_cursor(screen_x, screen_y);
-
-    cli();
+    update_cursor(bscreen_x[new], bscreen_y[new]);
 
     // Set currently viewing terminal to global term_num
     term_num = new;

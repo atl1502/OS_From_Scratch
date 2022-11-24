@@ -179,7 +179,6 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 				else {
 					keyboard_buffer = keyboard_buffer0;
 					switch_term(0, term_num);
-					term_num = 0;
 					return;
 				}
 			case 0x3C: //F2 case
@@ -189,7 +188,6 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 				else {
 					keyboard_buffer = keyboard_buffer1;
 					switch_term(1, term_num);
-					term_num = 1;
 					return;
 				}
 			case 0x3D: //F3 case
@@ -199,7 +197,6 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 				else {
 					keyboard_buffer = keyboard_buffer2;
 					switch_term(2, term_num);
-					term_num = 2;
 					return;
 				}
 		}
