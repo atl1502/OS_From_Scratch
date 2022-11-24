@@ -284,17 +284,11 @@ int32_t sys_execute (const uint8_t* command) {
 	}
 	else {
 		remap(task_stack->task_pcb.proc_term_num);
+	}
 
-		if (proc_pid < 3) {
-
-			// Save screen locations of all base shells
-			save_screen(proc_pid);
-
-			// Shells 1 and 2 should be cleared when execute starts
-			if (proc_pid) {
-				clear();
-			}
-		}
+	// Clear screen for base shell
+	if (proc_pid < 3) {
+		clear();
 	}
 
 

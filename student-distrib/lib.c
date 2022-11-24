@@ -33,8 +33,8 @@ static char* video_mem = (char *)VIDEO;
 static char* term0_mem = (char *)TERM0;
 static char* term1_mem = (char *)TERM1;
 static char* term2_mem = (char *)TERM2;
-static int bscreen_x[3];
-static int bscreen_y[3];
+static int bscreen_x[3] = {0};
+static int bscreen_y[3] = {0};
 // buffer used for saving screen after a clear screen
 static char prev_screen_buff[SCREEN_SIZE] = {0x20};
 static int prev_screen_x;
