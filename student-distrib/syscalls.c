@@ -155,6 +155,8 @@ int32_t sys_execute (const uint8_t* command) {
 	// User address stack and base pointer
 	uint32_t user_esp = 0;
 
+	cli();
+
 	if (command == NULL) {
 		return -1;
 	}
@@ -264,13 +266,12 @@ int32_t sys_execute (const uint8_t* command) {
 	);
 
 	// Replace currently scheduled program on that terminal with new executed program
-	cli();
 	// ASSUMPTION: shells are always PID 0 - 2, representing their respective shells
 
 	// If not shell pid, get parent term num to schedule, and set child proc term to parent
 	if (proc_pid > 2) {
 		task_stack->task_pcb.proc_term_num = parent_pcb->proc_term_num;
-		schedule[parent_pcb->proc_term_num] = task_stack->task_pcb.pid;
+		schedule[parent_pcb->proc_term_num] = proc_pid;
 	}
 	else { // Base shell case
 		task_stack->task_pcb.proc_term_num = proc_pid;

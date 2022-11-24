@@ -4,11 +4,16 @@
 #include "syscall_wrapper.h"
 #include "scheduling.h"
 
+uint8_t running_proc = 0;
 static uint8_t pit_count = 0;
-static uint8_t running_proc = 0;
 uint8_t schedule[BASE_PROC] = { 0 };
 
 int context_switch() {
+
+	cli();
+
+	// Reset Mapping back to default
+	unmap();
 
 	// Current Task stack
 	task_stack_t * task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
@@ -44,10 +49,7 @@ int context_switch() {
 	pcb = &(task_stack->task_pcb);
 
 	// Check current terminal vs proc terminal
-	if (pcb->proc_term_num == term_num) {
-		unmap();
-	}
-	else {
+	if (pcb->proc_term_num != term_num) {
 		remap(pcb->proc_term_num);
 	}
 
@@ -61,6 +63,7 @@ int context_switch() {
 	asm volatile (
 		"movl %0, %%ebp\n\t"
 		"leave\n\t"
+		"sti\n\t"
 		"ret\n\t"
 		:
 		: "r"(pcb->curr_ebp)

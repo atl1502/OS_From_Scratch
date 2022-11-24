@@ -1,8 +1,9 @@
 /* keyboard.c - Functions to interact with the RTC
- * vim:ts=4 noexpandtab
  */
 
 #include "keyboard.h"
+#include "../x86_desc.h"
+#include "../scheduling.h"
 #include "../lib.h"
 #include "../spinlock.h"
 #include "../i8259.h"
@@ -21,12 +22,10 @@ static uint8_t caps_lock_flag = 0;
 static uint8_t alt_flag = 0;
 static uint8_t control_flag = 0;
 static uint8_t terminal_mode = 0;
-static uint8_t terminal_num = 0;
-static char keyboard_buffer[BUF_LEN] = {0x00};
+static char * keyboard_buffer;
 static char keyboard_buffer0[BUF_LEN] = {0x00};
 static char keyboard_buffer1[BUF_LEN] = {0x00};
 static char keyboard_buffer2[BUF_LEN] = {0x00};
-static char* kbuffers[NUM_TERM] = {keyboard_buffer0, keyboard_buffer1, keyboard_buffer2};
 // current len of buffer (current idx is keyboard_buffer_len-1)
 static uint8_t keyboard_buffer_len = 0;
 
@@ -38,8 +37,12 @@ static uint8_t keyboard_buffer_len = 0;
  * RETURN VALUE: none
  */
 void keyboard_init(void) {
-    //unmask interrupt line on PIC
-    enable_irq(KB_IRQ);
+
+	// Set first keyboard buffer to screen 0 buffer
+	keyboard_buffer = keyboard_buffer0;
+
+	// Unmask interrupt line on PIC
+	enable_irq(KB_IRQ);
 }
 
 /*
@@ -51,76 +54,105 @@ void keyboard_init(void) {
  */
 /* Handle the keyboard interrupt */
 void keyboard_handle_interrupt(void) {
-    char ascii;
-    uint8_t scan_code = inb(0x60);
-    char current;
-    // get flags
-    if (scan_code == 0x3A){                          // caps lock toggle
-        caps_lock_flag = caps_lock_flag ? 0 : 1;
-    } else if (scan_code == 0x36 || scan_code == 0x2A){     // shift toggle
-        shift_flag = 1;
-    } else if (scan_code == 0xAA || scan_code == 0xB6){
-        shift_flag = 0;
-    } else if (scan_code == 0x1D){                          // control toggle
-        control_flag = 1;
-    } else if (scan_code == 0x9D){
-        control_flag = 0;
-    } else if (scan_code == 0x38){                          // alt toggle
-        alt_flag = 1;
-    } else if (scan_code == 0xB8){
-        alt_flag = 0;
-    }
-    // check if in terminal mode since inputs will be handled differently
-    if (terminal_mode == 1){
-        keyboard_handle_interrupt_buffer(scan_code);
-    } else if (scan_code == 0x0E){                                 // backspace
-        removec();
-    } else if ((scan_code > BOTTOM_ASCII) && (scan_code < TOTAL_ASCII)) {
-        // if alt or ctl are being depressed dont print anything (skip rest)
-        if(!(alt_flag || control_flag)){
-            // if shift or caps lock but not both
-            if (shift_flag ^ caps_lock_flag){
-                // temp variable of scan code
-                current = scan_code_array[scan_code];
-                // between ascii values of a and z
-                if (current >= 0x61 && current <= 0x7A){
-                    ascii = current-CAPS_OFFSET;
-                } else {
-                    switch(current){
-                        case '0': ascii = ')'; break;
-                        case '1': ascii = '!'; break;
-                        case '2': ascii = '@'; break;
-                        case '3': ascii = '#'; break;
-                        case '4': ascii = '$'; break;
-                        case '5': ascii = '%'; break;
-                        case '6': ascii = '^'; break;
-                        case '7': ascii = '&'; break;
-                        case '8': ascii = '*'; break;
-                        case '9': ascii = '('; break;
-                        case '-': ascii = '_'; break;
-                        case '=': ascii = '+'; break;
-                        case '`': ascii = '~'; break;
-                        case '[': ascii = '{'; break;
-                        case ']': ascii = '}'; break;
-                        case '\\': ascii = '|'; break;
-                        case ';': ascii = ':'; break;
-                        case '\'': ascii = '\"'; break;
-                        case ',': ascii = '<'; break;
-                        case '.': ascii = '>'; break;
-                        case '/': ascii = '?'; break;
-                        default: ascii = current;
-                    }
-                }
-            } else {
-                ascii = scan_code_array[scan_code];
-            }
-            // check if it is shift/alt/capslock
-            if (ascii != 0x00){
-                putc(ascii);
-            }
-        }
-    }
-    send_eoi(KB_IRQ);
+
+	char ascii;
+	uint8_t scan_code = inb(0x60);
+	char current;
+
+	// Keyboard always prints to screen
+	unmap();
+
+	// Modifier Key Flags
+	switch (scan_code) {
+		case 0x3A: // Capslock toggle
+			caps_lock_flag = caps_lock_flag ? 0 : 1;
+			break;
+		case 0x36: // Set Shift
+		case 0x2A:
+			shift_flag = 1;
+			break;
+		case 0xB6: // Clear Shift
+		case 0xAA:
+			shift_flag = 0;
+			break;
+		case 0x1D:
+			control_flag = 1;
+			break;
+		case 0x9D:
+			control_flag = 0;
+			break;
+		case 0x38:
+			alt_flag = 1;
+			break;
+		case 0xB8:
+			alt_flag = 0;
+			break;
+	}
+
+	// If in terminal mode, (almost always) handle keys differently (buffered)
+	if (terminal_mode == 1) {
+		keyboard_handle_interrupt_buffer(scan_code);
+	}
+	// Backspace
+	else if (scan_code == 0x0E) {
+		removec();
+	}
+	// Valid ASCII
+	else if ((scan_code > BOTTOM_ASCII) && (scan_code < TOTAL_ASCII)) {
+		// Don't print key combos with control or alt
+		if(!(alt_flag || control_flag)) {
+
+			// Capitalization Logic
+			if (shift_flag ^ caps_lock_flag){
+
+				// Scan code char
+				current = scan_code_array[scan_code];
+
+				// Between ascii values of a and z
+				if (current >= 0x61 && current <= 0x7A){
+					ascii = current-CAPS_OFFSET;
+				}
+				// Handle Special chars
+				else {
+					switch(current){
+						case '0': ascii = ')'; break;
+						case '1': ascii = '!'; break;
+						case '2': ascii = '@'; break;
+						case '3': ascii = '#'; break;
+						case '4': ascii = '$'; break;
+						case '5': ascii = '%'; break;
+						case '6': ascii = '^'; break;
+						case '7': ascii = '&'; break;
+						case '8': ascii = '*'; break;
+						case '9': ascii = '('; break;
+						case '-': ascii = '_'; break;
+						case '=': ascii = '+'; break;
+						case '`': ascii = '~'; break;
+						case '[': ascii = '{'; break;
+						case ']': ascii = '}'; break;
+						case '\\': ascii = '|'; break;
+						case ';': ascii = ':'; break;
+						case '\'': ascii = '\"'; break;
+						case ',': ascii = '<'; break;
+						case '.': ascii = '>'; break;
+						case '/': ascii = '?'; break;
+						default: ascii = current;
+					}
+				}
+			}
+			// Non capital ASCII
+			else {
+				ascii = scan_code_array[scan_code];
+			}
+			// Make sure valid ASCII to print
+			if (ascii != 0x00){
+				putc(ascii);
+			}
+		}
+	}
+	// Return video mem map to original
+	remap(running_proc);
+	send_eoi(KB_IRQ);
 }
 
 /*
@@ -132,121 +164,141 @@ void keyboard_handle_interrupt(void) {
  */
 /* Handle the keyboard interrupt */
 void keyboard_handle_interrupt_buffer(uint8_t scan_code){
-    char current;
-    char ascii = 0;
-    int i;
-    current = scan_code_array[scan_code];
+	char current;
+	char ascii = 0;
+	int i;
+	current = scan_code_array[scan_code];
 
-    if (alt_flag == 1) { //alt-fn key switch terminals
-        switch (scan_code) {
-            case 0x3B: //F1 case
-                if (terminal_num == 0) {
-                    return;
-                } else {
-                    copy_buffer(kbuffers[terminal_num], keyboard_buffer, BUF_LEN);
-                    reset_keyboard_buffer();
-                    switch_term(0, terminal_num);
-                    terminal_num = 0;
-                return;
-                }
-            case 0x3C: //F2 case
-                if (terminal_num == 1) {
-                    return;
-                } else {
-                    copy_buffer(kbuffers[terminal_num], keyboard_buffer, BUF_LEN);
-                    reset_keyboard_buffer();
-                    switch_term(1, terminal_num);
-                    terminal_num = 1;
-                return;
-                }
-            case 0x3D: //F3 case
-                if (terminal_num == 2) {
-                    return;
-                } else {
-                    copy_buffer(kbuffers[terminal_num], keyboard_buffer, BUF_LEN);
-                    reset_keyboard_buffer();
-                    switch_term(2, terminal_num);
-                    terminal_num = 2;
-                return;
-                }
-        }
-    }
+	// Switching terminals if ALT && F(0-2) key
+	if (alt_flag == 1) {
+		switch (scan_code) {
+			case 0x3B: //F1 case
+				if (term_num == 0) {
+					return;
+				}
+				else {
+					keyboard_buffer = keyboard_buffer0;
+					switch_term(0, term_num);
+					term_num = 0;
+					return;
+				}
+			case 0x3C: //F2 case
+				if (term_num == 1) {
+					return;
+				}
+				else {
+					keyboard_buffer = keyboard_buffer1;
+					switch_term(1, term_num);
+					term_num = 1;
+					return;
+				}
+			case 0x3D: //F3 case
+				if (term_num == 2) {
+					return;
+				}
+				else {
+					keyboard_buffer = keyboard_buffer2;
+					switch_term(2, term_num);
+					term_num = 2;
+					return;
+				}
+		}
+	}
 
-    // check prev to make sure it wasn't new line skip if it is
-    if(keyboard_buffer_len != 0 && keyboard_buffer[keyboard_buffer_len-1] == '\n'){
-        return;
-    }
-    if (current == '\n' && keyboard_buffer_len < BUF_LEN) {
-        // add newline to end of buffer
-        keyboard_buffer[keyboard_buffer_len] = current;
-        keyboard_buffer_len++;
-        putc('\n');
-    } else if (control_flag == 1 && scan_code == 0x26){ //ctrl+l
-        clear();
-        // reprint all chars in buffer
-        for (i = 0; i < keyboard_buffer_len; i++){
-            putc(keyboard_buffer[i]);
-        }
-        printf("391OS> ");
-    } else if (scan_code == 0x0E && keyboard_buffer_len > 0){ // backspace
-        //deal with tab case
-        if (keyboard_buffer[keyboard_buffer_len-1] == '\t') {
-            removec();
-            removec();
-            removec();
-        }
-        removec();
-        // remove from buffer;
-        keyboard_buffer_len--;
-        keyboard_buffer[keyboard_buffer_len] = 0x00;
-    } else if (keyboard_buffer_len < BUF_LEN-1){ // ensure buffer is < 127
-        // add char to buffer and prints
-        if ((scan_code > BOTTOM_ASCII) && (scan_code < TOTAL_ASCII)) {
-            // if alt or ctl are being depressed dont print anything (skip rest)
-            if(!(alt_flag || control_flag)){
-                // if shift or caps lock but not both
-                if (shift_flag ^ caps_lock_flag){
-                    // between ascii values of a and z
-                    if (current >= 0x61 && current <= 0x7A){
-                        ascii = current-CAPS_OFFSET;
-                    } else {
-                        switch(current){
-                            case '0': ascii = ')'; break;
-                            case '1': ascii = '!'; break;
-                            case '2': ascii = '@'; break;
-                            case '3': ascii = '#'; break;
-                            case '4': ascii = '$'; break;
-                            case '5': ascii = '%'; break;
-                            case '6': ascii = '^'; break;
-                            case '7': ascii = '&'; break;
-                            case '8': ascii = '*'; break;
-                            case '9': ascii = '('; break;
-                            case '-': ascii = '_'; break;
-                            case '=': ascii = '+'; break;
-                            case '`': ascii = '~'; break;
-                            case '[': ascii = '{'; break;
-                            case ']': ascii = '}'; break;
-                            case '\\': ascii = '|'; break;
-                            case ';': ascii = ':'; break;
-                            case '\'': ascii = '\"'; break;
-                            case ',': ascii = '<'; break;
-                            case '.': ascii = '>'; break;
-                            case '/': ascii = '?'; break;
-                            default: ascii = current;
-                        }
-                    }
-                } else {
-                    ascii = scan_code_array[scan_code];
-                }
-            }
-            // check if it is shift/alt/capslock
-            if (ascii != 0x00){
-                putc(ascii);
-                keyboard_buffer[keyboard_buffer_len] = ascii;
-                keyboard_buffer_len++;
-            }
-        }
-    }
+	// Make sure previous key pressed in buffer is not newline
+	if(keyboard_buffer_len != 0 && keyboard_buffer[keyboard_buffer_len-1] == '\n') {
+		return;
+	}
+
+	if (current == '\n' && keyboard_buffer_len < BUF_LEN) {
+		// add newline to end of buffer
+		keyboard_buffer[keyboard_buffer_len] = current;
+		keyboard_buffer_len++;
+		putc('\n');
+	}
+	// Control L Clears Screen and rewrites terminal
+	else if (control_flag == 1 && scan_code == 0x26){
+		clear();
+		// reprint all chars in buffer
+		for (i = 0; i < keyboard_buffer_len; i++){
+			putc(keyboard_buffer[i]);
+		}
+		printf("391OS> ");
+	}
+	// Checks for backspace
+	else if (scan_code == 0x0E && keyboard_buffer_len > 0){
+		// Tab is three spaces
+		if (keyboard_buffer[keyboard_buffer_len-1] == '\t') {
+			removec();
+			removec();
+			removec();
+		}
+		removec();
+
+		// Remove char from buffer & set entry to zero
+		keyboard_buffer_len--;
+		keyboard_buffer[keyboard_buffer_len] = 0x00;
+
+	}
+	// keyboard_buffer_len < 127 b/c null termination & 0 indexing
+	else if (keyboard_buffer_len < BUF_LEN-1){
+
+		// Add char to buffer and print char
+
+		// Check to make sure is ASCII char to print
+		if ((scan_code > BOTTOM_ASCII) && (scan_code < TOTAL_ASCII)) {
+
+			// Don't print if pressing key with control or alt
+			if(!(alt_flag || control_flag)){
+
+				// Shift and Capitalizing logic
+				if (shift_flag ^ caps_lock_flag){
+
+					// Ascii alphabet print
+					if (current >= 0x61 && current <= 0x7A){
+						ascii = current-CAPS_OFFSET;
+					}
+					// Special char print
+					else {
+						switch(current){
+							case '0': ascii = ')'; break;
+							case '1': ascii = '!'; break;
+							case '2': ascii = '@'; break;
+							case '3': ascii = '#'; break;
+							case '4': ascii = '$'; break;
+							case '5': ascii = '%'; break;
+							case '6': ascii = '^'; break;
+							case '7': ascii = '&'; break;
+							case '8': ascii = '*'; break;
+							case '9': ascii = '('; break;
+							case '-': ascii = '_'; break;
+							case '=': ascii = '+'; break;
+							case '`': ascii = '~'; break;
+							case '[': ascii = '{'; break;
+							case ']': ascii = '}'; break;
+							case '\\': ascii = '|'; break;
+							case ';': ascii = ':'; break;
+							case '\'': ascii = '\"'; break;
+							case ',': ascii = '<'; break;
+							case '.': ascii = '>'; break;
+							case '/': ascii = '?'; break;
+							default: ascii = current;
+						}
+					}
+				}
+				// Normal ASCII alphabet print
+				else {
+					ascii = scan_code_array[scan_code];
+				}
+			}
+			// check if it is shift/alt/capslock
+			if (ascii != 0x00){
+				putc(ascii);
+				keyboard_buffer[keyboard_buffer_len] = ascii;
+				keyboard_buffer_len++;
+			}
+		}
+	}
 }
 
 /*
@@ -257,7 +309,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
  * RETURN VALUE: 0
  */
 void set_terminal_mode(int mode){
-    terminal_mode = mode;
+	terminal_mode = mode;
 }
 
 /*
@@ -268,7 +320,7 @@ void set_terminal_mode(int mode){
  * RETURN VALUE: None
  */
 void get_keyboard_buffer(char* buf){
-    memcpy(buf, keyboard_buffer, keyboard_buffer_len);
+	memcpy(buf, keyboard_buffer, keyboard_buffer_len);
 }
 
 /*
@@ -279,7 +331,7 @@ void get_keyboard_buffer(char* buf){
  * RETURN VALUE: keyboard buffer length
  */
 uint8_t get_keyboard_buffer_length(){
-    return keyboard_buffer_len;
+	return keyboard_buffer_len;
 }
 
 /*
@@ -290,24 +342,14 @@ uint8_t get_keyboard_buffer_length(){
  * RETURN VALUE: None
  */
 void reset_keyboard_buffer(){
-    uint8_t i;
-    // 0 all elements in keyboard buffer
-    for(i = 0; i < keyboard_buffer_len; i++){
-        keyboard_buffer[i] = 0x00;
-    }
-    keyboard_buffer_len = 0;
+	uint8_t i;
+	// 0 all elements in keyboard buffer
+	for(i = 0; i < keyboard_buffer_len; i++){
+		keyboard_buffer[i] = 0x00;
+	}
+	keyboard_buffer_len = 0;
 }
 
-/*
- * get_terminal_num
- * DESCRIPTION: gets the terminal we are currently using
- * INPUTS: None
- * SIDE EFFECTS: none
- * RETURN VALUE: terminal number
- */
-uint8_t get_terminal_num(){
-    return terminal_num;
-}
 
 /*
  * copy_buffer
@@ -317,9 +359,9 @@ uint8_t get_terminal_num(){
  * RETURN VALUE: none
  */
 void copy_buffer(char* dest, char* src, int size) {
-    int i;
-    for (i = 0; i < size; i++) {
-        dest[i] = src[i];
-    }
-    return;
+	int i;
+	for (i = 0; i < size; i++) {
+		dest[i] = src[i];
+	}
+	return;
 }

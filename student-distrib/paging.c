@@ -214,10 +214,13 @@ void remap(int term) {
     switch (term) {
         case 0:
             page_table[VIDMEM_ADDR] = page_table[TERMINAL_0_VIDPAGE];
+	    break;
         case 1:
             page_table[VIDMEM_ADDR] = page_table[TERMINAL_1_VIDPAGE];
+	    break;
         case 2:
             page_table[VIDMEM_ADDR] = page_table[TERMINAL_2_VIDPAGE];
+	    break;
         default:
             return;
     }

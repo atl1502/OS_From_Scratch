@@ -605,6 +605,7 @@ void test_interrupts(void) {
  * No scheduling can occur therefore no interrupts :3
  * Inputs: new and old terminals
  * Return Value: void
+ * Side Effects: Modifies global term_num variable
  * Function: switches video memory */
 void switch_term(int new, int old) {
 
@@ -618,7 +619,6 @@ void switch_term(int new, int old) {
     if (new == old) {
         return;
     }
-
 
     // Point video_mem to physical video_mem
     unmap();
