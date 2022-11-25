@@ -27,7 +27,10 @@ static char keyboard_buffer0[BUF_LEN] = {0x00};
 static char keyboard_buffer1[BUF_LEN] = {0x00};
 static char keyboard_buffer2[BUF_LEN] = {0x00};
 // current len of buffer (current idx is keyboard_buffer_len-1)
-static uint8_t keyboard_buffer_len = 0;
+static uint8_t * keyboard_buffer_len = 0;
+static uint8_t keyboard_buffer_len_0 = 0;
+static uint8_t keyboard_buffer_len_1 = 0;
+static uint8_t keyboard_buffer_len_2 = 0;
 
 /*
  * keyboard_init
@@ -40,6 +43,7 @@ void keyboard_init(void) {
 
 	// Set first keyboard buffer to screen 0 buffer
 	keyboard_buffer = keyboard_buffer0;
+	keyboard_buffer_len = &keyboard_buffer_len_0;
 
 	// Unmask interrupt line on PIC
 	enable_irq(KB_IRQ);
@@ -64,7 +68,6 @@ void keyboard_handle_interrupt(void) {
 
 	cli();
 
-	
 	// Modifier Key Flags
 	switch (scan_code) {
 		case 0x3A: // Capslock toggle
@@ -184,6 +187,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 				}
 				else {
 					keyboard_buffer = keyboard_buffer0;
+					keyboard_buffer_len = &keyboard_buffer_len_0;
 					switch_term(0, term_num);
 					return;
 				}
@@ -193,6 +197,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 				}
 				else {
 					keyboard_buffer = keyboard_buffer1;
+					keyboard_buffer_len = &keyboard_buffer_len_1;
 					switch_term(1, term_num);
 					return;
 				}
@@ -202,6 +207,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 				}
 				else {
 					keyboard_buffer = keyboard_buffer2;
+					keyboard_buffer_len = &keyboard_buffer_len_2;
 					switch_term(2, term_num);
 					return;
 				}
@@ -215,29 +221,29 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 	restore_screen(term_num);
 
 	// Make sure previous key pressed in buffer is not newline
-	if(keyboard_buffer_len != 0 && keyboard_buffer[keyboard_buffer_len-1] == '\n') {
+	if((*keyboard_buffer_len) != 0 && keyboard_buffer[(*keyboard_buffer_len)-1] == '\n') {
 		return;
 	}
 
-	if (current == '\n' && keyboard_buffer_len < BUF_LEN) {
+	if (current == '\n' && (*keyboard_buffer_len) < BUF_LEN) {
 		// add newline to end of buffer
-		keyboard_buffer[keyboard_buffer_len] = current;
-		keyboard_buffer_len++;
+		keyboard_buffer[*keyboard_buffer_len] = current;
+		(*keyboard_buffer_len)++;
 		putc('\n');
 	}
 	// Control L Clears Screen and rewrites terminal
 	else if (control_flag == 1 && scan_code == 0x26){
 		clear();
 		// reprint all chars in buffer
-		for (i = 0; i < keyboard_buffer_len; i++){
+		for (i = 0; i < (*keyboard_buffer_len); i++){
 			putc(keyboard_buffer[i]);
 		}
 		printf("391OS> ");
 	}
 	// Checks for backspace
-	else if (scan_code == 0x0E && keyboard_buffer_len > 0){
+	else if (scan_code == 0x0E && (*keyboard_buffer_len) > 0){
 		// Tab is three spaces
-		if (keyboard_buffer[keyboard_buffer_len-1] == '\t') {
+		if (keyboard_buffer[(*keyboard_buffer_len)-1] == '\t') {
 			removec();
 			removec();
 			removec();
@@ -245,12 +251,12 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 		removec();
 
 		// Remove char from buffer & set entry to zero
-		keyboard_buffer_len--;
-		keyboard_buffer[keyboard_buffer_len] = 0x00;
+		(*keyboard_buffer_len)--;
+		keyboard_buffer[(*keyboard_buffer_len)] = 0x00;
 
 	}
 	// keyboard_buffer_len < 127 b/c null termination & 0 indexing
-	else if (keyboard_buffer_len < BUF_LEN-1){
+	else if ((*keyboard_buffer_len) < BUF_LEN-1){
 
 		// Add char to buffer and print char
 
@@ -303,8 +309,8 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 			// check if it is shift/alt/capslock
 			if (ascii != 0x00){
 				putc(ascii);
-				keyboard_buffer[keyboard_buffer_len] = ascii;
-				keyboard_buffer_len++;
+				keyboard_buffer[(*keyboard_buffer_len)] = ascii;
+				(*keyboard_buffer_len)++;
 			}
 		}
 	}
@@ -335,7 +341,7 @@ void set_terminal_mode(int mode){
  * RETURN VALUE: None
  */
 void get_keyboard_buffer(char* buf){
-	memcpy(buf, keyboard_buffer, keyboard_buffer_len);
+	memcpy(buf, keyboard_buffer, (*keyboard_buffer_len));
 }
 
 /*
@@ -346,7 +352,7 @@ void get_keyboard_buffer(char* buf){
  * RETURN VALUE: keyboard buffer length
  */
 uint8_t get_keyboard_buffer_length(){
-	return keyboard_buffer_len;
+	return (*keyboard_buffer_len);
 }
 
 /*
@@ -359,10 +365,10 @@ uint8_t get_keyboard_buffer_length(){
 void reset_keyboard_buffer(){
 	uint8_t i;
 	// 0 all elements in keyboard buffer
-	for(i = 0; i < keyboard_buffer_len; i++){
+	for(i = 0; i < (*keyboard_buffer_len); i++){
 		keyboard_buffer[i] = 0x00;
 	}
-	keyboard_buffer_len = 0;
+	*keyboard_buffer_len = 0;
 }
 
 
