@@ -558,7 +558,7 @@ int32_t strncmp(const int8_t* s1, const int8_t* s2, uint32_t n) {
 
 /* int8_t* strcpy(int8_t* dest, const int8_t* src)
  * Inputs:      int8_t* dest = destination string of copy
- *         const int8_t* src = source string of copy
+ *              const int8_t* src = source string of copy
  * Return Value: pointer to dest
  * Function: copy the source string into the destination string */
 int8_t* strcpy(int8_t* dest, const int8_t* src) {
@@ -573,8 +573,8 @@ int8_t* strcpy(int8_t* dest, const int8_t* src) {
 
 /* int8_t* strcpy(int8_t* dest, const int8_t* src, uint32_t n)
  * Inputs:      int8_t* dest = destination string of copy
- *         const int8_t* src = source string of copy
- *                uint32_t n = number of bytes to copy
+ *              const int8_t* src = source string of copy
+ *              uint32_t n = number of bytes to copy
  * Return Value: pointer to dest
  * Function: copy n bytes of the source string into the destination string */
 int8_t* strncpy(int8_t* dest, const int8_t* src, uint32_t n) {
@@ -601,11 +601,27 @@ void test_interrupts(void) {
     }
 }
 
+/*
+ * void restore screen
+ * Function: restores screen print position for given terminal
+ * Inputs: term (Terminal number to set screen to)
+ * Outputs: None
+ * Returne Value: None
+ * Side Effects: modifies global screen x and y values to that terminals cursor location
+ */
 void restore_screen(int term) {
     screen_x = bscreen_x[term];
     screen_y = bscreen_y[term];
 }
 
+/*
+ * void save screen
+ * Function: saves screen x and y into array to be restored later
+ * Inputs: term (Terminal number to save screen of)
+ * Outputs: None
+ * Returne Value: None
+ * Side Effects: Saves global variables into static array which holds saved screen values
+ */
 void save_screen(int term) {
     bscreen_x[term] = screen_x;
     bscreen_y[term] = screen_y;
@@ -618,38 +634,42 @@ void save_screen(int term) {
  * Inputs: new and old terminals
  * Return Value: void
  * Side Effects: Modifies global term_num variable
- * Function: switches video memory */
+ * Function: switches video memory
+ */
 void switch_term(int new, int old) {
 
     cli();
 
-    // Array of three screen buffers
-    char* bterm[NUM_TERM] = {term0_mem, term1_mem, term2_mem};
+    /* Array of three screen buffers */
+    char * bterm[NUM_TERM] = {term0_mem, term1_mem, term2_mem};
 
-    // Don't do anything if no changes
+    /* Don't do anything if no changes */
     if (new == old) {
         return;
     }
 
-    // Point video_mem to physical video_mem
-    unmap();
-
-    // Copy current video_mem into src terminal
-    memcpy((bterm[old]), video_mem, FOURKB);
-
-    // Copy destination terminal into video_mem
-    memcpy(video_mem, (bterm[new]), FOURKB);
-
-    // Save terminal cursor of currently running proc
-    save_screen(running_proc);
-
-    // Restore new terminal cursor
-    update_cursor(bscreen_x[new], bscreen_y[new]);
-
-    // Set currently viewing terminal to global term_num
+    /* Set currently viewing terminal to global term_num */
     term_num = new;
 
-    // If not the process' terminal, make sure video_mem page remaps to saved buffer
+    /* Point video_mem page to physical video_mem */
+    unmap();
+
+    /* Copy current video_mem into src terminal */
+    memcpy((bterm[old]), video_mem, FOURKB);
+
+    /* Copy destination terminal into video_mem */
+    memcpy(video_mem, (bterm[new]), FOURKB);
+
+    /* Save terminal cursor of currently running proc */
+    save_screen(running_proc);
+
+    /* Restore screen to new terminal number */
+    restore_screen(term_num);
+
+    /* Restore new terminal cursor */
+    update_cursor(screen_x, screen_y);
+
+    /* If not the process' terminal, make sure video_mem page remaps to buffer */
     if (running_proc != term_num) {
         remap(running_proc);
     }
