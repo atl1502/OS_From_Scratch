@@ -23,14 +23,13 @@ int context_switch() {
 		: [pcb_esp] "=g"(pcb->curr_esp), [pcb_ebp] "=g"(pcb->curr_ebp)
 		);
 
-	// Save previous screen location
-	save_screen(pcb->proc_term_num);
+	// Save previously scheduled screen location
+	save_screen(running_proc);
 
 	// First three pit counters should spawn root shell procs
 	// Hopefully people cannot type any other program in shell faster than 35 Hz
 	if (pit_count < 3) {
 		pit_count++;
-		running_proc++;
 		execute((unsigned char*)"shell");
 	}
 	if (pit_count < 3) {
@@ -51,12 +50,12 @@ int context_switch() {
 	// Reset Mapping back to default
 	unmap();
 
-	// Set screen to process' saved screen
-	restore_screen(pcb->proc_term_num);
+	// Set screen to currently scheduled process
+	restore_screen(running_proc);
 
 	// Check current terminal vs proc terminal
-	if (pcb->proc_term_num != term_num) {
-		remap(pcb->proc_term_num);
+	if (running_proc != term_num) {
+		remap(running_proc);
 	}
 
 	// Switch Stacks and set TSS

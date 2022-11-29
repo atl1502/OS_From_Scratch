@@ -104,7 +104,7 @@ int32_t sys_halt (uint8_t status) {
 
 	// Go back to parent pid in schedule
 	cli();
-	schedule[curr_pcb->proc_term_num] = curr_pcb->parent_id;
+	schedule[running_proc] = curr_pcb->parent_id;
 	// Go back to execute that started child program with return status
 	asm volatile(
 			"movl %0, %%eax;"
@@ -210,6 +210,11 @@ int32_t sys_execute (const uint8_t* command) {
 		return -1;
 	}
 
+	// If shell, set scheduled process to process pid
+	if (proc_pid < 3) {
+		running_proc = proc_pid;
+	}
+
 	// Setup child proc paging structs
 	context_switch_paging(proc_pid);
 
@@ -228,8 +233,6 @@ int32_t sys_execute (const uint8_t* command) {
 
 	// PCB Address pointers parent and child
 	task_stack_t * const task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (proc_pid+1)));
-	task_stack_t * const parent_task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
-	pcb_t * const parent_pcb = &(parent_task_stack->task_pcb);
 
 	// file descriptor set up for 0 and 1
 	fd_t * file_array = task_stack->task_pcb.fd_array;
@@ -265,26 +268,17 @@ int32_t sys_execute (const uint8_t* command) {
 		: "memory", "cc"
 	);
 
-	// Replace currently scheduled program on that terminal with new executed program
-	// ASSUMPTION: shells are always PID 0 - 2, representing their respective shells
-
-	// If not shell pid, get parent term num to schedule, and set child proc term to parent
-	if (proc_pid > 2) {
-		task_stack->task_pcb.proc_term_num = parent_pcb->proc_term_num;
-		schedule[parent_pcb->proc_term_num] = proc_pid;
-	}
-	else { // Base shell case
-		task_stack->task_pcb.proc_term_num = proc_pid;
-		schedule[proc_pid] = proc_pid;
-	}
+	// Replace currently scheduled program for given terminal with new process
+	schedule[running_proc] = proc_pid;
 
 	// Map video mem based on process' associated term
-	if (task_stack->task_pcb.proc_term_num == term_num) {
+	if (running_proc == term_num) {
 		unmap();
 	}
 	else {
-		remap(task_stack->task_pcb.proc_term_num);
+		remap(running_proc);
 	}
+
 
 	// Clear screen for base shell
 	if (proc_pid < 3) {

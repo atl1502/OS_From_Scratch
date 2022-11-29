@@ -623,9 +623,6 @@ void switch_term(int new, int old) {
 
     cli();
 
-    // Terminal number associated with current process
-    uint8_t proc_term_num = (((task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1))))->task_pcb).proc_term_num;
-
     // Array of three screen buffers
     char* bterm[NUM_TERM] = {term0_mem, term1_mem, term2_mem};
 
@@ -653,8 +650,8 @@ void switch_term(int new, int old) {
     term_num = new;
 
     // If not the process' terminal, make sure video_mem page remaps to saved buffer
-    if (proc_term_num != term_num) {
-        remap(proc_term_num);
+    if (running_proc != term_num) {
+        remap(running_proc);
     }
 
     sti();

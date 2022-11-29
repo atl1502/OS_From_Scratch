@@ -2,7 +2,7 @@ target remote localhost:1234
 set output-radix 16
 # add-symbol-file ../fish/fish.exe 0x08048094
 # b pit_handle_interrupt
-# b keyboard_handle_interrupt_buffer
+b keyboard_handle_interrupt_buffer
 # b syscalls.c:285
 # b context_switch
 # b switch_term
