@@ -12,22 +12,25 @@ int context_switch() {
 
 	cli();
 
-	// Current Task stack
+	/* Current Task stack */
 	task_stack_t * task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
 	pcb_t * pcb = &(task_stack->task_pcb);
 
-	// Save previous process' stack pointer into PCB
+	/* Save previous process' stack pointer into PCB */
 	asm volatile (
 		"movl %%esp, %[pcb_esp]\n\t"
 		"movl %%ebp, %[pcb_ebp]\n\t"
 		: [pcb_esp] "=g"(pcb->curr_esp), [pcb_ebp] "=g"(pcb->curr_ebp)
 		);
 
-	// Save previously scheduled screen location
+	/* Save previously scheduled screen location */
 	save_screen(running_proc);
 
-	// First three pit counters should spawn root shell procs
-	// Hopefully people cannot type any other program in shell faster than 35 Hz
+	/*
+	* First three pit counters should spawn root shell procs
+	* Hopefully people cannot type any other program in shell faster than 35 Hz
+	* If they can I am impressed
+	*/
 	if (pit_count < 3) {
 		pit_count++;
 		execute((unsigned char*)"shell");
@@ -36,35 +39,36 @@ int context_switch() {
 		printf("EXTREMLEY SUSS, you managed to return from SHELL");
 	}
 
-	// Switch to new process & PID
+	/* Switch to new process & PID */
 	running_proc = (running_proc + 1) % 3;
 	pid = schedule[running_proc];
 
-	// Get new paging directory
+	/* Get new paging directory */
 	context_switch_paging(pid);
 
-	// Gets task stack for new proc
+	/* Gets task stack for new proc */
 	task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
 	pcb = &(task_stack->task_pcb);
 
-	// Reset Mapping back to default
-	unmap();
-
-	// Set screen to currently scheduled process
+	/* Set screen to currently scheduled process */
 	restore_screen(running_proc);
 
-	// Check current terminal vs proc terminal
+	/* Check current terminal vs proc terminal */
 	if (running_proc != term_num) {
 		remap(running_proc);
 	}
+	else {
+		unmap();
+	}
 
-	// Switch Stacks and set TSS
+	/* Switch Stacks and set TSS */
 	asm volatile (
 		"movl %1, %0\n\t"
 		: "=r"(tss.esp0)
 		: "r"(pcb->curr_esp)
 		);
 
+	/* Return into new context */
 	asm volatile (
 		"movl %0, %%ebp\n\t"
 		"leave\n\t"

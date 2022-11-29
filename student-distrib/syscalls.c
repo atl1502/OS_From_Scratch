@@ -272,11 +272,11 @@ int32_t sys_execute (const uint8_t* command) {
 	schedule[running_proc] = proc_pid;
 
 	// Map video mem based on process' associated term
-	if (running_proc == term_num) {
-		unmap();
+	if (running_proc != term_num) {
+		remap(running_proc);
 	}
 	else {
-		remap(running_proc);
+		unmap();
 	}
 
 
