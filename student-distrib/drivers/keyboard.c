@@ -178,11 +178,8 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 	int i;
 	current = scan_code_array[scan_code];
 
-	// Save screen location of currently scheduled proc
+	/* Save screen location of currently scheduled proc */
 	save_screen(running_proc);
-
-	// Restore terminal screen location
-	restore_screen(term_num);
 
 	// Switching terminals if ALT && F(0-2) key
 	if (alt_flag == 1) {
@@ -219,6 +216,9 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 				}
 		}
 	}
+
+	/* Restore terminal screen location */
+	restore_screen(term_num);
 
 	// Make sure previous key pressed in buffer is not newline
 	if((*keyboard_buffer_len) != 0 && keyboard_buffer[(*keyboard_buffer_len)-1] == '\n') {
@@ -315,10 +315,10 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 		}
 	}
 
-	// Save terminal screen
+	/* Save terminal screen */
 	save_screen(term_num);
 
-	// Restore proc screen
+	/* Restore proc screen */
 	restore_screen(running_proc);
 }
 
