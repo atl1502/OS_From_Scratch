@@ -1,3 +1,5 @@
 target remote 10.0.2.2:1234
 set output-radix 16
-b drivers/terminal.c:70
+# b terminal_write
+b scheduling.c:66 if running_proc == 0
+b drivers/keyboard.c:157 if running_proc == 0

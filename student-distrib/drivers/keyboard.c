@@ -151,8 +151,11 @@ void keyboard_handle_interrupt(void) {
 			}
 		}
 	}
-	// Return video mem map to original
-	remap(running_proc);
+
+	/* Return video mem map to buffer if running process was on different terminal */
+	if (term_num != running_proc) {
+		remap(running_proc);
+	}
 
 	sti();
 
