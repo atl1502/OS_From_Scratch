@@ -1,11 +1,3 @@
 target remote 10.0.2.2:1234
 set output-radix 16
-add-symbol-file ../syscalls/ls.exe 0x08048094
-b main
-# b pit_handle_interrupt
-# b keyboard_handle_interrupt_buffer
-# b syscalls.c:285
-# b context_switch
-# b switch_term
-# b update_cursor
-c
+b drivers/terminal.c:70

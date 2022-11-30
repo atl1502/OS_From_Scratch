@@ -9,6 +9,13 @@ uint8_t running_proc = 0;
 static uint8_t pit_count = 0;
 uint8_t schedule[BASE_PROC] = { 0 };
 
+/*
+ * context_switch
+ * DESCRIPTION: Allows for switching to the next process without halt
+ * INPUTS: None
+ * SIDE EFFECTS: Switches execution to a different process based on round robin scheduling
+ * RETURN VALUE: 0
+ */
 int context_switch() {
 
 	cli();
@@ -61,7 +68,7 @@ int context_switch() {
 	else {
 		unmap();
 	}
-	
+
 	/* Restore keyboard buffer to associated process' buffer */
 	restoreKeyboardBuf(running_proc);
 
