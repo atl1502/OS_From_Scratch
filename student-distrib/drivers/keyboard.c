@@ -173,9 +173,6 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 	int i;
 	current = scan_code_array[scan_code];
 
-	/* Save screen location of currently scheduled proc */
-	save_screen(running_proc);
-
 	/* Switching terminals if ALT && F(0-2) key */
 	if (alt_flag == 1) {
 		switch (scan_code) {
@@ -187,7 +184,6 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 			case 0x3C: //F2 case
 				if (term_num != 1) {
 					switch_term(1, term_num);
-					return;
 				}
 				return;
 			case 0x3D: //F3 case
@@ -198,13 +194,16 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 		}
 	}
 
-	/* Restore terminal screen location */
-	restore_screen(term_num);
-
 	// Make sure previous key pressed in buffer is not newline
 	if(keyboard_buffer_lens[term_num] != 0 && keyboard_buffers[term_num][keyboard_buffer_lens[term_num]-1] == '\n') {
 		return;
 	}
+
+	/* Save screen location of currently scheduled proc */
+	save_screen(running_proc);
+
+	/* Restore terminal screen location */
+	restore_screen(term_num);
 
 	if (current == '\n' && keyboard_buffer_lens[term_num] < BUF_LEN) {
 		// add newline to end of buffer

@@ -2,6 +2,7 @@
 #include "../types.h"
 #include "../lib.h"
 #include "keyboard.h"
+#include "../scheduling.h"
 
 /*
  * terminal_open
@@ -35,7 +36,7 @@ int32_t terminal_close(uint32_t fd) {
 int32_t terminal_read(uint32_t fd, void* buf, int32_t nbytes) {
     if (buf == NULL) // null check
         return -1;
-
+    nbytes = 0;
     // hold until there is a new line char
     while(1){
         nbytes = (int32_t) get_proc_keyboard_buffer_length();
