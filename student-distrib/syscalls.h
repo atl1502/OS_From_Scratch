@@ -29,7 +29,6 @@
 #define EIGHT_MIB 0x800000
 #define BASE_VIRT_ADDR 0x08000000
 #define BUF_LEN 128
-#define VID_PAGE_START 0x9000000
 
 typedef struct __attribute__((packed)) program_header {
 	uint32_t p_type; // Type of segment

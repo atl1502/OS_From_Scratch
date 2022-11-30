@@ -18,6 +18,7 @@
 #define USER_DS     0x002B
 #define KERNEL_TSS  0x0030
 #define KERNEL_LDT  0x0038
+#define VID_PAGE_START 0x9000000
 
 /* Size of the task state segment (TSS) */
 #define TSS_SIZE    104

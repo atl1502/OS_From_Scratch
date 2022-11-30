@@ -214,12 +214,15 @@ void remap(int term) {
     switch (term) {
         case 0:
             page_table[VIDMEM_ADDR] = page_table[TERMINAL_0_VIDPAGE];
+            page_table_vid[(VID_PAGE_START >> 12) & SMALL_MASK] = TERMINAL_0_VIDPAGE_FULL;
             break;
         case 1:
             page_table[VIDMEM_ADDR] = page_table[TERMINAL_1_VIDPAGE];
+            page_table_vid[(VID_PAGE_START >> 12) & SMALL_MASK] = TERMINAL_1_VIDPAGE_FULL;
             break;
         case 2:
             page_table[VIDMEM_ADDR] = page_table[TERMINAL_2_VIDPAGE];
+            page_table_vid[(VID_PAGE_START >> 12) & SMALL_MASK] = TERMINAL_2_VIDPAGE_FULL;
             break;
         default:
             return;
@@ -246,6 +249,7 @@ void remap(int term) {
 void unmap(int term) {
 
     page_table[VIDMEM_ADDR] = (VIDMEM_ADDR << 12) | WRITE_ENABLE | PRESENT;
+	page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0xB8107;
 
     // Flush TLBs
     asm volatile (
