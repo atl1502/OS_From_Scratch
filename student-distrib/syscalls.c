@@ -493,6 +493,7 @@ int32_t sys_getargs (uint8_t* buf, int32_t nbytes) {
  * RETURN VALUE: 0 if mapped, -1 if fails
  */
 int32_t sys_vidmap (uint8_t** screen_start) {
+
 	// printf("vidmap Syscall: screen_start %x\n", screen_start);
 	uint32_t* cur_pd;
 
@@ -529,25 +530,41 @@ int32_t sys_vidmap (uint8_t** screen_start) {
 	*/
 	cur_pd[VID_PAGE_START >> 22] = ((uint32_t) page_table_vid)  | USER_SPACE | WRITE_ENABLE | PRESENT;
 
-	/*
-	* Fill in entry for address middle 10 bits, which ids the page index for video mem
-	* For this paging entry
-	* 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
-	*     000      1     0            0          0              0          0      1       1    1
-	* which is 0x107 for the last 12 bits
-	* B8 for next eight bits to represent VGA 4KB aligned address
-	*/
-	page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0xB8107;
+
+	if (running_proc == term_num) {
+		/*
+		* Fill in entry for address middle 10 bits, which ids the page index for video mem
+		* For this paging entry
+		* 11-9 Avail, 8 G, 7 BIG_PAGE, 6 '0', 5 Accessed, 4 Cache Disabled, 3 PWT, 2 U/S, 1 R/W, 0 P
+		*     000      1     0            0          0              0          0      1       1    1
+		* which is 0x107 for the last 12 bits
+		* B8 for next eight bits to represent VGA 4KB aligned address
+		*/
+		page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0xB8107;
+	} else if (running_proc == 0) {
+		page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0xB9107;
+	} else if (running_proc == 1) {
+		page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0xBA107;
+	} else if (running_proc == 2) {
+		page_table_vid[(VID_PAGE_START >> 12) & 0x3FF] = 0xBB107;
+	} else {
+		printf("YOU'RE ABOUT TO PAGEFAULT NOOB");
+		return -1;
+	}
+
 
 	// store video page address into given pointer
 	*screen_start = (uint8_t *) VID_PAGE_START;
 
-/*	flush TLB?
- *	asm volatile ("\n\
- *			movl %cr3,%eax      \n\
- *			movl %eax,%cr3      \n\
- *	");
- */
+    // Flush TLBs
+    asm volatile (
+        "movl %%cr3, %%eax\n\t"
+        "movl %%eax, %%cr3\n\t"
+        :
+        :
+        : "eax"
+        );
+ 
 
 	return 0;
 }
