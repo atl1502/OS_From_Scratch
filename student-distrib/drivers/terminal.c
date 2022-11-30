@@ -27,7 +27,7 @@ int32_t terminal_close(uint32_t fd) {
 
 /*
  * terminal_read
- * DESCRIPTION: Terminal read() reads FROM the keyboard buffer into buf
+ * DESCRIPTION: Terminal read() reads FROM the cur keyboard buffer into buf
  * INPUTS: fd : file    buf: buffer to be read    nbytes: number of bytes of buf
  * SIDE EFFECTS:
  * RETURN VALUE: return number of bytes read
@@ -38,12 +38,12 @@ int32_t terminal_read(uint32_t fd, void* buf, int32_t nbytes) {
 
     // hold until there is a new line char
     while(1){
-        nbytes = (int32_t)get_keyboard_buffer_length();
-        get_keyboard_buffer((char *)buf);
+        nbytes = (int32_t) get_proc_keyboard_buffer_length();
+        get_proc_keyboard_buffer((char *)buf);
         if(nbytes > 0 && ((char *)buf)[nbytes-1] == '\n')
             break;
     }
-    reset_keyboard_buffer(); // ENTER pressed reset buf
+    reset_proc_keyboard_buffer(); // ENTER pressed reset buf
     return nbytes;
 }
 

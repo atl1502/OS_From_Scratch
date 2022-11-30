@@ -24,7 +24,6 @@ static uint8_t control_flag = 0;
 static uint8_t terminal_mode = 0;
 
 /* Current len of buffer (current idx is keyboard_buffer_len-1) */
-static char * keyboard_buffer = 0x00;
 static char keyboard_buffers[3][BUF_LEN] = {{0x00}};
 static uint8_t keyboard_buffer_lens[3] = {0x00};
 
@@ -36,9 +35,6 @@ static uint8_t keyboard_buffer_lens[3] = {0x00};
  * RETURN VALUE: none
  */
 void keyboard_init(void) {
-
-	// Set first keyboard buffer to screen 0 buffer
-	keyboard_buffer = keyboard_buffers[0];
 
 	// Unmask interrupt line on PIC
 	enable_irq(KB_IRQ);
@@ -162,30 +158,6 @@ void keyboard_handle_interrupt(void) {
 	send_eoi(KB_IRQ);
 }
 
-/*
- * restoreKeyboardBuf
- * Description: Restores the keyboard buffer to a given process' buffer
- * Inputs: proc (process number to load buffer from)
- * Outputs: None
- * Side Effects: Changes keyboard buffer to proc buffer
- * Return Value: None
- */
-void restoreKeyboardBuf(int proc) {
-	/* Restore keyboard buffer new */
-	keyboard_buffer = keyboard_buffers[proc];
-}
-
-/*
- * saveKeyboardBuf
- * Description: Saves the keyboard buffer to a given process' buffer
- * Inputs: proc (process number to load buffer from)
- * Outputs: None
- * Side Effects: Saves keyboard buffer
- * Return Value: None
- */
-void saveKeyboardBuf(int proc) {
-	memcpy(keyboard_buffers[proc], keyboard_buffer, BUF_LEN);
-}
 
 /*
  * keyboard_handle_interrupt_buffer
@@ -203,9 +175,6 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 
 	/* Save screen location of currently scheduled proc */
 	save_screen(running_proc);
-
-	/* Save keyboard buffer of currently running process */
-	saveKeyboardBuf(running_proc);
 
 	/* Switching terminals if ALT && F(0-2) key */
 	if (alt_flag == 1) {
@@ -229,20 +198,17 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 		}
 	}
 
-	/* Restore keyboard buffer to current screen */
-	restoreKeyboardBuf(term_num);
-
 	/* Restore terminal screen location */
 	restore_screen(term_num);
 
 	// Make sure previous key pressed in buffer is not newline
-	if(keyboard_buffer_lens[term_num] != 0 && keyboard_buffer[keyboard_buffer_lens[term_num]-1] == '\n') {
+	if(keyboard_buffer_lens[term_num] != 0 && keyboard_buffers[term_num][keyboard_buffer_lens[term_num]-1] == '\n') {
 		return;
 	}
 
 	if (current == '\n' && keyboard_buffer_lens[term_num] < BUF_LEN) {
 		// add newline to end of buffer
-		keyboard_buffer[keyboard_buffer_lens[term_num]] = current;
+		keyboard_buffers[term_num][keyboard_buffer_lens[term_num]] = current;
 		keyboard_buffer_lens[term_num]++;
 		putc('\n');
 	}
@@ -251,14 +217,14 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 		clear();
 		// reprint all chars in buffer
 		for (i = 0; i < keyboard_buffer_lens[term_num]; i++){
-			putc(keyboard_buffer[i]);
+			putc(keyboard_buffers[term_num][i]);
 		}
 		printf("391OS> ");
 	}
 	// Checks for backspace
 	else if (scan_code == 0x0E && keyboard_buffer_lens[term_num] > 0){
 		// Tab is three spaces
-		if (keyboard_buffer[keyboard_buffer_lens[term_num]-1] == '\t') {
+		if (keyboard_buffers[term_num][keyboard_buffer_lens[term_num]-1] == '\t') {
 			removec();
 			removec();
 			removec();
@@ -267,7 +233,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 
 		// Remove char from buffer & set entry to zero
 		keyboard_buffer_lens[term_num]--;
-		keyboard_buffer[keyboard_buffer_lens[term_num]] = 0x00;
+		keyboard_buffers[term_num][keyboard_buffer_lens[term_num]] = 0x00;
 
 	}
 	// keyboard_buffer_lens[term_num] < 127 b/c null termination & 0 indexing
@@ -324,17 +290,11 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 			// check if it is shift/alt/capslock
 			if (ascii != 0x00){
 				putc(ascii);
-				keyboard_buffer[keyboard_buffer_lens[term_num]] = ascii;
+				keyboard_buffers[term_num][keyboard_buffer_lens[term_num]] = ascii;
 				keyboard_buffer_lens[term_num]++;
 			}
 		}
 	}
-
-	/* Save current keyboard buffer */
-	saveKeyboardBuf(term_num);
-
-	/* Restore current process keyboard buffer */
-	restoreKeyboardBuf(running_proc);
 
 	/* Save terminal screen */
 	save_screen(term_num);
@@ -355,25 +315,64 @@ void set_terminal_mode(int mode){
 }
 
 /*
- * get_keyboard_buffer
- * DESCRIPTION: Copy keyboard buffer into given buffer
+ * get_term_keyboard_buffer
+ * DESCRIPTION: Copy proc keyboard buffer into given buffer
  * INPUTS: buf location to copy into
  * SIDE EFFECTS: changes values in buf
  * RETURN VALUE: None
  */
-void get_keyboard_buffer(char* buf){
-	memcpy(buf, keyboard_buffer, keyboard_buffer_lens[running_proc]);
+void get_term_keyboard_buffer(char* buf){
+	memcpy(buf, keyboard_buffers[term_num], keyboard_buffer_lens[term_num]);
 }
 
 /*
- * get_keyboard_buffer_length
+ * get_proc_keyboard_buffer
+ * DESCRIPTION: Copy terminal keyboard buffer into given buffer
+ * INPUTS: buf location to copy into
+ * SIDE EFFECTS: changes values in buf
+ * RETURN VALUE: None
+ */
+void get_proc_keyboard_buffer(char* buf){
+	memcpy(buf, keyboard_buffers[running_proc], keyboard_buffer_lens[running_proc]);
+}
+
+/*
+ * get_term_keyboard_buffer_length
  * DESCRIPTION: Returns the keyboard buffer length
  * INPUTS: None
  * SIDE EFFECTS: None
  * RETURN VALUE: keyboard buffer length
  */
-uint8_t get_keyboard_buffer_length(){
+uint8_t get_term_keyboard_buffer_length(){
+	return keyboard_buffer_lens[term_num];
+}
+
+/*
+ * get_proc_keyboard_buffer_length
+ * DESCRIPTION: Returns the keyboard buffer length
+ * INPUTS: None
+ * SIDE EFFECTS: None
+ * RETURN VALUE: keyboard buffer length
+ */
+uint8_t get_proc_keyboard_buffer_length(){
 	return keyboard_buffer_lens[running_proc];
+}
+
+
+/*
+ * reset_keyboard_buffer
+ * DESCRIPTION: Empty keyboard buffer and changing keyboard_buffer_lens[term_num] to 0
+ * INPUTS: None
+ * SIDE EFFECTS: sets keyboard_buffer_lens[term_num] to 0
+ * RETURN VALUE: None
+ */
+void reset_term_keyboard_buffer(){
+	uint8_t i;
+	// 0 all elements in keyboard buffer
+	for(i = 0; i < keyboard_buffer_lens[term_num]; i++){
+		keyboard_buffers[term_num][i] = 0x00;
+	}
+	keyboard_buffer_lens[term_num] = 0;
 }
 
 /*
@@ -383,14 +382,15 @@ uint8_t get_keyboard_buffer_length(){
  * SIDE EFFECTS: sets keyboard_buffer_lens[term_num] to 0
  * RETURN VALUE: None
  */
-void reset_keyboard_buffer(){
+void reset_proc_keyboard_buffer(){
 	uint8_t i;
 	// 0 all elements in keyboard buffer
-	for(i = 0; i < keyboard_buffer_lens[term_num]; i++){
-		keyboard_buffer[i] = 0x00;
+	for(i = 0; i < keyboard_buffer_lens[running_proc]; i++){
+		keyboard_buffers[running_proc][i] = 0x00;
 	}
-	keyboard_buffer_lens[term_num] = 0;
+	keyboard_buffer_lens[running_proc] = 0;
 }
+
 
 
 /*

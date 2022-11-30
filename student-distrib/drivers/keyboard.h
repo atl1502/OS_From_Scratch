@@ -25,23 +25,24 @@ void keyboard_handle_interrupt(void);
 /* Set terminal mode for keybaord */
 void set_terminal_mode(int mode);
 
-/* Copy keyboard buffer into given buffer */
-void get_keyboard_buffer(char* buf);
+/* Copy term keyboard buffer into given buffer */
+void get_term_keyboard_buffer(char* buf);
 
-/* Returns the buffer's current length */
-uint8_t get_keyboard_buffer_length();
+/* Copy proc keyboard buffer into given buffer */
+void get_proc_keyboard_buffer(char* buf);
+
+/* Returns the proc buffer's current length */
+uint8_t get_proc_keyboard_buffer_length();
+
+/* Returns the term buffer's current length */
+uint8_t get_term_keyboard_buffer_length();
 
 /* Resets the keyboard buffer (usually after a new line) */
-void reset_keyboard_buffer();
+void reset_term_keyboard_buffer();
+void reset_proc_keyboard_buffer();
 
 /* Returns which terminal we are using*/
 uint8_t get_terminal_num();
-
-/* Set keyboard buffer to specified buffer */
-void saveKeyboardBuf(int proc);
-
-/* Restore keyboard buffer to specified buffer */
-void restoreKeyboardBuf(int proc);
 
 /* Copies a buffer */
 void copy_buffer(char* dest, char* src, int size);
