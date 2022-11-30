@@ -39,9 +39,8 @@ static uint8_t keyboard_buffer_lens[3] = {0x00};
  */
 void keyboard_init(void) {
 
-	// Set first keyboard buffer to screen 0 buffer
-	keyboard_buffer = keyboard_buffers[0];
-	keyboard_buffer_len = keyboard_buffer_lens[0];
+	/* Set first keyboard buffer to screen 0 buffer */
+	restoreKeyboardBuf(0);	
 
 	// Unmask interrupt line on PIC
 	enable_irq(KB_IRQ);

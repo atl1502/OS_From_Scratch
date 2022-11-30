@@ -62,8 +62,8 @@ int context_switch() {
 		unmap();
 	}
 	
-	/* Set keyboard buffer to associated process' buffer */
-	saveKeyboardBuf(running_proc);
+	/* Restore keyboard buffer to associated process' buffer */
+	restoreKeyboardBuf(running_proc);
 
 	/* Switch Stacks and set TSS */
 	asm volatile (
