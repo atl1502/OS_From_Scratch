@@ -3,6 +3,7 @@
 #include "pcb.h"
 #include "syscall_wrapper.h"
 #include "scheduling.h"
+#include "./drivers/keyboard.h"
 
 uint8_t running_proc = 0;
 static uint8_t pit_count = 0;
@@ -60,6 +61,9 @@ int context_switch() {
 	else {
 		unmap();
 	}
+	
+	/* Set keyboard buffer to associated process' buffer */
+	saveKeyboardBuf(running_proc);
 
 	/* Switch Stacks and set TSS */
 	asm volatile (

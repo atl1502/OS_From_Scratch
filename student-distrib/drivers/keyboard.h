@@ -37,6 +37,12 @@ void reset_keyboard_buffer();
 /* Returns which terminal we are using*/
 uint8_t get_terminal_num();
 
+/* Set keyboard buffer to specified buffer */
+void saveKeyboardBuf(int proc);
+
+/* Restore keyboard buffer to specified buffer */
+void restoreKeyboardBuf(int proc);
+
 /* Copies a buffer */
 void copy_buffer(char* dest, char* src, int size);
 
