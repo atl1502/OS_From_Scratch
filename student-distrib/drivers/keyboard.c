@@ -399,6 +399,7 @@ void reset_keyboard_buffer(){
 		keyboard_buffer[i] = 0x00;
 	}
 	keyboard_buffer_len = 0;
+	saveKeyboardBuf(term_num);
 }
 
 
