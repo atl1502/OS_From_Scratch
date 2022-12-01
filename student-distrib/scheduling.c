@@ -24,6 +24,13 @@ int context_switch() {
 	task_stack_t * task_stack = (task_stack_t*) (K_PAGE_ADDR - (EIGHT_KB * (pid+1)));
 	pcb_t * pcb = &(task_stack->task_pcb);
 
+	/* Save previous process' stack pointer into PCB */
+	asm volatile (
+		"movl %%esp, %[pcb_esp]\n\t"
+		"movl %%ebp, %[pcb_ebp]\n\t"
+		: [pcb_esp] "=g"(pcb->curr_esp), [pcb_ebp] "=g"(pcb->curr_ebp)
+		);
+
 	/* Save previously scheduled screen location */
 	save_screen(running_proc);
 
@@ -61,14 +68,6 @@ int context_switch() {
 	else {
 		unmap();
 	}
-
-	/* Save previous process' stack pointer into PCB */
-	asm volatile (
-		"movl %%esp, %[pcb_esp]\n\t"
-		"movl %%ebp, %[pcb_ebp]\n\t"
-		: [pcb_esp] "=g"(pcb->curr_esp), [pcb_ebp] "=g"(pcb->curr_ebp)
-		);
-
 
 	/* Switch Stacks and set TSS */
 	asm volatile (
