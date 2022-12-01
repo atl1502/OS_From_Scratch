@@ -77,6 +77,7 @@ int32_t sys_halt (uint8_t status) {
 
 	// Check that the current PID matches global PID
 	if (curr_pcb->pid != pid) {
+		pid = curr_pcb->parent_id;
 		printf("YOU SHOULD NOT BE HERE !!! PID of HALT != PID GLOBAL\n");
 		return -1;
 	}

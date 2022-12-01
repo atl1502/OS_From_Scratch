@@ -2,9 +2,9 @@ target remote 10.0.2.2:1234
 set output-radix 16
 # add-symbol-file ../syscalls/shell.exe 0x8048094
 # b ece391shell.c:15
-b handler_interrupt
+# b sys_execute
+b sys_read
 c
-
 
 # b terminal_read
 # c

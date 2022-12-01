@@ -215,8 +215,9 @@ void handler_gen_prot() {
  * RETURN VALUE: never returns
  */
 void handler_page_fault() {
-	clear();
+	// clear();
 	printf("page fault exception");
+	// while(1){}
 	sys_halt (EXCEPTION_ERROR);
 }
 
