@@ -4,11 +4,12 @@ set output-radix 16
 # b ece391counter.c:39
 # b ece391counter.c:40
 # b sys_execute
-b sys_execute
-b sys_halt
-c
 
-# b terminal_read
-# c
+# b context_switch if pid > 2
+b terminal_read
+display running_proc
+display $esp
+display tss.esp0
+c
+c 24
 # c 24
-# b sys_read

@@ -252,13 +252,12 @@ int32_t sys_execute (const uint8_t* command) {
 	// Setting global PID to process PID
 	pid = proc_pid;
 
+	// TSS Setup for context switch with PCB init
+	tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (proc_pid));
+
 	// Initialize proc stack pointer to top of stack
-	if(proc_pid != 0){
-		// TSS Setup for context switch with PCB init
-		tss.esp0 = K_PAGE_ADDR - (EIGHT_KB * (proc_pid));
-		task_stack->task_pcb.curr_esp = tss.esp0;
-		task_stack->task_pcb.curr_ebp = task_stack->task_pcb.curr_esp;
-	}
+	task_stack->task_pcb.curr_esp = tss.esp0;
+	task_stack->task_pcb.curr_ebp = task_stack->task_pcb.curr_esp;
 
 	// Saving parent stack pointers into child PCB
 	asm volatile ("\n\

@@ -57,8 +57,6 @@ void keyboard_handle_interrupt(void) {
 	// Keyboard always prints to screen
 	unmap();
 
-	cli();
-
 	// Modifier Key Flags
 	switch (scan_code) {
 		case 0x3A: // Capslock toggle
@@ -152,8 +150,6 @@ void keyboard_handle_interrupt(void) {
 	if (term_num != running_proc) {
 		remap(running_proc);
 	}
-
-	sti();
 
 	send_eoi(KB_IRQ);
 }

@@ -26,13 +26,9 @@ int context_switch() {
 
 	/* Save previous process' stack pointer into PCB */
 	asm volatile (
-		"movl %%esp, %[pcb_esp]\n\t"
 		"movl %%ebp, %[pcb_ebp]\n\t"
-		: [pcb_esp] "=g"(pcb->curr_esp), [pcb_ebp] "=g"(pcb->curr_ebp)
+		: [pcb_ebp] "=g"(pcb->curr_ebp)
 		);
-
-	/* Save previously scheduled screen location */
-	save_screen(running_proc);
 
 	/*
 	* First three pit counters should spawn root shell procs
@@ -40,12 +36,20 @@ int context_switch() {
 	* If they can I am impressed
 	*/
 	if (pit_count < 3) {
+		/* Save previous process' stack pointer into PCB */
+		asm volatile (
+			"movl %%esp, %[pcb_esp]\n\t"
+			: [pcb_esp] "=g"(pcb->curr_esp)
+			);
 		pit_count++;
 		execute((unsigned char*)"shell");
 	}
 	if (pit_count < 3) {
 		printf("EXTREMLEY SUSS, you managed to return from SHELL");
 	}
+
+	/* Save previously scheduled screen location */
+	save_screen(running_proc);
 
 	/* Switch to new process & PID */
 	running_proc = (running_proc + 1) % 3;
