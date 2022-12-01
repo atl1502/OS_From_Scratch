@@ -30,6 +30,9 @@ int context_switch() {
 		: [pcb_ebp] "=g"(pcb->curr_ebp)
 		);
 
+	/* Save previously scheduled screen location */
+	save_screen(running_proc);
+	
 	/*
 	* First three pit counters should spawn root shell procs
 	* Hopefully people cannot type any other program in shell faster than 35 Hz
@@ -48,8 +51,6 @@ int context_switch() {
 		printf("EXTREMLEY SUSS, you managed to return from SHELL");
 	}
 
-	/* Save previously scheduled screen location */
-	save_screen(running_proc);
 
 	/* Switch to new process & PID */
 	running_proc = (running_proc + 1) % 3;
