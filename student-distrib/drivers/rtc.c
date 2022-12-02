@@ -12,7 +12,7 @@
 
 /* static spinlock_t rtc_lock = SPIN_LOCK_UNLOCKED; */
 
-volatile int flag;
+volatile int flag[3];
 
 /*
  * rtc_init
@@ -41,9 +41,16 @@ void rtc_init(void) {
     //garbage throw out to prevent RTC from going into undefined state
     inb(PORT2);
     //set rate/freq to be default
-    frequency = FREQ_ST;
-    rate = RT_ST;
-    flag = 0;
+    frequency[0] = FREQ_ST;
+    frequency[1] = FREQ_ST;
+    frequency[2] = FREQ_ST;
+    rate[0] = RT_ST;
+    rate[1] = RT_ST;
+    rate[2] = RT_ST;
+    flag[0] = 0;
+    flag[1] = 0;
+    flag[2] = 0;
+    print_flag = 0;
 
 
     //VIRTUALIZATION STUFF
@@ -59,13 +66,10 @@ void rtc_init(void) {
     outb(inb(PORT1) & RNMI, PORT1);
     //garbage throw out to prevent RTC from going into undefined state
     inb(PORT2);
-    // reenable interrupts
 
     counters[0] = FREQ_MAX/FREQ_ST;
     counters[1] = FREQ_MAX/FREQ_ST;
     counters[2] = FREQ_MAX/FREQ_ST;
-    print_flag = 0;
-    // reenable interrupts
     // spin_unlock_irq(&rtc_lock);
 }
 
@@ -78,9 +82,7 @@ void rtc_init(void) {
  */
 void rtc_handle_interrupt(void) {
 
-    //send EOI to PIC
-    send_eoi(RTC_IRQ);
-
+    int i;
     // select register C
     outb(REGC, PORT1);
     // just throw away contents
@@ -89,13 +91,19 @@ void rtc_handle_interrupt(void) {
     if (print_flag) {
         printf("1");
     }
-    if (counters[running_proc] > 0) {
-        counters[running_proc]--;
-        return;
+
+    for (i = 0; i < 3; i++) {
+        if (counters[i] > 0) {
+            counters[i]--;
+        } else {
+            counters[i] = FREQ_MAX/frequency[i];
+            flag[i] = 0;
+            count--;
+        }
     }
-    counters[running_proc] = FREQ_MAX/frequency;
-    flag = 0;
-    count--;
+
+    //send EOI to PIC
+    send_eoi(RTC_IRQ);
 
 }
 
@@ -107,9 +115,9 @@ void rtc_handle_interrupt(void) {
  * RETURN VALUE: 0
  */
 int32_t rtc_open(const uint8_t* filename) {
-    frequency = FREQ_OP;
-    rate = RT_OP;
-    counters[running_proc] = FREQ_MAX/FREQ_OP;
+    frequency[running_proc] = FREQ_OP;
+    rate[running_proc] = RT_OP;
+    // counters[running_proc] = FREQ_MAX/FREQ_OP;
 
     return 0;
 }
@@ -134,8 +142,10 @@ int32_t rtc_close(uint32_t fd) {
  */
 int32_t rtc_read(uint32_t fd, void* buf, int32_t nbytes) {
 
-    flag = 1;
-    while ((flag != 0)){
+    int i;
+    
+    flag[running_proc] = 1;
+    while ((flag[running_proc] != 0)){
         continue;
     }
     return 0;
@@ -149,21 +159,23 @@ int32_t rtc_read(uint32_t fd, void* buf, int32_t nbytes) {
  * RETURN VALUE: 0
  */
 int32_t rtc_write(uint32_t fd, const void* buf, int32_t nbytes) {
+
+    int temp_freq;
     //get frequency
     if (buf == NULL) {
         return -1;
     }
-    frequency = *((int*)buf);
+    frequency[running_proc] = *((int*)buf);
+    temp_freq = frequency[running_proc];
     //check if frequency is multiple of 2
-    if ((frequency == 0) || ((frequency & (frequency - 1)) != 0)) {
+    if ((temp_freq == 0) || ((temp_freq & (temp_freq - 1)) != 0)) {
         return -1;
     }
     //limit rate from 2 to 1024 Hz
-    if ((frequency < 2) || (frequency > 1024)) {
+    if ((temp_freq < 2) || (temp_freq > 1024)) {
         return -1;
     }
-    rate = ret_rate(frequency);
-    counters[running_proc] = FREQ_MAX/frequency;
+    rate[running_proc] = ret_rate(temp_freq);
     return 0;
 }
 

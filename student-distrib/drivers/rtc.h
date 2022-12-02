@@ -16,16 +16,16 @@
 #define RNMI 0x7F
 #define RTC_IRQ 8
 
-#define FREQ_ST 1024
-#define FREQ_MAX 8192
-#define RT_MAX 3
-#define RT_ST 6
+#define FREQ_ST 512
+#define FREQ_MAX 512
+#define RT_MAX 7
+#define RT_ST 7
 #define FREQ_OP 2
 #define RT_OP 15
 
 int counters[3];
-int rate;
-int frequency;
+int rate[3];
+int frequency[3];
 int count;
 int print_flag;
 
