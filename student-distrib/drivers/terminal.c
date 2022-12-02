@@ -3,6 +3,7 @@
 #include "../lib.h"
 #include "keyboard.h"
 #include "../scheduling.h"
+#include "../x86_desc.h"
 
 /*
  * terminal_open
@@ -61,7 +62,7 @@ int32_t terminal_write(uint32_t fd, const void* buf, int32_t nbytes) {
     int bytes = 0;
     if (buf == NULL) // null check
         return -1;
-
+        
     // iterate through keyboard buffer and print character to screen
     for (i = 0; i < nbytes; i++) {
         if ( ((char *) buf)[i] != NULL ) {

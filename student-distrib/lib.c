@@ -40,6 +40,7 @@ static int bscreen_y[3] = {0};
 static char prev_screen_buff[SCREEN_SIZE] = {0x20};
 static int prev_screen_x;
 static int prev_screen_y;
+static int kb_flag;
 
 /* void clear(void);
  * Inputs: void
@@ -53,6 +54,9 @@ void clear(void) {
     }
     screen_x = 0;
     screen_y = 0;
+    if (term_num != running_proc && !kb_flag){
+        return;
+    }
     update_cursor(screen_x, screen_y);
 }
 
@@ -280,6 +284,9 @@ void putc(uint8_t c) {
         }
         screen_y--;
     }
+    if (term_num != running_proc && !kb_flag){
+        return;
+    }
     update_cursor(screen_x, screen_y);
 }
 
@@ -302,6 +309,9 @@ void removec() {
     // print out space in the current location
     *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = 0x20;
     *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+    if (term_num != running_proc && !kb_flag){
+        return;
+    }
     update_cursor(screen_x, screen_y);
 }
 
@@ -599,6 +609,15 @@ void test_interrupts(void) {
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         video_mem[i << 1]++;
     }
+}
+
+/* void test_interrupts(void)
+ * Inputs: void
+ * Return Value: void
+ * Function: flips the kb flag every time its called
+ */
+void flip_kb_flag(){
+    kb_flag ^= 1;
 }
 
 /*

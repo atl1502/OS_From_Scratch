@@ -201,6 +201,9 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 	/* Restore terminal screen location */
 	restore_screen(term_num);
 
+	/* Set kb_flag to on*/
+	flip_kb_flag();
+
 	if (current == '\n' && keyboard_buffer_lens[term_num] < BUF_LEN) {
 		// add newline to end of buffer
 		keyboard_buffers[term_num][keyboard_buffer_lens[term_num]] = current;
@@ -296,6 +299,9 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 
 	/* Restore proc screen */
 	restore_screen(running_proc);
+
+	/* Set kb_flag to off*/
+	flip_kb_flag();
 }
 
 /*

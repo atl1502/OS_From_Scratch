@@ -32,7 +32,11 @@ int context_switch() {
 
 	/* Save previously scheduled screen location */
 	save_screen(running_proc);
-	
+
+	/* Switch to new process & PID */
+	running_proc = (running_proc + 1) % 3;
+	pid = schedule[running_proc];
+
 	/*
 	* First three pit counters should spawn root shell procs
 	* Hopefully people cannot type any other program in shell faster than 35 Hz
@@ -50,11 +54,6 @@ int context_switch() {
 	if (pit_count < 3) {
 		printf("EXTREMLEY SUSS, you managed to return from SHELL");
 	}
-
-
-	/* Switch to new process & PID */
-	running_proc = (running_proc + 1) % 3;
-	pid = schedule[running_proc];
 
 	/* Get new paging directory */
 	context_switch_paging(pid);
