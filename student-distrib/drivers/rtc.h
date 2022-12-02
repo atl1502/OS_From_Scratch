@@ -17,6 +17,7 @@
 #define RTC_IRQ 8
 
 #define FREQ_ST 1024
+#define FREQ_MAX 32768
 #define RT_ST 6
 #define FREQ_OP 2
 #define RT_OP 15
