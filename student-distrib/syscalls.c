@@ -347,6 +347,12 @@ int32_t sys_write (uint32_t fd, const void* buf, int32_t nbytes) {
 		return -1;
 	}
 	pcb_t* curr_pcb = get_pcb(pid);
+
+	/* Make sure fd is present in array */
+	if (!((curr_pcb->fd_array[fd]).flags & FD_USED)) {
+		return -1;
+	}
+	
 	// execute via function pointer table
 	fd_t * curr_fd = curr_pcb->fd_array;
 	int val = curr_fd[fd].table_pointer.write(fd, buf, nbytes);

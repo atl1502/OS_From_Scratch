@@ -1,9 +1,11 @@
 target remote 10.0.2.2:1234
 set output-radix 16
-# add-symbol-file ../syscalls/counter.exe 0x8048094
+add-symbol-file ../syscalls/syserr.exe 0x8048094
+
+b ece391syserr.c:171
 # b ece391counter.c:39
 # b ece391counter.c:40
-b sys_halt
+# b sys_read
 # b update_cursor
 
 # b context_switch
