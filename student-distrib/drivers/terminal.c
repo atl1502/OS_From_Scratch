@@ -56,6 +56,7 @@ int32_t terminal_read(uint32_t fd, void* buf, int32_t nbytes) {
  * RETURN VALUE: number of bytes written or -1
  */
 int32_t terminal_write(uint32_t fd, const void* buf, int32_t nbytes) {
+    cli();
     int i;
     int bytes = 0;
     if (buf == NULL) // null check
@@ -68,6 +69,7 @@ int32_t terminal_write(uint32_t fd, const void* buf, int32_t nbytes) {
             bytes++; // byte written
         }
     }
+    sti();
     return bytes;
 }
 
