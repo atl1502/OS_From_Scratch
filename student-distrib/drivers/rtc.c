@@ -7,6 +7,8 @@
 #include "../spinlock.h"
 #include "../i8259.h"
 #include "../fd.h"
+#include "../x86_desc.h"
+#include "../scheduling.h"
 
 /* static spinlock_t rtc_lock = SPIN_LOCK_UNLOCKED; */
 
@@ -42,6 +44,26 @@ void rtc_init(void) {
     frequency = FREQ_ST;
     rate = RT_ST;
     flag = 0;
+
+
+    //VIRTUALIZATION STUFF
+    // select register A, and disable NMI
+    outb(REGA, PORT1);
+    // read the current value of register B
+    prev=inb(PORT2);
+    // set the index again (a read will reset the index to register D)
+    outb(REGA, PORT1);
+    // write only our rate to A. Note, rate is the bottom 4 bits.
+    outb((prev & 0xF0) | RT_MAX, PORT2);
+    //reinable NMI
+    outb(inb(PORT1) & RNMI, PORT1);
+    //garbage throw out to prevent RTC from going into undefined state
+    inb(PORT2);
+    // reenable interrupts
+
+    counters[0] = FREQ_MAX/FREQ_ST;
+    counters[1] = FREQ_MAX/FREQ_ST;
+    counters[2] = FREQ_MAX/FREQ_ST;
     print_flag = 0;
     // reenable interrupts
     // spin_unlock_irq(&rtc_lock);
@@ -55,6 +77,10 @@ void rtc_init(void) {
  * RETURN VALUE: none
  */
 void rtc_handle_interrupt(void) {
+
+    //send EOI to PIC
+    send_eoi(RTC_IRQ);
+
     // select register C
     outb(REGC, PORT1);
     // just throw away contents
@@ -63,10 +89,14 @@ void rtc_handle_interrupt(void) {
     if (print_flag) {
         printf("1");
     }
-    //send EOI to PIC
+    if (counters[running_proc] > 0) {
+        counters[running_proc]--;
+        return;
+    }
+    counters[running_proc] = FREQ_MAX/frequency;
     flag = 0;
     count--;
-    send_eoi(RTC_IRQ);
+
 }
 
 /*
@@ -79,22 +109,8 @@ void rtc_handle_interrupt(void) {
 int32_t rtc_open(const uint8_t* filename) {
     frequency = FREQ_OP;
     rate = RT_OP;
-    //disable interrupts
-    cli();
-    // select register A, and disable NMI
-    outb(REGA, PORT1);
-    // read the current value of register B
-    char prev=inb(PORT2);
-    // set the index again (a read will reset the index to register D)
-    outb(REGA, PORT1);
-    // write only our rate to A. Note, rate is the bottom 4 bits.
-    outb((prev & 0xF0) | rate, PORT2);
-    //reinable NMI
-    outb(inb(PORT1) & RNMI, PORT1);
-    //garbage throw out to prevent RTC from going into undefined state
-    inb(PORT2);
-    // reenable interrupts
-    sti();
+    counters[running_proc] = FREQ_MAX/FREQ_OP;
+
     return 0;
 }
 
@@ -117,8 +133,9 @@ int32_t rtc_close(uint32_t fd) {
  * RETURN VALUE: 0
  */
 int32_t rtc_read(uint32_t fd, void* buf, int32_t nbytes) {
+
     flag = 1;
-    while (flag != 0){
+    while ((flag != 0)){
         continue;
     }
     return 0;
@@ -146,22 +163,7 @@ int32_t rtc_write(uint32_t fd, const void* buf, int32_t nbytes) {
         return -1;
     }
     rate = ret_rate(frequency);
-    //disable interrupts
-    cli();
-    // select register A, and disable NMI
-    outb(REGA, PORT1);
-    // read the current value of register B
-    char prev=inb(PORT2);
-    // set the index again (a read will reset the index to register D)
-    outb(REGA, PORT1);
-    // write only our rate to A. Note, rate is the bottom 4 bits.
-    outb((prev & 0xF0) | rate, PORT2);
-    //reinable NMI
-    outb(inb(PORT1) & RNMI, PORT1);
-    //garbage throw out to prevent RTC from going into undefined state
-    inb(PORT2);
-    // reenable interrupts
-    sti();
+    counters[running_proc] = FREQ_MAX/frequency;
     return 0;
 }
 

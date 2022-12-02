@@ -17,17 +17,19 @@
 #define RTC_IRQ 8
 
 #define FREQ_ST 1024
-#define FREQ_MAX 32768
+#define FREQ_MAX 8192
+#define RT_MAX 3
 #define RT_ST 6
 #define FREQ_OP 2
 #define RT_OP 15
 
-/* Externally-visible functions */
+int counters[3];
 int rate;
 int frequency;
 int count;
 int print_flag;
 
+/* Externally-visible functions */
 /* Initialize the RTC */
 void rtc_init(void);
 
