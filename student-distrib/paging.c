@@ -192,14 +192,14 @@ int alloc_new_process(){
 
  /*
   * zero_base
-  * DESCRIPTION: Sets process_in_use[0] to 0
+  * DESCRIPTION: Sets process_in_use[term] to 0
   * CALL IN HALT FOR BASE SHELL
-  * INPUTS: none
+  * INPUTS: terminal number
   * SIDE EFFECTS: none
   * RETURN VALUE: none
   */
-void zero_base(void) {
-    process_in_use[0] = 0;
+void zero_base(int term) {
+    process_in_use[term] = 0;
     return;
 }
 

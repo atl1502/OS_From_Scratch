@@ -42,8 +42,8 @@ int dealloc_process(int pid);
 // switch between processes
 int context_switch_paging(int pid);
 
-// zeros out process_in_use[0] for base case
-void zero_base(void);
+// zeros out process_in_use[term] for base case
+void zero_base(int term);
 
 // switch mapping of vid mem for multiple terminals
 void remap(int term);

@@ -3,10 +3,10 @@ set output-radix 16
 # add-symbol-file ../syscalls/counter.exe 0x8048094
 # b ece391counter.c:39
 # b ece391counter.c:40
-# b sys_execute
+b sys_halt
 # b update_cursor
 
-b context_switch
+# b context_switch
 # b context_switch if pid > 2
 # b terminal_read
 # display running_proc
