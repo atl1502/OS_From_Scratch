@@ -139,6 +139,7 @@ int32_t sys_execute (const uint8_t* command) {
 	int i = 0;
 	int j = 1;
 	int k = 0;
+	int l = 0;
 
 	// Temporary arrays to hold cmd and arg and store into pcb
 	uint8_t tmp_cmd[BUF_LEN];
@@ -165,11 +166,15 @@ int32_t sys_execute (const uint8_t* command) {
 	}
 
 	// Get command without args
-	while ((command[i] != '\0') && (command[i] != SPACE)) {
-		tmp_cmd[i] = command[i];
+	while ((command[i] != '\0') && (command[i] == SPACE)) {
 		i++;
 	}
-	tmp_cmd[i] = '\0'; // Terminate command string
+	while ((command[i] != '\0') && (command[i] != SPACE)) {
+		tmp_cmd[l] = command[i];
+		i++;
+		l++;
+	}
+	tmp_cmd[l] = '\0'; // Terminate command string
 
 	// Remove additional whitespace between command and args
 	for (; command[i] == SPACE; i++)
