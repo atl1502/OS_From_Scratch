@@ -22,6 +22,7 @@
 #define PROGRAM_VIRT_START 0x08048000
 #define PROGRAM_SIZE 0x400000-0x48000
 #define SPACE 32
+#define TAB 9
 
 #define ELF_HEADER 0x28
 #define FOUR_KB 0x1000

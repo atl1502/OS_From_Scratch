@@ -166,7 +166,7 @@ int32_t sys_execute (const uint8_t* command) {
 	}
 
 	// Get command without args
-	while ((command[i] != '\0') && (command[i] == SPACE)) {
+	while ((command[i] != '\0') && ((command[i] == SPACE)||(command[i] == TAB))) {
 		i++;
 	}
 	while ((command[i] != '\0') && (command[i] != SPACE)) {
