@@ -44,6 +44,8 @@ static fd_ops_t file_stdout = {
 	.close = terminal_close
 };
 
+static uint8_t clear_count = 0;
+
 /*
  * sys_halt
  * DESCRIPTION: terminates a process, returning the specified value to its parent process
@@ -282,7 +284,8 @@ int32_t sys_execute (const uint8_t* command) {
 
 
 	// Clear screen for base shell
-	if (proc_pid < 3) {
+	if (clear_count < 3) {
+		clear_count++;
 		clear();
 	}
 
