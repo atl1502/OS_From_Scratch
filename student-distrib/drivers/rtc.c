@@ -141,8 +141,6 @@ int32_t rtc_close(uint32_t fd) {
  * RETURN VALUE: 0
  */
 int32_t rtc_read(uint32_t fd, void* buf, int32_t nbytes) {
-
-    int i;
     
     flag[running_proc] = 1;
     while ((flag[running_proc] != 0)){
