@@ -105,7 +105,7 @@ int32_t dir_read(uint32_t fd, void * buf, int32_t nbytes) {
 	pcb_t* curr_pcb = get_pcb(pid);
 	fd_t* curr_fd = &(curr_pcb->fd_array[fd]);
 	// check buffer validity
-	if (!curr_fd || !buf || nbytes > FILESYSTEM_NAME_MAX)
+	if (!curr_fd || !buf)
 		return -1;
 	// read dentry values
 	read_dentry_by_index (curr_fd->file_position, &dentry);
