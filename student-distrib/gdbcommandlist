@@ -7,7 +7,8 @@ set output-radix 16
 # b ece391counter.c:40
 # b sys_read
 # b update_cursor
-b rtc_handle_interrupt
+# b rtc_handle_interrupt
+b sys_read
 
 # b context_switch
 # b context_switch if pid > 2

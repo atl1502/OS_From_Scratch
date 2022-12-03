@@ -169,7 +169,7 @@ int32_t sys_execute (const uint8_t* command) {
 	while ((command[i] != '\0') && ((command[i] == SPACE)||(command[i] == TAB))) {
 		i++;
 	}
-	while ((command[i] != '\0') && (command[i] != SPACE)) {
+	while ((command[i] != '\0') && (command[i] != SPACE) && (command[i] != TAB)) {
 		tmp_cmd[l] = command[i];
 		i++;
 		l++;
@@ -177,7 +177,7 @@ int32_t sys_execute (const uint8_t* command) {
 	tmp_cmd[l] = '\0'; // Terminate command string
 
 	// Remove additional whitespace between command and args
-	for (; command[i] == SPACE; i++)
+	for (; (command[i] == SPACE) || (command[i] == TAB); i++)
 		;
 	i--;
 
@@ -187,7 +187,7 @@ int32_t sys_execute (const uint8_t* command) {
 	}
 
 	// Get args without command
-	while (((i+j) < strlen((int8_t*)command)) && (command[i+j] != '\0')) {
+	while (((i+j) < strlen((int8_t*)command)) && (command[i+j] != '\0') && (command[i+j] != SPACE) && (command[i+j] != TAB)) {
 		tmp_arg[j-1] = command[i+j];
 		j++;
 	}
