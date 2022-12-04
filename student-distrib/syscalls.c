@@ -165,6 +165,12 @@ int32_t sys_execute (const uint8_t* command) {
 		return -1;
 	}
 
+	// zero tmp cmd and args buffers
+	for (k = 0; k < BUF_LEN; k++) {
+		tmp_cmd[k] = '\0';
+		tmp_arg[k] = '\0';
+	}
+
 	// Get command without args
 	while ((command[i] != '\0') && ((command[i] == SPACE)||(command[i] == TAB))) {
 		i++;
@@ -180,11 +186,6 @@ int32_t sys_execute (const uint8_t* command) {
 	for (; (command[i] == SPACE) || (command[i] == TAB); i++)
 		;
 	i--;
-
-	// Zero args buffer
-	for (k = 0; k < BUF_LEN; k++) {
-		tmp_arg[k] = '\0';
-	}
 
 	// Get args without command
 	while (((i+j) < strlen((int8_t*)command)) && (command[i+j] != '\0') && (command[i+j] != SPACE) && (command[i+j] != TAB)) {

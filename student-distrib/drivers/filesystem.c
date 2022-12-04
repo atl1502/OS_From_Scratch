@@ -107,6 +107,11 @@ int32_t dir_read(uint32_t fd, void * buf, int32_t nbytes) {
 	// check buffer validity
 	if (!curr_fd || !buf)
 		return -1;
+
+	// truncate if nbytes is longer than max
+	if (nbytes > FILESYSTEM_NAME_MAX)
+		nbytes = FILESYSTEM_NAME_MAX;
+
 	// read dentry values
 	read_dentry_by_index (curr_fd->file_position, &dentry);
 	// check if the file name is empty
