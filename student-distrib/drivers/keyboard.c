@@ -213,11 +213,11 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 	// Control L Clears Screen and rewrites terminal
 	else if (control_flag == 1 && scan_code == 0x26){
 		clear();
+		printf("391OS> ");
 		// reprint all chars in buffer
 		for (i = 0; i < keyboard_buffer_lens[term_num]; i++){
 			putc(keyboard_buffers[term_num][i]);
 		}
-		printf("391OS> ");
 	}
 	// Checks for backspace
 	else if (scan_code == 0x0E && keyboard_buffer_lens[term_num] > 0){
