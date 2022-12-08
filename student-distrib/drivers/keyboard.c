@@ -141,7 +141,7 @@ void keyboard_handle_interrupt(void) {
 			}
 			// Make sure valid ASCII to print
 			if (ascii != 0x00){
-				putc(ascii);
+				putc_colourised(ascii, 0xE);
 			}
 		}
 	}
@@ -167,6 +167,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 	char current;
 	char ascii = 0;
 	int i;
+	char prompt[7] = "391OS> ";
 	current = scan_code_array[scan_code];
 
 	/* Switching terminals if ALT && F(0-2) key */
@@ -213,10 +214,14 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 	// Control L Clears Screen and rewrites terminal
 	else if (control_flag == 1 && scan_code == 0x26){
 		clear();
-		printf("391OS> ");
+
+		// reprint "391OS> "
+		for (i = 0; i < sizeof(prompt); i++) {
+			putc_colourised(prompt[i], 0xF);
+		}
 		// reprint all chars in buffer
 		for (i = 0; i < keyboard_buffer_lens[term_num]; i++){
-			putc(keyboard_buffers[term_num][i]);
+			putc_colourised(keyboard_buffers[term_num][i], 0xE);
 		}
 	}
 	// Checks for backspace
@@ -287,7 +292,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 			}
 			// check if it is shift/alt/capslock
 			if (ascii != 0x00){
-				putc(ascii);
+				putc_colourised(ascii, 0xE);
 				keyboard_buffers[term_num][keyboard_buffer_lens[term_num]] = ascii;
 				keyboard_buffer_lens[term_num]++;
 			}

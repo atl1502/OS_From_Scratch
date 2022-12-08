@@ -15,6 +15,8 @@
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
+#define YELLOW		0xE
+#define BLUE_CURS	0x9
 #define FOURKB      0x1000
 
 // 2 bytes per ascii char (char and color)
@@ -50,7 +52,7 @@ void clear(void) {
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+        *(uint8_t *)(video_mem + (i << 1) + 1) = BLUE_CURS;
     }
     screen_x = 0;
     screen_y = 0;
@@ -288,6 +290,52 @@ void putc(uint8_t c) {
         return;
     }
     update_cursor(screen_x, screen_y);
+}
+
+/* void putc_colourised(uint8_t c, uint8_t forecolour);
+ * Inputs: uint_8* c = character to print, uint8_t forecolour = text colour in text mode 0
+ * Return Value: void
+ *  Function: Output a character to the console in the given forecolour */
+void putc_colourised(uint8_t c, uint8_t forecolour) {
+	uint8_t i;
+	if(c == '\n' || c == '\r') {
+		screen_y++;
+		screen_x = 0;
+	} else if (c == '\t'){
+		// print 4 spaces for the tab
+		for (i = 0; i <4 ; i++){
+			if(screen_x >= NUM_COLS)
+				break;
+			*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+			*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = forecolour;
+			screen_x++;
+		}
+	} else {
+		*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+		*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = forecolour;
+		screen_x++;
+	}
+	// move down to next line if it is over the x value
+	if(screen_x >= NUM_COLS){
+		screen_x = 0;
+		screen_y++;
+	}
+	// if at the end of the screen have the screen move down
+	if(screen_y >= NUM_ROWS){
+		// copy all but the top line into buffer
+		memcpy(screen_buff, video_mem+ROW_SIZE, SCREEN_SIZE - ROW_SIZE);
+		memcpy(video_mem, screen_buff, SCREEN_SIZE - ROW_SIZE);
+		int32_t i;
+		for (i = 0; i < NUM_COLS; i++) {
+			*(uint8_t *) (video_mem + (NUM_COLS * (NUM_ROWS - 1) * 2) + (i << 1)) = ' ';
+			*(uint8_t *) (video_mem + (NUM_COLS * (NUM_ROWS - 1) * 2) + (i << 1) + 1) = forecolour;
+		}
+		screen_y--;
+	}
+	if (term_num != running_proc && !kb_flag){
+		return;
+	}
+	update_cursor(screen_x, screen_y);
 }
 
 /* void removec();

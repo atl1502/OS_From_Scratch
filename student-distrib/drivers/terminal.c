@@ -66,7 +66,7 @@ int32_t terminal_write(uint32_t fd, const void* buf, int32_t nbytes) {
     // iterate through keyboard buffer and print character to screen
     for (i = 0; i < nbytes; i++) {
         if ( ((char *) buf)[i] != NULL ) {
-            putc( ((char *) buf)[i] );
+            putc_colourised( ((char *) buf)[i], LT_GREEN );
             bytes++; // byte written
         }
     }
