@@ -12,7 +12,9 @@
 #define KB_IRQ 1
 #define CAPS_OFFSET 0x20
 #define BUF_LEN 128
-#define TAB_SIZE 4
+#define TAB_SIZE
+#define YELLOW 0xE
+#define WHITE 0xF
 
 /* Externally-visible functions */
 

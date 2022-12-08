@@ -141,7 +141,7 @@ void keyboard_handle_interrupt(void) {
 			}
 			// Make sure valid ASCII to print
 			if (ascii != 0x00){
-				putc_colourised(ascii, 0xE);
+				putc_colourised(ascii, YELLOW);
 			}
 		}
 	}
@@ -217,11 +217,11 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 
 		// reprint "391OS> "
 		for (i = 0; i < sizeof(prompt); i++) {
-			putc_colourised(prompt[i], 0xF);
+			putc_colourised(prompt[i], WHITE);
 		}
 		// reprint all chars in buffer
 		for (i = 0; i < keyboard_buffer_lens[term_num]; i++){
-			putc_colourised(keyboard_buffers[term_num][i], 0xE);
+			putc_colourised(keyboard_buffers[term_num][i], YELLOW);
 		}
 	}
 	// Checks for backspace
@@ -292,7 +292,7 @@ void keyboard_handle_interrupt_buffer(uint8_t scan_code){
 			}
 			// check if it is shift/alt/capslock
 			if (ascii != 0x00){
-				putc_colourised(ascii, 0xE);
+				putc_colourised(ascii, YELLOW);
 				keyboard_buffers[term_num][keyboard_buffer_lens[term_num]] = ascii;
 				keyboard_buffer_lens[term_num]++;
 			}
